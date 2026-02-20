@@ -1,23 +1,52 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
+import ProfileSetup from "./pages/ProfileSetup";
+import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [perfil, setPerfil] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function checkUser() {
+    async function iniciar() {
       const { data } = await supabase.auth.getSession();
-      setUser(data.session?.user || null);
+      const currentUser = data.session?.user;
+
+      setUser(currentUser);
+
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+
+      const { data: perfilData } = await supabase
+        .from("perfis_atletas")
+        .select("*")
+        .eq("auth_id", currentUser.id)
+        .single();
+
+      setPerfil(perfilData);
+      setLoading(false);
     }
-    checkUser();
+
+    iniciar();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    return () => listener.subscription.unsubscribe();
   }, []);
 
-  if (!user) return <h2>Usuário não autenticado</h2>;
+  if (loading) return <div>Carregando...</div>;
 
-  return (
-    <div style={{ padding: 40 }}>
-      <h1>AGP Sports Intelligence</h1>
-      <p>Login funcionando ✅</p>
-    </div>
-  );
+  if (!user) return <Login />;
+
+  if (!perfil) return <ProfileSetup user={user} />;
+
+  return <Dashboard user={user} perfil={perfil} />;
 }

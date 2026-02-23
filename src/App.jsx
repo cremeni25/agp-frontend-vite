@@ -33,13 +33,13 @@ export default function App() {
 
     iniciar();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null);
       }
     );
 
-    return () => listener.subscription.unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
   if (loading) return <div>Carregando...</div>;

@@ -1,11 +1,10 @@
 import "../styles/home.css";
-import homeImage from "../assets/home-agp.jpg";
 
 export default function Home({ onEnter }) {
   return (
     <div className="home-container">
       <img
-        src={homeImage}
+        src="/home-agp.jpg"
         alt="AGP Sports Intelligence Platform"
         className="home-background"
       />

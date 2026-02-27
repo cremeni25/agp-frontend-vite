@@ -1,59 +1,57 @@
-import { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
+import React from "react";
 
-export default function Dashboard() {
-  const [perfil, setPerfil] = useState(null);
-  const [loading, setLoading] = useState(true);
+export default function Dashboard({ user, perfil }) {
+  const commercialState = perfil?.commercial_state;
+  const isExpired = commercialState === "expired";
 
-  useEffect(() => {
-    carregarPerfil();
-  }, []);
-
-  async function carregarPerfil() {
-    const {
-      data: { session }
-    } = await supabase.auth.getSession();
-
-    if (!session) return;
-
-    const userId = session.user.id;
-
-    const { data } = await supabase
-      .from("perfis_atletas")
-      .select("*")
-      .eq("auth_id", userId)
-      .single();
-
-    setPerfil(data);
-    setLoading(false);
-  }
-
-  async function logout() {
-    await supabase.auth.signOut();
-    window.location.reload();
-  }
-
-  if (loading) {
-    return <div style={{ padding: 40 }}>Carregando...</div>;
-  }
+  const labels = {
+    trial: "Acesso inicial (Trial)",
+    active: "Plano ativo",
+    expired: "Acesso expirado",
+  };
 
   return (
-    <div style={{ padding: 40 }}>
+    <div style={{ padding: 24 }}>
+      {/* Badge de estado comercial */}
+      <div
+        style={{
+          display: "inline-block",
+          padding: "6px 10px",
+          borderRadius: 6,
+          background: "#0f172a",
+          color: "#fff",
+          fontSize: 12,
+          marginBottom: 20,
+        }}
+      >
+        {labels[commercialState] ?? "Estado indefinido"}
+      </div>
+
       <h1>Dashboard</h1>
 
-      {perfil && (
-        <>
-          <p><strong>Nome:</strong> {perfil.nome}</p>
-          <p><strong>Função:</strong> {perfil.funcao}</p>
-          <p><strong>Clube:</strong> {perfil.clube}</p>
-          <p><strong>Esporte:</strong> {perfil.esporte}</p>
-          <p><strong>Idade:</strong> {perfil.idade}</p>
-        </>
-      )}
+      {/* Área de escrita */}
+      <div
+        style={{
+          marginTop: 20,
+          opacity: isExpired ? 0.5 : 1,
+          pointerEvents: isExpired ? "none" : "auto",
+        }}
+      >
+        <button style={{ padding: "10px 16px" }}>
+          Inserir dados
+        </button>
 
-      <button onClick={logout}>
-        Sair
-      </button>
+        {isExpired && (
+          <div style={{ marginTop: 8, fontSize: 12 }}>
+            Escrita desabilitada por condição comercial.
+          </div>
+        )}
+      </div>
+
+      {/* Área de leitura */}
+      <div style={{ marginTop: 40 }}>
+        <p>Visualização de dados sempre disponível.</p>
+      </div>
     </div>
   );
 }

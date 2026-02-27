@@ -1,15 +1,11 @@
-import "../styles/Home.css";
+import "../styles/home.css";
 
 export default function Home() {
   return (
     <div className="home-container">
-      {/* Background neutro (arte entra depois) */}
-      <div className="home-background" />
+      <div className="home-background"></div>
+      <div className="home-overlay"></div>
 
-      {/* Overlay para contraste */}
-      <div className="home-overlay" />
-
-      {/* Conteúdo */}
       <div className="home-content">
         <h1 className="home-title">AGP</h1>
         <h2 className="home-subtitle">Sports Intelligence Platform</h2>

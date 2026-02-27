@@ -1,27 +1,27 @@
-import "../styles/home.css";
+import "../styles/Home.css";
 
-export default function Home({ onEnter }) {
+export default function Home() {
   return (
     <div className="home-container">
-      <img
-        src="/home-agp.jpg"
-        alt="AGP Sports Intelligence Platform"
-        className="home-background"
-      />
+      {/* Background neutro (arte entra depois) */}
+      <div className="home-background" />
 
-      <div className="home-overlay">
+      {/* Overlay para contraste */}
+      <div className="home-overlay" />
+
+      {/* Conteúdo */}
+      <div className="home-content">
         <h1 className="home-title">AGP</h1>
-        <h2 className="home-subtitle">SPORTS INTELLIGENCE PLATFORM</h2>
+        <h2 className="home-subtitle">Sports Intelligence Platform</h2>
 
-        <p className="home-slogan">
+        <p className="home-description">
           Transformando dados em decisões esportivas
         </p>
 
-        <p className="home-description">
-          Uma plataforma inteligente para atletas, técnicos, clubes e gestão estratégica.
-        </p>
-
-        <button className="home-button" onClick={onEnter}>
+        <button
+          className="home-button"
+          onClick={() => (window.location.href = "/login")}
+        >
           Entrar no sistema
         </button>
       </div>

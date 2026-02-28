@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
 import ProfileSelect from "./ProfileSelect";
+import "../styles/login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -24,7 +25,6 @@ export default function Login() {
 
     const userId = data.user.id;
 
-    // 🔍 Busca o perfil do usuário
     const { data: perfil, error: perfilError } = await supabase
       .from("perfis")
       .select("role")
@@ -36,24 +36,19 @@ export default function Login() {
       return;
     }
 
-    // 🚦 Roteamento definitivo por perfil
     switch (perfil.role) {
       case "athlete":
         window.location.href = "/dashboard-atleta";
         break;
-
       case "coach":
         window.location.href = "/dashboard-comissao";
         break;
-
       case "club":
         window.location.href = "/dashboard-clube";
         break;
-
       case "master":
         window.location.href = "/dashboard-master";
         break;
-
       default:
         setMsg("Perfil inválido.");
     }
@@ -78,31 +73,33 @@ export default function Login() {
 
   return (
     <div className="login-container">
-      <form onSubmit={entrar} className="login-box">
-        <h2>AGP</h2>
+      <div className="login-overlay">
+        <form onSubmit={entrar} className="login-box">
+          <h2>AGP</h2>
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-        />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+          />
 
-        <input
-          type="password"
-          placeholder="Senha"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-        />
+          <input
+            type="password"
+            placeholder="Senha"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+          />
 
-        <button type="submit">Entrar</button>
+          <button type="submit">Entrar</button>
 
-        <button type="button" onClick={cadastrar}>
-          Criar conta
-        </button>
+          <button type="button" onClick={cadastrar}>
+            Criar conta
+          </button>
 
-        {msg && <p>{msg}</p>}
-      </form>
+          {msg && <p>{msg}</p>}
+        </form>
+      </div>
     </div>
   );
 }

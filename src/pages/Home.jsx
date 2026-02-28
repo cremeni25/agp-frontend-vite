@@ -16,9 +16,12 @@ export default function Home() {
             alt="AGP"
             className="logo-agp-img"
           />
-          <div className="logo-subtitle">
-            Sports Intelligence Platform
-          </div>
+          <div
+  className="logo-subtitle"
+  style={{ transform: "translateY(-56px)" }}
+>
+  Sports Intelligence Platform
+</div>
         </div>
 
         {/* BLOCO INFERIOR — TEXTO + CTA */}

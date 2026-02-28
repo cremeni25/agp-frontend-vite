@@ -8,26 +8,29 @@ export default function Home() {
   return (
     <div className="home-container">
       <div className="home-overlay">
-        <h1 className="logo-agp">AGP</h1>
 
-        <h2 className="subtitle">
-          SPORTS INTELLIGENCE PLATFORM
-        </h2>
+        <div className="home-header">
+          <div className="logo-agp">AGP</div>
+          <div className="subtitle">SPORTS INTELLIGENCE PLATFORM</div>
+        </div>
 
-        <p className="hero">
-          Transformando dados em decisões esportivas
-        </p>
+        <div className="home-content">
+          <div className="hero">
+            Transformando dados em decisões esportivas
+          </div>
 
-        <p className="description">
-          Uma plataforma inteligente para atletas, técnicos, clubes e gestão estratégica.
-        </p>
+          <div className="description">
+            Uma plataforma inteligente para atletas, técnicos, clubes e gestão estratégica.
+          </div>
 
-        <button
-          className="cta"
-          onClick={() => navigate("/login")}
-        >
-          Entrar no sistema
-        </button>
+          <button
+            className="cta"
+            onClick={() => navigate("/login")}
+          >
+            Entrar no sistema
+          </button>
+        </div>
+
       </div>
     </div>
   );

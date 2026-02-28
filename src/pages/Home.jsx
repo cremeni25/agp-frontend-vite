@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import { useNavigate } from "react-router-dom";
 import "../styles/home.css";
 
@@ -9,26 +8,23 @@ export default function Home() {
     <div className="home-container">
       <div className="home-overlay">
 
-        {/* TOPO INSTITUCIONAL */}
-        <div className="home-header">
+        {/* LOGO – ALINHADO À CABEÇA DA SILHUETA */}
+        <header className="home-header">
           <div className="logo-agp">AGP</div>
           <div className="logo-subtitle">
             SPORTS INTELLIGENCE PLATFORM
           </div>
-        </div>
+        </header>
 
-        {/* ESPAÇO DA SILHUETA */}
-        <div className="silhouette-spacer" />
-
-        {/* MENSAGEM + CTA */}
-        <div className="home-hero">
-          <div className="hero-title">
+        {/* TEXTO – ALINHADO AOS PÉS DA SILHUETA */}
+        <section className="home-hero">
+          <h1 className="hero-title">
             Transformando dados em decisões esportivas
-          </div>
+          </h1>
 
-          <div className="hero-description">
+          <p className="hero-description">
             Uma plataforma inteligente para atletas, técnicos, clubes e gestão estratégica.
-          </div>
+          </p>
 
           <button
             className="cta"
@@ -36,7 +32,7 @@ export default function Home() {
           >
             Entrar no sistema
           </button>
-        </div>
+        </section>
 
       </div>
     </div>

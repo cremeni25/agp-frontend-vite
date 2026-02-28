@@ -1,86 +1,80 @@
+// src/pages/DashboardComissao.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import "../styles/dashboard-comissao.css";
 
 export default function DashboardComissao() {
-  const [loading, setLoading] = useState(true);
-  const [perfil, setPerfil] = useState(null);
   const [atletas, setAtletas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function carregarDados() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData.session?.user;
-      if (!user) return;
+    async function carregarAtletas() {
+      const {
+        data: { session }
+      } = await supabase.auth.getSession();
 
-      // Perfil da comissão
-      const { data: perfilComissao } = await supabase
-        .from("perfis_comissao")
-        .select("nome, commercial_state, access_level")
-        .eq("auth_id", user.id)
-        .single();
+      if (!session) {
+        window.location.href = "/";
+        return;
+      }
 
-      setPerfil(perfilComissao);
-
-      // Atletas sob responsabilidade (visão técnica)
-      const { data: atletasData } = await supabase
+      // ⚠️ Exemplo simples — depois refinamos filtros
+      const { data, error } = await supabase
         .from("perfis_atletas")
-        .select("id, nome, risco_atual, carga_atual")
-        .eq("comissao_id", user.id);
+        .select("id, nome, categoria, status");
 
-      setAtletas(atletasData || []);
+      if (!error) {
+        setAtletas(data);
+      }
+
       setLoading(false);
     }
 
-    carregarDados();
+    carregarAtletas();
   }, []);
 
-  if (loading) return <div>Carregando dashboard técnico...</div>;
+  if (loading) {
+    return (
+      <div className="dashboard-loading">
+        Carregando comissão técnica...
+      </div>
+    );
+  }
 
   return (
-    <div style={{ padding: 32 }}>
-      <h1>Dashboard — Comissão Técnica</h1>
+    <div className="dashboard-comissao">
+      <div className="dashboard-overlay">
 
-      <section style={{ marginTop: 24 }}>
-        <h3>Perfil</h3>
-        <p><strong>Responsável:</strong> {perfil?.nome}</p>
-        <p><strong>Status comercial:</strong> {perfil?.commercial_state}</p>
-        <p><strong>Nível de acesso:</strong> {perfil?.access_level}</p>
-      </section>
+        <header className="dashboard-header">
+          <h1>Dashboard Comissão Técnica</h1>
+          <span>Visão geral dos atletas</span>
+        </header>
 
-      <section style={{ marginTop: 32 }}>
-        <h3>Visão Coletiva de Atletas</h3>
-        {atletas.length === 0 && <p>Nenhum atleta vinculado.</p>}
+        <section className="dashboard-section">
+          <h2>Atletas</h2>
 
-        {atletas.map((a) => (
-          <div
-            key={a.id}
-            style={{
-              padding: 12,
-              marginBottom: 8,
-              border: "1px solid #ddd",
-              borderRadius: 6
-            }}
-          >
-            <p><strong>{a.nome}</strong></p>
-            <p>Risco atual: {a.risco_atual ?? "—"}</p>
-            <p>Carga atual: {a.carga_atual ?? "—"}</p>
+          <div className="athlete-grid">
+            {atletas.map(atleta => (
+              <div key={atleta.id} className={`athlete-card ${atleta.status || "ok"}`}>
+                <h3>{atleta.nome}</h3>
+                <p>{atleta.categoria}</p>
+                <span className="status">{atleta.status || "OK"}</span>
+                <button>Ver atleta</button>
+              </div>
+            ))}
           </div>
-        ))}
-      </section>
+        </section>
 
-      <section style={{ marginTop: 32 }}>
-        <h3>Alertas Sistêmicos</h3>
-        <p>(em breve: alertas de sobrecarga, tendência e recuperação)</p>
-      </section>
+        <section className="dashboard-section">
+          <h2>Alertas</h2>
+          <ul className="alert-list">
+            <li>⚠️ Atletas com carga elevada</li>
+            <li>⏱️ Diários não preenchidos</li>
+            <li>🚑 Possível risco de lesão</li>
+          </ul>
+        </section>
 
-      <section style={{ marginTop: 32 }}>
-        <h3>Distribuição de Carga</h3>
-        <p>(em breve: visão agregada por grupo/categoria)</p>
-      </section>
-
-      <section style={{ marginTop: 32 }}>
-        <button>Emitir relatório técnico</button>
-      </section>
+      </div>
     </div>
   );
 }

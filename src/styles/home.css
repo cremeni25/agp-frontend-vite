@@ -11,7 +11,7 @@
   overflow: hidden;
 }
 
-/* Overlay principal */
+/* OVERLAY */
 .home-overlay {
   position: absolute;
   inset: 0;
@@ -20,75 +20,81 @@
     rgba(0, 0, 0, 0.35) 0%,
     rgba(0, 0, 0, 0.75) 75%
   );
-  display: flex;
-  flex-direction: column;
   color: #ffffff;
 }
 
-/* =====================================================
-   BLOCO SUPERIOR — AGP LATERAL (GEOMETRIA POR RÉGUA)
-   ===================================================== */
+/* =========================
+   BLOCO DO LOGO (AGP)
+   ========================= */
 
 .brand-block {
   position: absolute;
-  top: 16%;              /* sobe ~6cm em relação ao estado anterior */
-  left: 0;
-  width: 25vw;           /* espaço mão → borda (régua: 25cm) */
-  display: flex;
-  flex-direction: column;
-  align-items: center;   /* garante centro matemático */
-  text-align: center;
-  margin-left: calc(25vw / 2);
+
+  /* REFERÊNCIA GEOMÉTRICA DA SILHUETA */
+  /* Horizontal:
+     - usamos a silhueta como régua
+     - centro do AGP em ~62.5% da largura da imagem total
+     (equivalente a 125% da distância entre as mãos, ancorado visualmente)
+  */
+  left: 62.5%;
   transform: translateX(-50%);
-  pointer-events: none;
+
+  /* Vertical:
+     - sobe o AGP +100% da própria altura
+     - alinhando melhor com a linha dos olhos
+  */
+  top: 22%;
+
+  text-align: center;
 }
 
-/* Logo AGP */
+/* LOGO AGP */
 .logo-agp-img {
-  width: 12cm;           /* largura física próxima à régua (AGP ≈ 12cm) */
-  max-width: 42vw;       /* proteção responsiva */
+  width: clamp(380px, 30vw, 520px);
   height: auto;
+  display: block;
+  margin: 0 auto;
 }
 
-/* Subtítulo — exatamente 1cm abaixo */
+/* SUBTÍTULO */
 .logo-subtitle {
-  margin-top: 1cm;       /* conforme especificado */
-  font-size: clamp(16px, 1.4vw, 22px);
+  margin-top: 40%; /* ≈40% da altura do AGP */
+  font-size: clamp(15px, 1.4vw, 20px);
   letter-spacing: 0.32em;
   text-transform: uppercase;
   color: rgba(235, 245, 255, 0.9);
 }
 
-/* =====================================================
-   BLOCO INFERIOR — TEXTO + CTA (INALTERADO)
-   ===================================================== */
+/* =========================
+   BLOCO INFERIOR
+   ========================= */
 
 .content-block {
-  margin-top: auto;
-  margin-bottom: 64px;
+  position: absolute;
+  bottom: 64px;
+  left: 50%;
+  transform: translateX(-50%);
   text-align: center;
   padding: 0 24px;
 }
 
 .hero-title {
-  font-size: clamp(20px, 1.9vw, 28px);
+  font-size: clamp(22px, 2.1vw, 30px);
   font-weight: 500;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .hero-description {
-  font-size: clamp(15px, 1.5vw, 19px);
+  font-size: clamp(16px, 1.6vw, 20px);
   color: rgba(220, 230, 255, 0.85);
   max-width: 760px;
   margin: 0 auto;
 }
 
-/* =====================================================
-   CTA
-   ===================================================== */
+/* CTA */
 
 .cta {
-  margin-top: 26px;
+  margin-top: 30px;
   padding: 14px 36px;
   border-radius: 8px;
   border: 1px solid rgba(160, 200, 255, 0.6);

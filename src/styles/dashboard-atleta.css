@@ -1,0 +1,89 @@
+/* Container base */
+.dashboard-atleta {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+/* Background por esporte */
+.dashboard-atleta.swimming {
+  background-image: url("/sports/swimming.png");
+}
+
+.dashboard-atleta.athletics {
+  background-image: url("/sports/athletics.png");
+}
+
+.dashboard-atleta.football {
+  background-image: url("/sports/football.png");
+}
+
+.dashboard-atleta.basketball {
+  background-image: url("/sports/basketball.png");
+}
+
+.dashboard-atleta.volleyball {
+  background-image: url("/sports/volleyball.png");
+}
+
+/* Overlay institucional */
+.dashboard-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(5, 15, 35, 0.6),
+    rgba(2, 6, 18, 0.9)
+  );
+  color: #eaf6ff;
+  padding: 32px;
+  overflow-y: auto;
+}
+
+/* Header */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.dashboard-header h1 {
+  font-size: 24px;
+}
+
+/* Seções */
+.dashboard-section {
+  margin-bottom: 32px;
+}
+
+.dashboard-section h2 {
+  margin-bottom: 12px;
+}
+
+/* Botões */
+.dashboard-section button {
+  margin-right: 12px;
+  padding: 10px 18px;
+  border-radius: 6px;
+  border: 1px solid rgba(58,169,255,0.5);
+  background: rgba(20,40,70,0.6);
+  color: #eaf6ff;
+  cursor: pointer;
+}
+
+.dashboard-section button:hover {
+  box-shadow: 0 0 15px rgba(58,169,255,0.4);
+}
+
+/* Loading */
+.dashboard-loading {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #eaf6ff;
+}

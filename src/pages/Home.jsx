@@ -8,7 +8,14 @@ export default function Home() {
 
   return (
     <div className="home-container">
-      <div className="home-overlay">
+      {/* Background técnico */}
+      <div className="home-background" />
+
+      {/* Overlay */}
+      <div className="home-overlay" />
+
+      {/* Conteúdo */}
+      <div className="home-content">
         <h1 className="home-title">AGP</h1>
 
         <h2 className="home-subtitle">

@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
+// Pages
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import ProfileSetup from "./pages/ProfileSetup";
@@ -10,25 +11,84 @@ import DashboardComissao from "./pages/DashboardComissao";
 import DashboardClube from "./pages/DashboardClube";
 import DashboardMaster from "./pages/DashboardMaster";
 
-export default function App() {
+// Guards
+import AuthGuard from "./guards/AuthGuard";
+import ProfileGuard from "./guards/ProfileGuard";
+import CommercialStateGuard from "./guards/CommercialStateGuard";
+
+function App() {
   return (
     <Routes>
-      {/* ROTAS PÚBLICAS */}
+      {/* Rotas públicas */}
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
 
-      {/* ROTAS DIRETAS (GUARDA TEMPORÁRIA VIA BACKEND/SUPABASE) */}
-      <Route path="/atleta" element={<DashboardAtleta />} />
-      <Route path="/comissao" element={<DashboardComissao />} />
-      <Route path="/clube" element={<DashboardClube />} />
-      <Route path="/master" element={<DashboardMaster />} />
+      {/* Setup de perfil */}
+      <Route
+        path="/profile-setup"
+        element={
+          <AuthGuard>
+            <ProfileSetup />
+          </AuthGuard>
+        }
+      />
 
-      {/* SETUP DE PERFIL */}
-      <Route path="/setup" element={<ProfileSetup />} />
+      {/* Dashboards protegidos */}
+      <Route
+        path="/dashboard/atleta"
+        element={
+          <AuthGuard>
+            <ProfileGuard>
+              <CommercialStateGuard>
+                <DashboardAtleta />
+              </CommercialStateGuard>
+            </ProfileGuard>
+          </AuthGuard>
+        }
+      />
 
-      {/* FALLBACK */}
+      <Route
+        path="/dashboard/comissao"
+        element={
+          <AuthGuard>
+            <ProfileGuard>
+              <CommercialStateGuard>
+                <DashboardComissao />
+              </CommercialStateGuard>
+            </ProfileGuard>
+          </AuthGuard>
+        }
+      />
+
+      <Route
+        path="/dashboard/clube"
+        element={
+          <AuthGuard>
+            <ProfileGuard>
+              <CommercialStateGuard>
+                <DashboardClube />
+              </CommercialStateGuard>
+            </ProfileGuard>
+          </AuthGuard>
+        }
+      />
+
+      <Route
+        path="/dashboard/master"
+        element={
+          <AuthGuard>
+            <ProfileGuard>
+              <DashboardMaster />
+            </ProfileGuard>
+          </AuthGuard>
+        }
+      />
+
+      {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
+
+export default App;

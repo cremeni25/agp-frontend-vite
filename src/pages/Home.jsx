@@ -1,7 +1,7 @@
 // src/pages/Home.jsx
 import { useNavigate } from "react-router-dom";
 import "../styles/home.css";
-import agpLogo from "/agp-logo.jpg"; // ajuste o nome se necessário
+import agpLogo from "/agp-logo.png";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -10,8 +10,8 @@ export default function Home() {
     <div className="home-container">
       <div className="home-overlay">
 
-        {/* LOGO INSTITUCIONAL */}
-        <div className="home-header">
+        {/* BLOCO SUPERIOR — LOGO + SUBTÍTULO */}
+        <div className="brand-block">
           <img
             src={agpLogo}
             alt="AGP"
@@ -22,11 +22,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ESPAÇO VISUAL DA SILHUETA */}
-        <div className="silhouette-spacer" />
+        {/* CORPO INFERIOR — TEXTO + CTA */}
+        <div className="content-block">
 
-        {/* TEXTO PRINCIPAL + CTA */}
-        <div className="home-hero">
           <div className="hero-title">
             Transformando dados em decisões esportivas
           </div>
@@ -41,6 +39,7 @@ export default function Home() {
           >
             Entrar no sistema
           </button>
+
         </div>
 
       </div>

@@ -14,48 +14,90 @@
 .home-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 0, 0, 0.35) 0%,
+    rgba(0, 0, 0, 0.7) 70%
+  );
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
   color: #ffffff;
-  padding: 1.5rem;
+  padding: 2rem;
 }
 
+/* LOGO */
 .logo-agp {
-  font-size: 64px;
+  font-size: 72px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  background: linear-gradient(90deg, #3AA9FF, #7FE9FF);
+  margin-bottom: 0.5rem;
+  background: linear-gradient(90deg, #3aa9ff, #7fe9ff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 20px rgba(58,169,255,0.6);
+  text-shadow: 0 0 24px rgba(58, 169, 255, 0.65);
 }
 
+/* SUBTITLE */
 .subtitle {
-  letter-spacing: 0.25em;
+  font-size: 16px;
+  letter-spacing: 0.28em;
+  color: #cfefff;
   opacity: 0.85;
-  margin-bottom: 1rem;
+  margin-bottom: 2.5rem;
 }
 
+/* HERO */
 .hero {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+  font-size: 2.4rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
 }
 
+/* DESCRIPTION */
 .description {
-  max-width: 640px;
+  max-width: 680px;
+  font-size: 1rem;
+  line-height: 1.6;
   opacity: 0.9;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
+/* CTA BUTTON */
 .cta {
-  padding: 14px 32px;
+  padding: 14px 36px;
   border-radius: 8px;
-  border: 1px solid #3AA9FF;
-  background: rgba(20,40,70,0.6);
-  color: #EAF6FF;
+  border: 1px solid #3aa9ff;
+  background: rgba(20, 40, 70, 0.55);
+  color: #eaf6ff;
+  font-size: 16px;
   cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.cta:hover {
+  box-shadow: 0 0 22px rgba(58, 169, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .logo-agp {
+    font-size: 56px;
+  }
+
+  .hero {
+    font-size: 1.8rem;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .description {
+    font-size: 0.95rem;
+  }
 }

@@ -24,23 +24,18 @@
 }
 
 /* =========================
-   BLOCO AGP (ESQUERDA)
+   BLOCO AGP (POSIÇÃO JÁ VALIDADA)
    ========================= */
 
 .brand-block {
   position: absolute;
-
-  /* CENTRO DO AGP NO CENTRO DO ESPAÇO VAZIO À ESQUERDA */
   left: 22%;
   transform: translateX(-50%);
-
-  /* SOBE PARA PRÓXIMO DA LINHA DOS OLHOS */
   top: 26%;
-
   text-align: center;
 }
 
-/* LOGO AGP */
+/* LOGO AGP — NÃO MEXER */
 .logo-agp-img {
   width: clamp(360px, 28vw, 500px);
   height: auto;
@@ -48,9 +43,9 @@
   margin: 0 auto;
 }
 
-/* SUBTÍTULO */
+/* SUBTÍTULO — AJUSTE FINAL (APENAS LINHA) */
 .logo-subtitle {
-  margin-top: 18px;
+  margin-top: 12px; /* MESMA DISTÂNCIA DO BLOCO INFERIOR */
   font-size: clamp(15px, 1.3vw, 20px);
   letter-spacing: 0.32em;
   text-transform: uppercase;

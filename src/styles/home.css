@@ -39,9 +39,9 @@
   margin: 0 auto;
 }
 
-/* 🔧 ÚNICA CORREÇÃO REAL */
+/* 🔧 AJUSTE ÚNICO E REAL */
 .logo-subtitle {
-  margin-top: -18px; /* SOBE O TEXTO — AJUSTE FINO */
+  margin-top: -32px; /* SOBE A FRASE — ajuste fino vertical */
   font-size: clamp(15px, 1.3vw, 20px);
   letter-spacing: 0.32em;
   text-transform: uppercase;

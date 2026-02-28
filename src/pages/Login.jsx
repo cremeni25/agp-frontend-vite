@@ -1,11 +1,13 @@
 // src/pages/Login.jsx
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
+import ProfileSelect from "./ProfileSelect";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
+  const [logged, setLogged] = useState(false);
 
   async function entrar(e) {
     e.preventDefault();
@@ -18,7 +20,7 @@ export default function Login() {
     if (error) {
       setMsg(error.message);
     } else {
-      window.location.href = "/dashboard";
+      setLogged(true);
     }
   }
 
@@ -33,6 +35,10 @@ export default function Login() {
     } else {
       setMsg("Usuário criado com sucesso. Faça login.");
     }
+  }
+
+  if (logged) {
+    return <ProfileSelect />;
   }
 
   return (
@@ -54,9 +60,7 @@ export default function Login() {
         onChange={e => setPassword(e.target.value)}
       />
 
-      <button className="login-button">
-        Entrar
-      </button>
+      <button className="login-button">Entrar</button>
 
       <button
         type="button"

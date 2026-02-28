@@ -12,7 +12,6 @@
 }
 
 /* Overlay principal */
-
 .home-overlay {
   position: absolute;
   inset: 0;
@@ -26,35 +25,43 @@
   color: #ffffff;
 }
 
-/* ===============================
-   BLOCO SUPERIOR — LOGO LATERAL
-   =============================== */
+/* =====================================================
+   BLOCO SUPERIOR — AGP LATERAL (GEOMETRIA POR RÉGUA)
+   ===================================================== */
 
 .brand-block {
   position: absolute;
-  top: 22%; /* linha aproximada dos olhos da silhueta */
-  left: 6%;
-  width: 38vw;
+  top: 16%;              /* sobe ~6cm em relação ao estado anterior */
+  left: 0;
+  width: 25vw;           /* espaço mão → borda (régua: 25cm) */
+  display: flex;
+  flex-direction: column;
+  align-items: center;   /* garante centro matemático */
   text-align: center;
+  margin-left: calc(25vw / 2);
+  transform: translateX(-50%);
   pointer-events: none;
 }
 
+/* Logo AGP */
 .logo-agp-img {
-  width: clamp(420px, 34vw, 560px);
+  width: 12cm;           /* largura física próxima à régua (AGP ≈ 12cm) */
+  max-width: 42vw;       /* proteção responsiva */
   height: auto;
-  margin-bottom: 8px;
 }
 
+/* Subtítulo — exatamente 1cm abaixo */
 .logo-subtitle {
+  margin-top: 1cm;       /* conforme especificado */
   font-size: clamp(16px, 1.4vw, 22px);
   letter-spacing: 0.32em;
   text-transform: uppercase;
   color: rgba(235, 245, 255, 0.9);
 }
 
-/* ===============================
-   BLOCO INFERIOR — TEXTO + CTA
-   =============================== */
+/* =====================================================
+   BLOCO INFERIOR — TEXTO + CTA (INALTERADO)
+   ===================================================== */
 
 .content-block {
   margin-top: auto;
@@ -76,9 +83,9 @@
   margin: 0 auto;
 }
 
-/* ===============================
+/* =====================================================
    CTA
-   =============================== */
+   ===================================================== */
 
 .cta {
   margin-top: 26px;

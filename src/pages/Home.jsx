@@ -12,7 +12,7 @@ export default function Home() {
         {/* BLOCO SUPERIOR — LOGO + SUBTÍTULO */}
         <div
           className="brand-block"
-          style={{ transform: "translateX(-520px)" }}
+          style={{ transform: "translateX(-27vw)" }}
         >
           <img
             src="/agp-logo.jpg"

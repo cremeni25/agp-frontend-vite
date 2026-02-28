@@ -5,16 +5,14 @@
   right: 6vw;
   top: 22vh;
 
-  width: 360px;
+  width: 300px;
 
   background: rgba(15, 30, 55, 0.6);
   backdrop-filter: blur(12px);
   border-radius: 14px;
-  padding: 28px;
+  padding: 24px;
 
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  z-index: 10;
 }
 
 .auth-block form {
@@ -27,7 +25,6 @@
   padding: 12px;
   border-radius: 6px;
   border: none;
-  outline: none;
 }
 
 .auth-block button {
@@ -36,11 +33,6 @@
   background: rgba(20, 40, 70, 0.6);
   border: 1px solid rgba(150, 190, 255, 0.6);
   color: #eaf6ff;
-  cursor: pointer;
-}
-
-.auth-block button:hover {
-  box-shadow: 0 0 14px rgba(120, 180, 255, 0.4);
 }
 
 .auth-block .link {
@@ -51,25 +43,6 @@
 }
 
 .auth-block .msg {
-  font-size: 14px;
+  font-size: 13px;
   color: #ffbcbc;
-}
-
-/* Tablet */
-@media (max-width: 1024px) {
-  .auth-block {
-    right: 4vw;
-    top: 20vh;
-    width: 320px;
-  }
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-  .auth-block {
-    position: relative;
-    right: auto;
-    top: auto;
-    margin: 6vh auto 0;
-  }
 }

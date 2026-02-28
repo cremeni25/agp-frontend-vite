@@ -10,23 +10,26 @@ export default function Home() {
       <div className="home-overlay">
 
         {/* BLOCO SUPERIOR — LOGO + SUBTÍTULO */}
-        <div className="brand-block">
+        <div
+          className="brand-block"
+          style={{ transform: "translateX(-160px)" }}
+        >
           <img
             src="/agp-logo.jpg"
             alt="AGP"
             className="logo-agp-img"
           />
+
           <div
-  className="logo-subtitle"
-  style={{ transform: "translateY(-72px)" }}
->
-  Sports Intelligence Platform
-</div>
+            className="logo-subtitle"
+            style={{ transform: "translateY(-72px)" }}
+          >
+            Sports Intelligence Platform
+          </div>
         </div>
 
         {/* BLOCO INFERIOR — TEXTO + CTA */}
         <div className="content-block">
-
           <div className="hero-title">
             Transformando dados em decisões esportivas
           </div>
@@ -41,7 +44,6 @@ export default function Home() {
           >
             Entrar no sistema
           </button>
-
         </div>
 
       </div>

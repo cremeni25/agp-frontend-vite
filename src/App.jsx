@@ -10,8 +10,6 @@ import DashboardComissao from "./pages/DashboardComissao";
 import DashboardClube from "./pages/DashboardClube";
 import DashboardMaster from "./pages/DashboardMaster";
 
-import ProtectedRoute from "./guards/ProtectedRoute";
-
 export default function App() {
   return (
     <Routes>
@@ -20,52 +18,14 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
 
-      {/* ROTAS PROTEGIDAS */}
-      <Route
-        path="/atleta"
-        element={
-          <ProtectedRoute perfil="atleta">
-            <DashboardAtleta />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/comissao"
-        element={
-          <ProtectedRoute perfil="comissao">
-            <DashboardComissao />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/clube"
-        element={
-          <ProtectedRoute perfil="clube">
-            <DashboardClube />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/master"
-        element={
-          <ProtectedRoute perfil="master">
-            <DashboardMaster />
-          </ProtectedRoute>
-        }
-      />
+      {/* ROTAS DIRETAS (GUARDA TEMPORÁRIA VIA BACKEND/SUPABASE) */}
+      <Route path="/atleta" element={<DashboardAtleta />} />
+      <Route path="/comissao" element={<DashboardComissao />} />
+      <Route path="/clube" element={<DashboardClube />} />
+      <Route path="/master" element={<DashboardMaster />} />
 
       {/* SETUP DE PERFIL */}
-      <Route
-        path="/setup"
-        element={
-          <ProtectedRoute>
-            <ProfileSetup />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/setup" element={<ProfileSetup />} />
 
       {/* FALLBACK */}
       <Route path="*" element={<Navigate to="/" replace />} />

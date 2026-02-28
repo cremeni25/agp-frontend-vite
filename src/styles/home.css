@@ -25,27 +25,27 @@
   color: #ffffff;
 }
 
-/* ===== BLOCO SUPERIOR (LOGO — ÊNFASE PRINCIPAL) ===== */
+/* ===== BLOCO SUPERIOR ===== */
 
 .brand-block {
-  margin-top: clamp(60px, 8vh, 110px);
+  margin-top: clamp(40px, 6vh, 80px); /* SOBE O BLOCO */
   text-align: center;
 }
 
 .logo-agp-img {
-  width: clamp(520px, 52vw, 820px); /* AGP MAIOR — ÊNFASE */
+  width: clamp(420px, 42vw, 600px); /* REDUZ AGP */
   height: auto;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .logo-subtitle {
-  font-size: clamp(14px, 1.1vw, 18px);
-  letter-spacing: 0.32em;
+  font-size: clamp(16px, 1.5vw, 22px); /* SUBTÍTULO MAIS PRESENTE */
+  letter-spacing: 0.34em;
   text-transform: uppercase;
-  color: rgba(230, 240, 255, 0.85);
+  color: rgba(235, 245, 255, 0.9);
 }
 
-/* ===== BLOCO INFERIOR (CONTEÚDO) ===== */
+/* ===== BLOCO INFERIOR ===== */
 
 .content-block {
   margin-top: auto;
@@ -55,7 +55,7 @@
 }
 
 .hero-title {
-  font-size: clamp(20px, 1.9vw, 28px); /* MENOR QUE AGP */
+  font-size: clamp(22px, 2.1vw, 30px);
   font-weight: 500;
   margin-bottom: 12px;
 }

@@ -1,29 +1,35 @@
 // src/pages/Home.jsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import AuthBlock from "../components/AuthBlock";
 import "../styles/home.css";
+import AuthBlock from "../components/AuthBlock";
 
 export default function Home() {
   const [showAuth, setShowAuth] = useState(false);
-  const navigate = useNavigate();
 
   return (
     <div className="home-container">
       <div className="home-overlay">
 
-        {/* ⚠️ TODA A HOME ORIGINAL PERMANECE IGUAL */}
-        <div className="brand-block">
+        {/* BLOCO SUPERIOR — LOGO + SUBTÍTULO (INTACTO) */}
+        <div
+          className="brand-block"
+          style={{ transform: "translateX(-27vw)" }}
+        >
           <img
             src="/agp-logo.jpg"
             alt="AGP"
             className="logo-agp-img"
           />
-          <div className="logo-subtitle">
+
+          <div
+            className="logo-subtitle"
+            style={{ transform: "translateY(-72px)" }}
+          >
             Sports Intelligence Platform
           </div>
         </div>
 
+        {/* BLOCO INFERIOR — TEXTO + CTA (INTACTO) */}
         <div className="content-block">
           <div className="hero-title">
             Transformando dados em decisões esportivas
@@ -43,7 +49,7 @@ export default function Home() {
           )}
         </div>
 
-        {/* ✅ LOGIN ENTRA SEM MEXER EM NADA */}
+        {/* BLOCO DE LOGIN — SOBREPOSIÇÃO, NÃO AFETA A HOME */}
         {showAuth && <AuthBlock />}
 
       </div>

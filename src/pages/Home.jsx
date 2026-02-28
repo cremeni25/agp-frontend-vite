@@ -12,7 +12,7 @@ export default function Home() {
         {/* BLOCO SUPERIOR — LOGO + SUBTÍTULO */}
         <div
           className="brand-block"
-          style={{ transform: "translateX(-380px)" }}
+          style={{ transform: "translateX(-520px)" }}
         >
           <img
             src="/agp-logo.jpg"
@@ -22,7 +22,7 @@ export default function Home() {
 
           <div
             className="logo-subtitle"
-            style={{ transform: "translateY(-72px)" }}
+            style={{ transform: "translateY(-82px)" }}
           >
             Sports Intelligence Platform
           </div>

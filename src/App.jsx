@@ -1,28 +1,32 @@
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
 
+/* Guards */
+import AuthGuard from "./guards/AuthGuard";
+import ProfileGuard from "./guards/ProfileGuard";
+import CommercialStateGuard from "./guards/CommercialStateGuard";
+
+/* Pages */
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import ProfileSetup from "./pages/ProfileSetup";
-import Dashboard from "./pages/Dashboard";
+import Unauthorized from "./pages/Unauthorized";
+
+/* Dashboards */
+import DashboardAtleta from "./pages/DashboardAtleta";
+import DashboardComissao from "./pages/DashboardComissao";
+import DashboardClube from "./pages/DashboardClube";
+import DashboardMaster from "./pages/DashboardMaster";
 
 export default function App() {
-  // Controle da Home pública
-  const [entered, setEntered] = useState(false);
-
-  // Estados já existentes
   const [user, setUser] = useState(null);
   const [perfil, setPerfil] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Só inicia auth DEPOIS que o usuário entrou no sistema
-    if (!entered) return;
-
-    async function iniciar() {
+    async function carregarSessao() {
       const { data } = await supabase.auth.getSession();
-      const currentUser = data.session?.user;
-
+      const currentUser = data.session?.user ?? null;
       setUser(currentUser);
 
       if (!currentUser) {
@@ -40,28 +44,84 @@ export default function App() {
       setLoading(false);
     }
 
-    iniciar();
+    carregarSessao();
+  }, []);
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [entered]);
-
-  // 🔹 HOME PÚBLICA (ETAPA 1)
-  if (!entered) {
-    return <Home onEnter={() => setEntered(true)} />;
-  }
-
-  // 🔹 Fluxo existente preservado
   if (loading) return <div>Carregando...</div>;
 
-  if (!user) return <Login />;
+  return (
+    <Routes>
+      {/* Public */}
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
 
-  if (!perfil) return <ProfileSetup user={user} />;
+      {/* Redirect inteligente */}
+      <Route
+        path="/dashboard"
+        element={
+          <AuthGuard isAuthenticated={!!user}>
+            {perfil?.tipo === "atleta" && <Navigate to="/dashboard/atleta" />}
+            {perfil?.tipo === "comissao" && <Navigate to="/dashboard/comissao" />}
+            {perfil?.tipo === "clube" && <Navigate to="/dashboard/clube" />}
+            {perfil?.tipo === "master" && <Navigate to="/dashboard/master" />}
+          </AuthGuard>
+        }
+      />
 
-  return <Dashboard user={user} perfil={perfil} />;
+      {/* Dashboards por perfil */}
+      <Route
+        path="/dashboard/atleta"
+        element={
+          <AuthGuard isAuthenticated={!!user}>
+            <ProfileGuard userProfile={perfil?.tipo} allowedProfile="atleta">
+              <CommercialStateGuard commercialState={perfil?.estado_comercial}>
+                <DashboardAtleta />
+              </CommercialStateGuard>
+            </ProfileGuard>
+          </AuthGuard>
+        }
+      />
+
+      <Route
+        path="/dashboard/comissao"
+        element={
+          <AuthGuard isAuthenticated={!!user}>
+            <ProfileGuard userProfile={perfil?.tipo} allowedProfile="comissao">
+              <CommercialStateGuard commercialState={perfil?.estado_comercial}>
+                <DashboardComissao />
+              </CommercialStateGuard>
+            </ProfileGuard>
+          </AuthGuard>
+        }
+      />
+
+      <Route
+        path="/dashboard/clube"
+        element={
+          <AuthGuard isAuthenticated={!!user}>
+            <ProfileGuard userProfile={perfil?.tipo} allowedProfile="clube">
+              <CommercialStateGuard commercialState={perfil?.estado_comercial}>
+                <DashboardClube />
+              </CommercialStateGuard>
+            </ProfileGuard>
+          </AuthGuard>
+        }
+      />
+
+      <Route
+        path="/dashboard/master"
+        element={
+          <AuthGuard isAuthenticated={!!user}>
+            <ProfileGuard userProfile={perfil?.tipo} allowedProfile="master">
+              <DashboardMaster />
+            </ProfileGuard>
+          </AuthGuard>
+        }
+      />
+
+      {/* Fallback */}
+      <Route path="/unauthorized" element={<Unauthorized />} />
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  );
 }

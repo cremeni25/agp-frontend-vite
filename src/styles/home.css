@@ -1,4 +1,6 @@
-/* src/styles/home.css */
+/* ============================
+   HOME AGP — BRAND LOCK
+============================ */
 
 .home-container {
   position: relative;
@@ -11,6 +13,12 @@
   overflow: hidden;
 }
 
+/* TRAVA TIPOGRÁFICA DA MARCA */
+.home-container,
+.home-container * {
+  font-family: 'Cinzel', serif;
+}
+
 .home-overlay {
   position: absolute;
   inset: 0;
@@ -19,20 +27,22 @@
     rgba(0, 0, 0, 0.35) 0%,
     rgba(0, 0, 0, 0.75) 75%
   );
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   color: #ffffff;
 }
 
-/* TOPO */
+/* ============================
+   LOGO — CABEÇA DA SILHUETA
+============================ */
+
 .home-header {
-  margin-top: clamp(60px, 10vh, 120px);
+  position: absolute;
+  top: 14%;
+  left: 50%;
+  transform: translateX(-50%);
   text-align: center;
 }
 
 .logo-agp {
-  font-family: 'Cinzel', 'Trajan Pro', 'Playfair Display SC', serif;
   font-size: clamp(56px, 6vw, 88px);
   font-weight: 600;
   letter-spacing: 0.25em;
@@ -49,30 +59,35 @@
   color: rgba(230, 240, 255, 0.75);
 }
 
-/* ZONA DA SILHUETA */
-.silhouette-spacer {
-  flex: 1;
-}
+/* ============================
+   TEXTO — PÉS DA SILHUETA
+============================ */
 
-/* HERO */
 .home-hero {
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
   text-align: center;
-  margin-bottom: 48px;
+  max-width: 900px;
+  padding: 0 24px;
 }
 
 .hero-title {
   font-size: clamp(28px, 3vw, 42px);
   font-weight: 500;
-  color: #ffffff;
+  margin-bottom: 12px;
 }
 
 .hero-description {
-  margin-top: 12px;
   font-size: clamp(16px, 1.6vw, 20px);
   color: rgba(220, 230, 255, 0.85);
 }
 
-/* CTA */
+/* ============================
+   CTA
+============================ */
+
 .cta {
   margin-top: 32px;
   padding: 14px 36px;

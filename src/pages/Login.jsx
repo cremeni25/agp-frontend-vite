@@ -1,5 +1,7 @@
+// src/pages/Login.jsx
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
+import "../styles/home.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -35,46 +37,55 @@ export default function Login() {
   }
 
   return (
-    <div style={{
-      height: "100vh",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      background: "#0f172a",
-      color: "white"
-    }}>
-      <form onSubmit={entrar} style={{ width: 320 }}>
-        <h2>AGP Sports Intelligence</h2>
+    <div className="home-container">
+      {/* MESMO background institucional da Home */}
+      <div className="home-background institutional" />
 
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          style={{ width: "100%", marginBottom: 12 }}
-        />
+      {/* Overlay */}
+      <div className="home-overlay" />
 
-        <input
-          type="password"
-          placeholder="Senha"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          style={{ width: "100%", marginBottom: 12 }}
-        />
+      {/* Conteúdo */}
+      <div className="home-content">
+        <h2 className="home-title">AGP</h2>
 
-        <button style={{ width: "100%", marginBottom: 10 }}>
-          Entrar
-        </button>
-
-        <button
-          type="button"
-          onClick={cadastrar}
-          style={{ width: "100%" }}
+        <form
+          onSubmit={entrar}
+          style={{ width: 320, marginTop: "1rem" }}
         >
-          Criar Conta
-        </button>
+          <input
+            placeholder="Email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            style={{ width: "100%", marginBottom: 12 }}
+          />
 
-        <p style={{ marginTop: 12 }}>{msg}</p>
-      </form>
+          <input
+            type="password"
+            placeholder="Senha"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            style={{ width: "100%", marginBottom: 12 }}
+          />
+
+          <button
+            className="home-button"
+            style={{ width: "100%", marginBottom: 10 }}
+          >
+            Entrar
+          </button>
+
+          <button
+            type="button"
+            onClick={cadastrar}
+            className="home-button"
+            style={{ width: "100%", background: "#334155" }}
+          >
+            Criar conta
+          </button>
+
+          {msg && <p style={{ marginTop: 12 }}>{msg}</p>}
+        </form>
+      </div>
     </div>
   );
 }

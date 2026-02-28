@@ -4,7 +4,7 @@ import { supabase } from "../supabaseClient";
 import "../styles/auth-block.css";
 
 export default function AuthBlock() {
-  const [mode, setMode] = useState("login"); // login | signup
+  const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -24,12 +24,10 @@ export default function AuthBlock() {
       return;
     }
 
-    const userId = data.user.id;
-
     const { data: perfil } = await supabase
       .from("perfis")
       .select("role")
-      .eq("user_id", userId)
+      .eq("user_id", data.user.id)
       .single();
 
     if (!perfil) {
@@ -37,22 +35,7 @@ export default function AuthBlock() {
       return;
     }
 
-    switch (perfil.role) {
-      case "athlete":
-        window.location.href = "/dashboard-atleta";
-        break;
-      case "coach":
-        window.location.href = "/dashboard-comissao";
-        break;
-      case "club":
-        window.location.href = "/dashboard-clube";
-        break;
-      case "master":
-        window.location.href = "/dashboard-master";
-        break;
-      default:
-        setMsg("Perfil inválido.");
-    }
+    window.location.href = `/dashboard-${perfil.role}`;
   }
 
   async function cadastrar(e) {
@@ -72,16 +55,15 @@ export default function AuthBlock() {
       user_id: data.user.id,
       nome: name,
       clube: club,
-      role: "athlete" // padrão inicial
+      role: "athlete"
     });
 
-    setMsg("Cadastro criado. Faça login.");
     setMode("login");
+    setMsg("Cadastro criado. Faça login.");
   }
 
   return (
     <div className="auth-block">
-
       {mode === "login" ? (
         <form onSubmit={entrar}>
           <input

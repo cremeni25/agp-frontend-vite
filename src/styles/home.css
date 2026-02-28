@@ -24,28 +24,34 @@
 }
 
 /* =========================
-   BLOCO AGP (POSIÇÃO JÁ VALIDADA)
+   BLOCO AGP (VALIDADO)
    ========================= */
 
 .brand-block {
   position: absolute;
   left: 22%;
-  transform: translateX(-50%);
   top: 26%;
+  transform: translateX(-50%);
   text-align: center;
 }
 
-/* LOGO AGP — NÃO MEXER */
+/* LOGO AGP — REFERÊNCIA */
 .logo-agp-img {
+  position: relative; /* 🔑 vira âncora */
   width: clamp(360px, 28vw, 500px);
   height: auto;
   display: block;
   margin: 0 auto;
 }
 
-/* SUBTÍTULO — AJUSTE FINAL (APENAS LINHA) */
+/* SUBTÍTULO — AGORA FUNCIONA */
 .logo-subtitle {
-  margin-top: 12px; /* MESMA DISTÂNCIA DO BLOCO INFERIOR */
+  position: absolute;
+  top: calc(100% + 12px); /* MESMA DISTÂNCIA DO RODAPÉ */
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+
   font-size: clamp(15px, 1.3vw, 20px);
   letter-spacing: 0.32em;
   text-transform: uppercase;
@@ -53,7 +59,7 @@
 }
 
 /* =========================
-   BLOCO INFERIOR (INALTERADO)
+   BLOCO INFERIOR (INTACTO)
    ========================= */
 
 .content-block {

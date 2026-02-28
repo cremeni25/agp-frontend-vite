@@ -12,15 +12,50 @@ export default function Login() {
   async function entrar(e) {
     e.preventDefault();
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
 
     if (error) {
       setMsg(error.message);
-    } else {
-      setLogged(true);
+      return;
+    }
+
+    const userId = data.user.id;
+
+    // 🔍 Busca o perfil do usuário
+    const { data: perfil, error: perfilError } = await supabase
+      .from("perfis")
+      .select("role")
+      .eq("user_id", userId)
+      .single();
+
+    if (perfilError || !perfil) {
+      setMsg("Perfil não encontrado para este usuário.");
+      return;
+    }
+
+    // 🚦 Roteamento definitivo por perfil
+    switch (perfil.role) {
+      case "athlete":
+        window.location.href = "/dashboard-atleta";
+        break;
+
+      case "coach":
+        window.location.href = "/dashboard-comissao";
+        break;
+
+      case "club":
+        window.location.href = "/dashboard-clube";
+        break;
+
+      case "master":
+        window.location.href = "/dashboard-master";
+        break;
+
+      default:
+        setMsg("Perfil inválido.");
     }
   }
 
@@ -33,7 +68,7 @@ export default function Login() {
     if (error) {
       setMsg(error.message);
     } else {
-      setMsg("Usuário criado com sucesso. Faça login.");
+      setLogged(true);
     }
   }
 
@@ -42,35 +77,32 @@ export default function Login() {
   }
 
   return (
-    <form className="login-box" onSubmit={entrar}>
-      <h2 className="login-title">Acesso ao sistema</h2>
+    <div className="login-container">
+      <form onSubmit={entrar} className="login-box">
+        <h2>AGP</h2>
 
-      <input
-        className="login-input"
-        placeholder="E-mail"
-        value={email}
-        onChange={e => setEmail(e.target.value)}
-      />
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+        />
 
-      <input
-        className="login-input"
-        type="password"
-        placeholder="Senha"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-      />
+        <input
+          type="password"
+          placeholder="Senha"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+        />
 
-      <button className="login-button">Entrar</button>
+        <button type="submit">Entrar</button>
 
-      <button
-        type="button"
-        className="login-link"
-        onClick={cadastrar}
-      >
-        Criar conta
-      </button>
+        <button type="button" onClick={cadastrar}>
+          Criar conta
+        </button>
 
-      {msg && <p className="login-msg">{msg}</p>}
-    </form>
+        {msg && <p>{msg}</p>}
+      </form>
+    </div>
   );
 }

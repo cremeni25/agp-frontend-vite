@@ -11,7 +11,6 @@
   overflow: hidden;
 }
 
-/* OVERLAY — layout só aparece estável */
 .home-overlay {
   position: absolute;
   inset: 0;
@@ -24,7 +23,7 @@
 }
 
 /* =========================
-   BLOCO AGP — ESTABILIZADO
+   BLOCO AGP — POSIÇÃO FIXA
    ========================= */
 
 .brand-block {
@@ -33,24 +32,21 @@
   top: 26%;
   transform: translateX(-50%);
   text-align: center;
-
-  /* impede recalculo visual */
-  min-width: 420px;
+  min-width: 560px; /* acompanha novo tamanho */
 }
 
-/* LOGO AGP — DIMENSÃO TRAVADA */
+/* LOGO AGP — TAMANHO CORRETO (DEVOLVE PRESENÇA) */
 .logo-agp-img {
-  width: 420px;
-  height: 140px; /* 🔒 trava layout */
+  width: clamp(520px, 38vw, 620px);
+  aspect-ratio: 3.8 / 1; /* mantém proporção real */
   object-fit: contain;
   display: block;
   margin: 0 auto;
 }
 
-/* SUBTÍTULO — DISTÂNCIA FIXA E REAL */
+/* SUBTÍTULO — NÃO MEXIDO */
 .logo-subtitle {
-  position: relative;
-  margin-top: 12px; /* MESMA DISTÂNCIA DO RODAPÉ */
+  margin-top: 12px;
   font-size: clamp(15px, 1.3vw, 20px);
   letter-spacing: 0.32em;
   text-transform: uppercase;
@@ -83,8 +79,6 @@
   max-width: 760px;
   margin: 0 auto;
 }
-
-/* CTA */
 
 .cta {
   margin-top: 30px;

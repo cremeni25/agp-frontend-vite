@@ -18,7 +18,7 @@ export default function Home() {
           />
           <div
   className="logo-subtitle"
-  style={{ transform: "translateY(-62px)" }}
+  style={{ transform: "translateY(-72px)" }}
 >
   Sports Intelligence Platform
 </div>

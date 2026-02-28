@@ -1,96 +1,69 @@
+// src/pages/DashboardClube.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import "../styles/dashboard-clube.css";
 
 export default function DashboardClube() {
+  const [resumo, setResumo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [perfil, setPerfil] = useState(null);
-  const [resumo, setResumo] = useState({
-    total_atletas: 0,
-    atletas_risco: 0,
-    carga_media: null
-  });
 
   useEffect(() => {
-    async function carregarDados() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData.session?.user;
-      if (!user) return;
-
-      // Perfil institucional do clube
-      const { data: perfilClube } = await supabase
-        .from("perfis_clubes")
-        .select("nome, commercial_state, access_level")
-        .eq("auth_id", user.id)
-        .single();
-
-      setPerfil(perfilClube);
-
-      // Resumo institucional do elenco
-      const { data: atletas } = await supabase
-        .from("perfis_atletas")
-        .select("risco_atual, carga_atual")
-        .eq("clube_id", user.id);
-
-      if (atletas && atletas.length > 0) {
-        const atletasRisco = atletas.filter(
-          (a) => a.risco_atual && a.risco_atual !== "baixo"
-        ).length;
-
-        const cargas = atletas
-          .map((a) => a.carga_atual)
-          .filter((c) => typeof c === "number");
-
-        const cargaMedia =
-          cargas.length > 0
-            ? Math.round(
-                cargas.reduce((acc, cur) => acc + cur, 0) / cargas.length
-              )
-            : null;
-
-        setResumo({
-          total_atletas: atletas.length,
-          atletas_risco: atletasRisco,
-          carga_media: cargaMedia
-        });
+    async function carregarResumo() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = "/";
+        return;
       }
 
+      // Exemplo de agregação simples (evolui depois)
+      const { data, error } = await supabase
+        .from("resumo_clube")
+        .select("*")
+        .single();
+
+      if (!error) setResumo(data);
       setLoading(false);
     }
 
-    carregarDados();
+    carregarResumo();
   }, []);
 
-  if (loading) return <div>Carregando dashboard institucional...</div>;
+  if (loading) {
+    return <div className="dashboard-loading">Carregando clube...</div>;
+  }
 
   return (
-    <div style={{ padding: 32 }}>
-      <h1>Dashboard — Clube</h1>
+    <div className="dashboard-clube">
+      <div className="dashboard-overlay">
 
-      <section style={{ marginTop: 24 }}>
-        <h3>Perfil Institucional</h3>
-        <p><strong>Clube:</strong> {perfil?.nome}</p>
-        <p><strong>Status comercial:</strong> {perfil?.commercial_state}</p>
-        <p><strong>Nível de acesso:</strong> {perfil?.access_level}</p>
-      </section>
+        <header className="dashboard-header">
+          <h1>Dashboard do Clube</h1>
+          <span>Visão institucional</span>
+        </header>
 
-      <section style={{ marginTop: 32 }}>
-        <h3>Resumo do Elenco</h3>
-        <p>Total de atletas: {resumo.total_atletas}</p>
-        <p>Atletas em risco: {resumo.atletas_risco}</p>
-        <p>Carga média do elenco: {resumo.carga_media ?? "—"}</p>
-      </section>
+        <section className="dashboard-section grid">
+          <div className="card">
+            <h3>Atletas</h3>
+            <p>{resumo?.total_atletas ?? "-"}</p>
+          </div>
 
-      <section style={{ marginTop: 32 }}>
-        <h3>Alertas Sistêmicos</h3>
-        <p>
-          (em breve: alertas institucionais de carga excessiva,
-          concentração de risco e tendência coletiva)
-        </p>
-      </section>
+          <div className="card">
+            <h3>Modalidades</h3>
+            <p>{resumo?.modalidades ?? "-"}</p>
+          </div>
 
-      <section style={{ marginTop: 32 }}>
-        <button>Emitir relatório institucional</button>
-      </section>
+          <div className="card">
+            <h3>Alertas ativos</h3>
+            <p>{resumo?.alertas ?? "-"}</p>
+          </div>
+
+          <div className="card">
+            <h3>Comissão técnica</h3>
+            <p>{resumo?.tecnicos ?? "-"}</p>
+          </div>
+        </section>
+
+      </div>
     </div>
   );
 }

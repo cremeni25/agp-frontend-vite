@@ -7,16 +7,19 @@
   background: #050b18;
 }
 
-/* Background neutro (placeholder técnico) */
+/* Background base */
 .home-background {
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    circle at center,
-    #0a1a3a 0%,
-    #050b18 70%
-  );
   z-index: 1;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Background institucional AGP */
+.home-background.institutional {
+  background-image: url("/home-agp.jpg");
 }
 
 /* Overlay para legibilidade */

@@ -1,5 +1,7 @@
+// src/pages/Home.jsx
 import { useNavigate } from "react-router-dom";
 import "../styles/home.css";
+import agpLogo from "/agp-logo.jpg"; // ajuste o nome se necessário
 
 export default function Home() {
   const navigate = useNavigate();
@@ -8,26 +10,30 @@ export default function Home() {
     <div className="home-container">
       <div className="home-overlay">
 
-        {/* BLOCO LOGO */}
-        <header className="home-header">
-          <h1 className="logo-agp">AGP</h1>
+        {/* LOGO INSTITUCIONAL */}
+        <div className="home-header">
+          <img
+            src={agpLogo}
+            alt="AGP"
+            className="logo-agp-img"
+          />
           <div className="logo-subtitle">
-            SPORTS INTELLIGENCE PLATFORM
+            Sports Intelligence Platform
           </div>
-        </header>
+        </div>
 
-        {/* SILHUETA CENTRAL (ESPAÇO VISUAL) */}
+        {/* ESPAÇO VISUAL DA SILHUETA */}
         <div className="silhouette-spacer" />
 
-        {/* BLOCO INSTITUCIONAL */}
-        <section className="home-hero">
-          <h2 className="hero-title">
+        {/* TEXTO PRINCIPAL + CTA */}
+        <div className="home-hero">
+          <div className="hero-title">
             Transformando dados em decisões esportivas
-          </h2>
+          </div>
 
-          <p className="hero-description">
+          <div className="hero-description">
             Uma plataforma inteligente para atletas, técnicos, clubes e gestão estratégica.
-          </p>
+          </div>
 
           <button
             className="cta"
@@ -35,7 +41,7 @@ export default function Home() {
           >
             Entrar no sistema
           </button>
-        </section>
+        </div>
 
       </div>
     </div>

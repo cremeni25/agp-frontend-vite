@@ -24,33 +24,25 @@
 }
 
 /* =========================
-   BLOCO DO LOGO (AGP)
+   BLOCO AGP (ESQUERDA)
    ========================= */
 
 .brand-block {
   position: absolute;
 
-  /* REFERÊNCIA GEOMÉTRICA DA SILHUETA */
-  /* Horizontal:
-     - usamos a silhueta como régua
-     - centro do AGP em ~62.5% da largura da imagem total
-     (equivalente a 125% da distância entre as mãos, ancorado visualmente)
-  */
-  left: 62.5%;
+  /* CENTRO DO AGP NO CENTRO DO ESPAÇO VAZIO À ESQUERDA */
+  left: 22%;
   transform: translateX(-50%);
 
-  /* Vertical:
-     - sobe o AGP +100% da própria altura
-     - alinhando melhor com a linha dos olhos
-  */
-  top: 22%;
+  /* SOBE PARA PRÓXIMO DA LINHA DOS OLHOS */
+  top: 26%;
 
   text-align: center;
 }
 
 /* LOGO AGP */
 .logo-agp-img {
-  width: clamp(380px, 30vw, 520px);
+  width: clamp(360px, 28vw, 500px);
   height: auto;
   display: block;
   margin: 0 auto;
@@ -58,15 +50,15 @@
 
 /* SUBTÍTULO */
 .logo-subtitle {
-  margin-top: 40%; /* ≈40% da altura do AGP */
-  font-size: clamp(15px, 1.4vw, 20px);
+  margin-top: 18px;
+  font-size: clamp(15px, 1.3vw, 20px);
   letter-spacing: 0.32em;
   text-transform: uppercase;
   color: rgba(235, 245, 255, 0.9);
 }
 
 /* =========================
-   BLOCO INFERIOR
+   BLOCO INFERIOR (INALTERADO)
    ========================= */
 
 .content-block {

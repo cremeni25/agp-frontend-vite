@@ -17,61 +17,69 @@
   background: radial-gradient(
     circle at center,
     rgba(0, 0, 0, 0.35) 0%,
-    rgba(0, 0, 0, 0.7) 70%
+    rgba(0, 0, 0, 0.75) 75%
   );
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  text-align: center;
   color: #ffffff;
-  padding: 2rem;
 }
 
-/* LOGO */
+/* TOPO */
+.home-header {
+  margin-top: clamp(60px, 10vh, 120px);
+  text-align: center;
+}
+
 .logo-agp {
-  font-size: 72px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(90deg, #3aa9ff, #7fe9ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 24px rgba(58, 169, 255, 0.65);
+  font-family: 'Cinzel', 'Trajan Pro', 'Playfair Display SC', serif;
+  font-size: clamp(56px, 6vw, 88px);
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  color: #EAF2FF;
+  text-shadow:
+    0 0 12px rgba(180, 210, 255, 0.35),
+    0 0 24px rgba(120, 180, 255, 0.25);
 }
 
-/* SUBTITLE */
-.subtitle {
-  font-size: 16px;
-  letter-spacing: 0.28em;
-  color: #cfefff;
-  opacity: 0.85;
-  margin-bottom: 2.5rem;
+.logo-subtitle {
+  margin-top: 12px;
+  font-size: clamp(14px, 1.2vw, 18px);
+  letter-spacing: 0.35em;
+  color: rgba(230, 240, 255, 0.75);
+}
+
+/* ZONA DA SILHUETA */
+.silhouette-spacer {
+  flex: 1;
 }
 
 /* HERO */
-.hero {
-  font-size: 2.4rem;
+.home-hero {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.hero-title {
+  font-size: clamp(28px, 3vw, 42px);
   font-weight: 500;
-  margin-bottom: 0.75rem;
+  color: #ffffff;
 }
 
-/* DESCRIPTION */
-.description {
-  max-width: 680px;
-  font-size: 1rem;
-  line-height: 1.6;
-  opacity: 0.9;
-  margin-bottom: 2.5rem;
+.hero-description {
+  margin-top: 12px;
+  font-size: clamp(16px, 1.6vw, 20px);
+  color: rgba(220, 230, 255, 0.85);
 }
 
-/* CTA BUTTON */
+/* CTA */
 .cta {
+  margin-top: 32px;
   padding: 14px 36px;
   border-radius: 8px;
-  border: 1px solid #3aa9ff;
+  border: 1px solid rgba(160, 200, 255, 0.6);
   background: rgba(20, 40, 70, 0.55);
-  color: #eaf6ff;
+  color: #EAF6FF;
   font-size: 16px;
   cursor: pointer;
   backdrop-filter: blur(6px);
@@ -79,25 +87,6 @@
 }
 
 .cta:hover {
-  box-shadow: 0 0 22px rgba(58, 169, 255, 0.5);
+  box-shadow: 0 0 22px rgba(120, 180, 255, 0.45);
   transform: translateY(-1px);
-}
-
-/* RESPONSIVE */
-@media (max-width: 768px) {
-  .logo-agp {
-    font-size: 56px;
-  }
-
-  .hero {
-    font-size: 1.8rem;
-  }
-
-  .subtitle {
-    font-size: 14px;
-  }
-
-  .description {
-    font-size: 0.95rem;
-  }
 }

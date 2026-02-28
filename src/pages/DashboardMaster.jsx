@@ -1,85 +1,91 @@
+// src/pages/DashboardMaster.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import "../styles/dashboard-master.css";
 
 export default function DashboardMaster() {
+  const [resumo, setResumo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [resumo, setResumo] = useState({
-    atletas: 0,
-    comissoes: 0,
-    clubes: 0,
-    contratos_ativos: 0
-  });
 
   useEffect(() => {
     async function carregarResumo() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData.session?.user;
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = "/";
+        return;
+      }
 
-      // Quantitativos globais
-      const { count: atletas } = await supabase
-        .from("perfis_atletas")
-        .select("*", { count: "exact", head: true });
+      // visão agregada global (placeholder seguro)
+      const { data, error } = await supabase
+        .from("resumo_master")
+        .select("*")
+        .single();
 
-      const { count: comissoes } = await supabase
-        .from("perfis_comissao")
-        .select("*", { count: "exact", head: true });
-
-      const { count: clubes } = await supabase
-        .from("perfis_clubes")
-        .select("*", { count: "exact", head: true });
-
-      // Contratos ativos (estado comercial)
-      const { count: contratos } = await supabase
-        .from("perfis_comerciais")
-        .select("*", { count: "exact", head: true })
-        .eq("commercial_state", "ativo");
-
-      setResumo({
-        atletas: atletas || 0,
-        comissoes: comissoes || 0,
-        clubes: clubes || 0,
-        contratos_ativos: contratos || 0
-      });
-
+      if (!error) setResumo(data);
       setLoading(false);
     }
 
     carregarResumo();
   }, []);
 
-  if (loading) return <div>Carregando visão master...</div>;
+  if (loading) {
+    return (
+      <div className="dashboard-loading">
+        Carregando gestão master...
+      </div>
+    );
+  }
 
   return (
-    <div style={{ padding: 32 }}>
-      <h1>Dashboard — Master</h1>
+    <div className="dashboard-master">
+      <div className="dashboard-overlay">
 
-      <section style={{ marginTop: 24 }}>
-        <h3>Visão Global do Sistema</h3>
-        <p>Total de atletas: {resumo.atletas}</p>
-        <p>Comissões técnicas: {resumo.comissoes}</p>
-        <p>Clubes cadastrados: {resumo.clubes}</p>
-        <p>Contratos ativos: {resumo.contratos_ativos}</p>
-      </section>
+        <header className="dashboard-header">
+          <h1>Dashboard Master</h1>
+          <span>Gestão global do AGP</span>
+        </header>
 
-      <section style={{ marginTop: 32 }}>
-        <h3>Visão Comercial</h3>
-        <p>
-          (em breve: contratos por país, região, perfil e tempo de vida)
-        </p>
-      </section>
+        <section className="dashboard-section grid">
+          <div className="card">
+            <h3>Usuários ativos</h3>
+            <p>{resumo?.usuarios ?? "-"}</p>
+          </div>
 
-      <section style={{ marginTop: 32 }}>
-        <h3>Inteligência Estratégica</h3>
-        <p>
-          (em breve: mapas de expansão, densidade esportiva,
-          oportunidades regionais)
-        </p>
-      </section>
+          <div className="card">
+            <h3>Atletas</h3>
+            <p>{resumo?.atletas ?? "-"}</p>
+          </div>
 
-      <section style={{ marginTop: 32 }}>
-        <button>Emitir relatório estratégico</button>
-      </section>
+          <div className="card">
+            <h3>Comissões</h3>
+            <p>{resumo?.comissoes ?? "-"}</p>
+          </div>
+
+          <div className="card">
+            <h3>Clubes</h3>
+            <p>{resumo?.clubes ?? "-"}</p>
+          </div>
+        </section>
+
+        <section className="dashboard-section">
+          <h2>Gestão</h2>
+          <div className="action-row">
+            <button>Gerenciar usuários</button>
+            <button>Perfis e permissões</button>
+            <button>Configurações do sistema</button>
+          </div>
+        </section>
+
+        <section className="dashboard-section">
+          <h2>Auditoria</h2>
+          <ul className="audit-list">
+            <li>Acesso admin — hoje</li>
+            <li>Criação de usuário — ontem</li>
+            <li>Alteração de permissão — 2 dias</li>
+          </ul>
+        </section>
+
+      </div>
     </div>
   );
 }

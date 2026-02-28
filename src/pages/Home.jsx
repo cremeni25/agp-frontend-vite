@@ -1,48 +1,33 @@
 // src/pages/Home.jsx
-import { useState } from "react";
-import Login from "./Login";
+import { useNavigate } from "react-router-dom";
 import "../styles/home.css";
 
 export default function Home() {
-  const [showLogin, setShowLogin] = useState(false);
+  const navigate = useNavigate();
 
   return (
-    <div className="home">
-      <div className="home-background" />
-
+    <div className="home-container">
       <div className="home-overlay">
-        <div className="home-content">
+        <h1 className="logo-agp">AGP</h1>
 
-          <div className="logo-agp">AGP</div>
+        <h2 className="subtitle">
+          SPORTS INTELLIGENCE PLATFORM
+        </h2>
 
-          <div className="subtitle">
-            SPORTS INTELLIGENCE PLATFORM
-          </div>
+        <p className="hero">
+          Transformando dados em decisões esportivas
+        </p>
 
-          <h1 className="hero">
-            Transformando dados em decisões esportivas
-          </h1>
+        <p className="description">
+          Uma plataforma inteligente para atletas, técnicos, clubes e gestão estratégica.
+        </p>
 
-          <p className="description">
-            Uma plataforma inteligente para atletas, técnicos, clubes e gestão estratégica.
-          </p>
-
-          {!showLogin && (
-            <button
-              className="cta"
-              onClick={() => setShowLogin(true)}
-            >
-              Entrar no sistema
-            </button>
-          )}
-
-          {showLogin && (
-            <div className="login-slot">
-              <Login />
-            </div>
-          )}
-
-        </div>
+        <button
+          className="cta"
+          onClick={() => navigate("/login")}
+        >
+          Entrar no sistema
+        </button>
       </div>
     </div>
   );

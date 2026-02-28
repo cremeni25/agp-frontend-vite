@@ -10,9 +10,11 @@
   background-repeat: no-repeat;
 }
 
+/* Overlay respeitando a arquitetura da Home */
 .login-overlay {
   position: absolute;
   inset: 0;
+
   background: radial-gradient(
     circle at center,
     rgba(0, 0, 0, 0.35) 0%,
@@ -20,17 +22,25 @@
   );
 
   display: grid;
-  grid-template-columns: 1fr 420px;
-  align-items: center;
-  padding-right: 8vw;
+  grid-template-columns: 62% 38%; /* esquerda (cenário) | direita (login) */
+  align-items: flex-start;        /* NÃO centraliza vertical */
+  padding-top: 22vh;              /* mesma linha visual do título da Home */
+  padding-right: 6vw;
 }
 
+/* Caixa de login ancorada no espaço vazio da direita */
 .login-box {
+  justify-self: center;
+  width: 100%;
+  max-width: 420px;
+
   background: rgba(15, 30, 55, 0.65);
   backdrop-filter: blur(10px);
   border-radius: 12px;
   padding: 36px;
-  color: #fff;
+
+  color: #ffffff;
+
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -66,4 +76,24 @@
   margin-top: 8px;
   font-size: 14px;
   color: #ffbcbc;
+}
+
+/* Ajuste tablet */
+@media (max-width: 1024px) {
+  .login-overlay {
+    grid-template-columns: 55% 45%;
+    padding-top: 20vh;
+  }
+}
+
+/* Mobile: login centralizado */
+@media (max-width: 768px) {
+  .login-overlay {
+    grid-template-columns: 1fr;
+    padding: 16vh 6vw 0;
+  }
+
+  .login-box {
+    justify-self: center;
+  }
 }

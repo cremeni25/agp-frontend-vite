@@ -12,7 +12,7 @@ export default function Home() {
         {/* BLOCO SUPERIOR — LOGO + SUBTÍTULO */}
         <div className="brand-block">
           <img
-            src="/agp-logo.png"
+            src="/agp-logo.jpg"
             alt="AGP"
             className="logo-agp-img"
           />

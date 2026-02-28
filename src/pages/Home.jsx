@@ -1,7 +1,6 @@
 // src/pages/Home.jsx
 import { useNavigate } from "react-router-dom";
 import "../styles/home.css";
-import agpLogo from "/agp-logo.png";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -13,7 +12,7 @@ export default function Home() {
         {/* BLOCO SUPERIOR — LOGO + SUBTÍTULO */}
         <div className="brand-block">
           <img
-            src={agpLogo}
+            src="/agp-logo.png"
             alt="AGP"
             className="logo-agp-img"
           />
@@ -22,7 +21,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* CORPO INFERIOR — TEXTO + CTA */}
+        {/* BLOCO INFERIOR — TEXTO + CTA */}
         <div className="content-block">
 
           <div className="hero-title">

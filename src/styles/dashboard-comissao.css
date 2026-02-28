@@ -1,0 +1,74 @@
+.dashboard-comissao {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #071a2f, #020617);
+  overflow: hidden;
+}
+
+.dashboard-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 15, 35, 0.75);
+  color: #eaf6ff;
+  padding: 32px;
+  overflow-y: auto;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.dashboard-section {
+  margin-bottom: 32px;
+}
+
+.athlete-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.athlete-card {
+  background: rgba(20, 40, 70, 0.5);
+  border: 1px solid rgba(58,169,255,0.3);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.athlete-card.ok {
+  border-color: rgba(0, 200, 120, 0.6);
+}
+
+.athlete-card.attention {
+  border-color: rgba(255, 180, 0, 0.6);
+}
+
+.athlete-card.risk {
+  border-color: rgba(255, 80, 80, 0.7);
+}
+
+.athlete-card .status {
+  display: block;
+  margin: 8px 0;
+  font-weight: bold;
+}
+
+.athlete-card button {
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: rgba(20,40,70,0.6);
+  color: #eaf6ff;
+  border: 1px solid rgba(58,169,255,0.5);
+  cursor: pointer;
+}
+
+.athlete-card button:hover {
+  box-shadow: 0 0 12px rgba(58,169,255,0.4);
+}
+
+.alert-list li {
+  margin-bottom: 8px;
+}

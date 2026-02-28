@@ -23,7 +23,7 @@
 }
 
 /* =========================
-   BLOCO AGP — POSIÇÃO FIXA
+   BLOCO AGP (ÂNCORA REAL)
    ========================= */
 
 .brand-block {
@@ -31,22 +31,22 @@
   left: 22%;
   top: 26%;
   transform: translateX(-50%);
-  text-align: center;
-  min-width: 560px; /* acompanha novo tamanho */
+  width: 620px;
 }
 
-/* LOGO AGP — TAMANHO CORRETO (DEVOLVE PRESENÇA) */
+/* LOGO AGP — NÃO MEXE */
 .logo-agp-img {
-  width: clamp(520px, 38vw, 620px);
-  aspect-ratio: 3.8 / 1; /* mantém proporção real */
-  object-fit: contain;
+  width: 100%;
+  height: auto;
   display: block;
-  margin: 0 auto;
 }
 
-/* SUBTÍTULO — NÃO MEXIDO */
+/* SUBTÍTULO — AGORA OBEDECE */
 .logo-subtitle {
-  margin-top: 12px;
+  position: absolute;
+  top: calc(100% + 14px); /* 🔑 MESMA DISTÂNCIA DAS FRASES DO RODAPÉ */
+  left: 50%;
+  transform: translateX(-50%);
   font-size: clamp(15px, 1.3vw, 20px);
   letter-spacing: 0.32em;
   text-transform: uppercase;

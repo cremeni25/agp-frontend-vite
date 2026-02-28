@@ -25,39 +25,39 @@
   color: #ffffff;
 }
 
-/* ===== BLOCO SUPERIOR (ACIMA DA CABEÇA) ===== */
+/* ===== BLOCO SUPERIOR (LOGO — ÊNFASE PRINCIPAL) ===== */
 
 .brand-block {
-  margin-top: clamp(70px, 10vh, 130px);
+  margin-top: clamp(60px, 8vh, 110px);
   text-align: center;
 }
 
 .logo-agp-img {
-  width: clamp(320px, 36vw, 520px);
+  width: clamp(520px, 52vw, 820px); /* AGP MAIOR — ÊNFASE */
   height: auto;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .logo-subtitle {
-  font-size: clamp(14px, 1.2vw, 18px);
-  letter-spacing: 0.3em;
+  font-size: clamp(14px, 1.1vw, 18px);
+  letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: rgba(230, 240, 255, 0.8);
+  color: rgba(230, 240, 255, 0.85);
 }
 
-/* ===== BLOCO INFERIOR (ABAIXO DA SILHUETA) ===== */
+/* ===== BLOCO INFERIOR (CONTEÚDO) ===== */
 
 .content-block {
   margin-top: auto;
-  margin-bottom: 56px;
+  margin-bottom: 64px;
   text-align: center;
   padding: 0 24px;
 }
 
 .hero-title {
-  font-size: clamp(22px, 2.2vw, 32px);
+  font-size: clamp(20px, 1.9vw, 28px); /* MENOR QUE AGP */
   font-weight: 500;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .hero-description {
@@ -70,7 +70,7 @@
 /* CTA */
 
 .cta {
-  margin-top: 28px;
+  margin-top: 30px;
   padding: 14px 36px;
   border-radius: 8px;
   border: 1px solid rgba(160, 200, 255, 0.6);

@@ -8,19 +8,22 @@ export default function Home() {
     <div className="home-container">
       <div className="home-overlay">
 
-        {/* LOGO – ALINHADO À CABEÇA DA SILHUETA */}
+        {/* BLOCO LOGO */}
         <header className="home-header">
-          <div className="logo-agp">AGP</div>
+          <h1 className="logo-agp">AGP</h1>
           <div className="logo-subtitle">
             SPORTS INTELLIGENCE PLATFORM
           </div>
         </header>
 
-        {/* TEXTO – ALINHADO AOS PÉS DA SILHUETA */}
+        {/* SILHUETA CENTRAL (ESPAÇO VISUAL) */}
+        <div className="silhouette-spacer" />
+
+        {/* BLOCO INSTITUCIONAL */}
         <section className="home-hero">
-          <h1 className="hero-title">
+          <h2 className="hero-title">
             Transformando dados em decisões esportivas
-          </h1>
+          </h2>
 
           <p className="hero-description">
             Uma plataforma inteligente para atletas, técnicos, clubes e gestão estratégica.

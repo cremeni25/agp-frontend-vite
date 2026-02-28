@@ -11,47 +11,7 @@
   overflow: hidden;
 }
 
-/* =========================
-   OVERLAY SUPERIOR
-   ========================= */
-
-.overlay-top {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-/* BLOCO AGP + SUBTITLE */
-.brand-block {
-  position: absolute;
-  left: 22%;
-  top: 26%;
-  transform: translateX(-50%);
-  width: 620px;
-  text-align: center;
-}
-
-.logo-agp-img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* SUBTITLE — FINALMENTE PRESO AO AGP */
-.logo-subtitle {
-  margin-top: 14px; /* MESMA DISTÂNCIA DO RODAPÉ */
-  font-size: clamp(15px, 1.3vw, 20px);
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: rgba(235, 245, 255, 0.9);
-  white-space: nowrap;
-}
-
-/* =========================
-   OVERLAY INFERIOR
-   ========================= */
-
-.overlay-bottom {
+.home-overlay {
   position: absolute;
   inset: 0;
   background: radial-gradient(
@@ -61,13 +21,37 @@
   );
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   align-items: center;
   color: #ffffff;
 }
 
-/* TEXTO INFERIOR */
+/* ===== BLOCO SUPERIOR ===== */
+
+.brand-block {
+  margin-top: clamp(40px, 6vh, 80px);
+  text-align: center;
+}
+
+.logo-agp-img {
+  width: clamp(520px, 38vw, 620px);
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* 🔧 ÚNICA CORREÇÃO REAL */
+.logo-subtitle {
+  margin-top: -18px; /* SOBE O TEXTO — AJUSTE FINO */
+  font-size: clamp(15px, 1.3vw, 20px);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(235, 245, 255, 0.9);
+}
+
+/* ===== BLOCO INFERIOR ===== */
+
 .content-block {
+  margin-top: auto;
   margin-bottom: 64px;
   text-align: center;
   padding: 0 24px;

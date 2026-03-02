@@ -10,6 +10,13 @@ export default function AuthBlock() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [msg, setMsg] = useState("");
 
+  function resetFields() {
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setMsg("");
+  }
+
   // ===== LOGIN =====
   async function handleLogin(e) {
     e.preventDefault();
@@ -25,20 +32,17 @@ export default function AuthBlock() {
       return;
     }
 
-    // Verifica se existe perfil
     const { data: perfil } = await supabase
       .from("perfis")
       .select("role")
       .eq("user_id", data.user.id)
       .single();
 
-    // Se não existir perfil → onboarding
     if (!perfil) {
       window.location.href = "/onboarding";
       return;
     }
 
-    // Se existir perfil → redireciona conforme role
     switch (perfil.role) {
       case "athlete":
         window.location.href = "/dashboard-atleta";
@@ -77,10 +81,7 @@ export default function AuthBlock() {
       return;
     }
 
-    // Limpa campos e volta para login
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
+    resetFields();
     setMode("login");
     setMsg("Conta criada com sucesso. Faça login.");
   }
@@ -113,8 +114,8 @@ export default function AuthBlock() {
             type="button"
             className="link"
             onClick={() => {
+              resetFields();
               setMode("signup");
-              setMsg("");
             }}
           >
             Criar conta
@@ -156,8 +157,8 @@ export default function AuthBlock() {
             type="button"
             className="link"
             onClick={() => {
+              resetFields();
               setMode("login");
-              setMsg("");
             }}
           >
             Já tenho conta

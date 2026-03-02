@@ -7,16 +7,17 @@ export default function AuthBlock() {
   const [mode, setMode] = useState("login"); // login | signup
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [msg, setMsg] = useState("");
 
+  // ===== LOGIN =====
   async function handleLogin(e) {
     e.preventDefault();
     setMsg("");
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      password
+      password,
     });
 
     if (error) {
@@ -24,19 +25,20 @@ export default function AuthBlock() {
       return;
     }
 
-    const userId = data.user.id;
-
-    const { data: perfil, error: perfilError } = await supabase
+    // Verifica se existe perfil
+    const { data: perfil } = await supabase
       .from("perfis")
       .select("role")
-      .eq("user_id", userId)
+      .eq("user_id", data.user.id)
       .single();
 
-    if (perfilError || !perfil) {
-      setMsg("Perfil não encontrado para este usuário.");
+    // Se não existir perfil → onboarding
+    if (!perfil) {
+      window.location.href = "/onboarding";
       return;
     }
 
+    // Se existir perfil → redireciona conforme role
     switch (perfil.role) {
       case "athlete":
         window.location.href = "/dashboard-atleta";
@@ -51,30 +53,36 @@ export default function AuthBlock() {
         window.location.href = "/dashboard-master";
         break;
       default:
-        setMsg("Perfil inválido.");
+        window.location.href = "/onboarding";
     }
   }
 
+  // ===== SIGNUP =====
   async function handleSignup(e) {
     e.preventDefault();
     setMsg("");
 
-    if (password !== confirm) {
+    if (password !== confirmPassword) {
       setMsg("As senhas não coincidem.");
       return;
     }
 
     const { error } = await supabase.auth.signUp({
       email,
-      password
+      password,
     });
 
     if (error) {
       setMsg(error.message);
-    } else {
-      setMode("login");
-      setMsg("Conta criada. Faça login para continuar.");
+      return;
     }
+
+    // Limpa campos e volta para login
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setMode("login");
+    setMsg("Conta criada com sucesso. Faça login.");
   }
 
   return (
@@ -85,7 +93,7 @@ export default function AuthBlock() {
             type="email"
             placeholder="Email"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
 
@@ -93,7 +101,7 @@ export default function AuthBlock() {
             type="password"
             placeholder="Senha"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
 
@@ -120,7 +128,7 @@ export default function AuthBlock() {
             type="email"
             placeholder="Email"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
 
@@ -128,15 +136,15 @@ export default function AuthBlock() {
             type="password"
             placeholder="Criar senha"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
 
           <input
             type="password"
             placeholder="Confirmar senha"
-            value={confirm}
-            onChange={e => setConfirm(e.target.value)}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
 
@@ -152,7 +160,7 @@ export default function AuthBlock() {
               setMsg("");
             }}
           >
-            Voltar
+            Já tenho conta
           </button>
 
           {msg && <div className="msg">{msg}</div>}

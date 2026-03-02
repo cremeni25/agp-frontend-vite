@@ -1,23 +1,23 @@
 // src/components/AuthBlock.jsx
+
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
 import "../styles/auth-block.css";
 
 export default function AuthBlock() {
-  const [mode, setMode] = useState("login"); // login | signup
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  const [nome, setNome] = useState("");
+  const [clube, setClube] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [msg, setMsg] = useState("");
 
-  function resetFields() {
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
-    setMsg("");
-  }
-
-  // ===== LOGIN =====
+  // ===============================
+  // LOGIN
+  // ===============================
   async function handleLogin(e) {
     e.preventDefault();
     setMsg("");
@@ -33,9 +33,9 @@ export default function AuthBlock() {
     }
 
     const { data: perfil } = await supabase
-      .from("perfis")
-      .select("role")
-      .eq("user_id", data.user.id)
+      .from("perfis_atletas")
+      .select("funcao")
+      .eq("auth_id", data.user.id)
       .single();
 
     if (!perfil) {
@@ -43,26 +43,28 @@ export default function AuthBlock() {
       return;
     }
 
-    switch (perfil.role) {
-      case "athlete":
+    switch (perfil.funcao) {
+      case "Atleta":
         window.location.href = "/dashboard-atleta";
         break;
-      case "coach":
+      case "Gestor":
+        window.location.href = "/dashboard-master";
+        break;
+      case "Comissao":
         window.location.href = "/dashboard-comissao";
         break;
-      case "club":
+      case "Clube":
         window.location.href = "/dashboard-clube";
-        break;
-      case "master":
-        window.location.href = "/dashboard-master";
         break;
       default:
         window.location.href = "/onboarding";
     }
   }
 
-  // ===== SIGNUP =====
-  async function handleSignup(e) {
+  // ===============================
+  // REGISTRO
+  // ===============================
+  async function handleRegister(e) {
     e.preventDefault();
     setMsg("");
 
@@ -71,7 +73,7 @@ export default function AuthBlock() {
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
@@ -81,14 +83,38 @@ export default function AuthBlock() {
       return;
     }
 
-    resetFields();
-    setMode("login");
-    setMsg("Conta criada com sucesso. Faça login.");
+    const userId = data.user.id;
+
+    const { error: perfilError } = await supabase
+      .from("perfis_atletas")
+      .insert([
+        {
+          auth_id: userId,
+          nome: nome,
+          clube: clube,
+          funcao: "Atleta",
+        },
+      ]);
+
+    if (perfilError) {
+      setMsg("Erro ao criar perfil.");
+      return;
+    }
+
+    // 🔥 LIMPA CAMPOS
+    setNome("");
+    setClube("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+
+    setIsRegistering(false);
+    setMsg("Cadastro realizado com sucesso. Faça login.");
   }
 
   return (
     <div className="auth-block">
-      {mode === "login" ? (
+      {!isRegistering ? (
         <form onSubmit={handleLogin}>
           <input
             type="email"
@@ -106,25 +132,38 @@ export default function AuthBlock() {
             required
           />
 
-          <button type="submit" className="primary">
-            Entrar
-          </button>
+          <button type="submit">Entrar</button>
 
-          <button
-            type="button"
-            className="link"
+          <span
+            className="auth-link"
             onClick={() => {
-              resetFields();
-              setMode("signup");
+              setMsg("");
+              setIsRegistering(true);
             }}
           >
             Criar conta
-          </button>
+          </span>
 
-          {msg && <div className="msg">{msg}</div>}
+          {msg && <p className="auth-msg">{msg}</p>}
         </form>
       ) : (
-        <form onSubmit={handleSignup}>
+        <form onSubmit={handleRegister}>
+          <input
+            type="text"
+            placeholder="Nome completo"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            required
+          />
+
+          <input
+            type="text"
+            placeholder="Clube ou Associação"
+            value={clube}
+            onChange={(e) => setClube(e.target.value)}
+            required
+          />
+
           <input
             type="email"
             placeholder="Email"
@@ -135,7 +174,7 @@ export default function AuthBlock() {
 
           <input
             type="password"
-            placeholder="Criar senha"
+            placeholder="Senha"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -149,22 +188,19 @@ export default function AuthBlock() {
             required
           />
 
-          <button type="submit" className="primary">
-            Criar conta
-          </button>
+          <button type="submit">Cadastrar</button>
 
-          <button
-            type="button"
-            className="link"
+          <span
+            className="auth-link"
             onClick={() => {
-              resetFields();
-              setMode("login");
+              setMsg("");
+              setIsRegistering(false);
             }}
           >
             Já tenho conta
-          </button>
+          </span>
 
-          {msg && <div className="msg">{msg}</div>}
+          {msg && <p className="auth-msg">{msg}</p>}
         </form>
       )}
     </div>

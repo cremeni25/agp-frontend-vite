@@ -7,8 +7,8 @@ export default function DashboardAtleta() {
   const [perfil, setPerfil] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ⚠️ provisório — depois vem do perfil do atleta
-  const sport = "swimming"; // swimming | athletics | football | basketball | volleyball
+  // provisório — depois virá do perfil
+  const sport = "swimming";
 
   useEffect(() => {
     async function carregarPerfil() {
@@ -24,13 +24,19 @@ export default function DashboardAtleta() {
       const { data, error } = await supabase
         .from("perfis_atletas")
         .select("*")
-        .eq("user_id", session.user.id)
-        .single();
+        .eq("auth_id", session.user.id)
+        .maybeSingle();
 
-      if (!error) {
-        setPerfil(data);
+      if (error) {
+        console.error(error);
       }
 
+      if (!data) {
+        window.location.href = "/";
+        return;
+      }
+
+      setPerfil(data);
       setLoading(false);
     }
 
@@ -51,13 +57,15 @@ export default function DashboardAtleta() {
 
         <header className="dashboard-header">
           <h1>Dashboard do Atleta</h1>
-          <span>{perfil?.modalidade || "Atleta"}</span>
+          <span>{perfil?.nivel || "Atleta"}</span>
         </header>
 
         <section className="dashboard-section">
           <h2>Perfil</h2>
           <p><strong>Nome:</strong> {perfil?.nome}</p>
-          <p><strong>Categoria:</strong> {perfil?.categoria}</p>
+          <p><strong>Clube:</strong> {perfil?.clube}</p>
+          <p><strong>Sexo:</strong> {perfil?.sexo}</p>
+          <p><strong>Idade:</strong> {perfil?.idade}</p>
         </section>
 
         <section className="dashboard-section">

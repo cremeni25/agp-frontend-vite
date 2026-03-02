@@ -4,7 +4,7 @@ import { supabase } from "../supabaseClient";
 import "../styles/auth-block.css";
 
 export default function AuthBlock() {
-  const [mode, setMode] = useState("login"); // login | signup
+  const [mode, setMode] = useState("login");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,15 +13,12 @@ export default function AuthBlock() {
   const [name, setName] = useState("");
   const [club, setClub] = useState("");
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const [msg, setMsg] = useState("");
 
   // ================= LOGIN =================
   async function handleLogin(e) {
     e.preventDefault();
-    setMsg("");
+    setMsg("🔎 Tentando login...");
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -29,76 +26,103 @@ export default function AuthBlock() {
     });
 
     if (error) {
-      setMsg(error.message);
+      setMsg("❌ Login erro: " + error.message);
       return;
     }
 
-    // Buscar perfil corretamente na tabela real
+    if (!data.user) {
+      setMsg("❌ Login retornou sem user.");
+      return;
+    }
+
     const { data: perfil, error: perfilError } = await supabase
       .from("perfis_atletas")
       .select("*")
       .eq("auth_id", data.user.id)
       .single();
 
-    if (perfilError || !perfil) {
-      setMsg("Perfil não encontrado.");
+    if (perfilError) {
+      setMsg("❌ Erro ao buscar perfil: " + perfilError.message);
       return;
     }
 
-    // Redirecionamento simples (mantendo sua arquitetura atual)
+    if (!perfil) {
+      setMsg("❌ Perfil não encontrado para auth_id: " + data.user.id);
+      return;
+    }
+
+    setMsg("✅ Login OK — Perfil encontrado.");
     window.location.href = "/dashboard-atleta";
   }
 
   // ================= SIGNUP =================
   async function handleSignup(e) {
     e.preventDefault();
-    setMsg("");
+    setMsg("🔎 Criando usuário...");
 
     if (password !== confirmPassword) {
-      setMsg("As senhas não coincidem.");
+      setMsg("❌ Senhas não coincidem.");
       return;
     }
 
-    // Criar usuário na AUTH
     const { data, error } = await supabase.auth.signUp({
       email,
       password
     });
 
     if (error) {
-      setMsg(error.message);
+      setMsg("❌ Signup erro: " + error.message);
       return;
     }
 
     if (!data.user) {
-      setMsg("Erro ao criar usuário.");
+      setMsg("❌ Signup retornou sem user.");
       return;
     }
 
-    // Criar perfil na tabela correta
-    const { error: perfilError } = await supabase
+    setMsg("🔎 Fazendo login automático...");
+
+    // força login após signup
+    const { data: loginData, error: loginError } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+    if (loginError) {
+      setMsg("❌ Login automático falhou: " + loginError.message);
+      return;
+    }
+
+    if (!loginData.user) {
+      setMsg("❌ Login automático retornou sem user.");
+      return;
+    }
+
+    setMsg("🔎 Inserindo perfil...");
+
+    const { data: insertData, error: insertError } = await supabase
       .from("perfis_atletas")
       .insert({
-        auth_id: data.user.id,
+        auth_id: loginData.user.id,
         nome: name,
         clube: club,
         funcao: "Atleta"
-      });
+      })
+      .select();
 
-    if (perfilError) {
-      setMsg("Usuário criado, mas erro ao criar perfil.");
+    if (insertError) {
+      setMsg("❌ Erro no INSERT: " + insertError.message);
       return;
     }
 
-    // Limpar campos após cadastro
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
-    setName("");
-    setClub("");
+    if (!insertData) {
+      setMsg("❌ Insert não retornou dados.");
+      return;
+    }
 
+    setMsg("✅ Perfil criado com sucesso. Faça login.");
     setMode("login");
-    setMsg("Cadastro realizado com sucesso. Faça login.");
   }
 
   return (
@@ -113,21 +137,13 @@ export default function AuthBlock() {
             required
           />
 
-          <div className="password-field">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Senha"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <span
-              className="toggle-password"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              👁
-            </span>
-          </div>
+          <input
+            type="password"
+            placeholder="Senha"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
           <button type="submit" className="primary">
             Entrar
@@ -172,39 +188,21 @@ export default function AuthBlock() {
             required
           />
 
-          <div className="password-field">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Criar senha"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <span
-              className="toggle-password"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              👁
-            </span>
-          </div>
+          <input
+            type="password"
+            placeholder="Criar senha"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-          <div className="password-field">
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirmar senha"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-            <span
-              className="toggle-password"
-              onClick={() =>
-                setShowConfirmPassword(!showConfirmPassword)
-              }
-            >
-              👁
-            </span>
-          </div>
+          <input
+            type="password"
+            placeholder="Confirmar senha"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
 
           <button type="submit" className="primary">
             Criar conta

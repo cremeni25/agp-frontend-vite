@@ -1,4 +1,3 @@
-// src/components/AuthBlock.jsx
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
 import "../styles/auth-block.css";
@@ -18,7 +17,7 @@ export default function AuthBlock() {
   // ================= LOGIN =================
   async function handleLogin(e) {
     e.preventDefault();
-    setMsg("🔎 Tentando login...");
+    setMsg("Entrando...");
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -26,12 +25,12 @@ export default function AuthBlock() {
     });
 
     if (error) {
-      setMsg("❌ Login erro: " + error.message);
+      setMsg("Erro no login: " + error.message);
       return;
     }
 
     if (!data.user) {
-      setMsg("❌ Login retornou sem user.");
+      setMsg("Usuário não retornado no login.");
       return;
     }
 
@@ -39,29 +38,28 @@ export default function AuthBlock() {
       .from("perfis_atletas")
       .select("*")
       .eq("auth_id", data.user.id)
-      .single();
+      .maybeSingle();
 
     if (perfilError) {
-      setMsg("❌ Erro ao buscar perfil: " + perfilError.message);
+      setMsg("Erro ao buscar perfil: " + perfilError.message);
       return;
     }
 
     if (!perfil) {
-      setMsg("❌ Perfil não encontrado para auth_id: " + data.user.id);
+      setMsg("Perfil não encontrado.");
       return;
     }
 
-    setMsg("✅ Login OK — Perfil encontrado.");
     window.location.href = "/dashboard-atleta";
   }
 
   // ================= SIGNUP =================
   async function handleSignup(e) {
     e.preventDefault();
-    setMsg("🔎 Criando usuário...");
+    setMsg("Criando conta...");
 
     if (password !== confirmPassword) {
-      setMsg("❌ Senhas não coincidem.");
+      setMsg("Senhas não coincidem.");
       return;
     }
 
@@ -71,58 +69,39 @@ export default function AuthBlock() {
     });
 
     if (error) {
-      setMsg("❌ Signup erro: " + error.message);
+      setMsg("Erro no cadastro: " + error.message);
       return;
     }
 
     if (!data.user) {
-      setMsg("❌ Signup retornou sem user.");
+      setMsg("Usuário criado, mas ID não retornado.");
       return;
     }
 
-    setMsg("🔎 Fazendo login automático...");
+    const authId = data.user.id;
 
-    // força login após signup
-    const { data: loginData, error: loginError } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-    if (loginError) {
-      setMsg("❌ Login automático falhou: " + loginError.message);
-      return;
-    }
-
-    if (!loginData.user) {
-      setMsg("❌ Login automático retornou sem user.");
-      return;
-    }
-
-    setMsg("🔎 Inserindo perfil...");
-
-    const { data: insertData, error: insertError } = await supabase
+    const { error: insertError } = await supabase
       .from("perfis_atletas")
       .insert({
-        auth_id: loginData.user.id,
+        auth_id: authId,
         nome: name,
         clube: club,
         funcao: "Atleta"
-      })
-      .select();
+      });
 
     if (insertError) {
-      setMsg("❌ Erro no INSERT: " + insertError.message);
+      setMsg("Erro ao criar perfil: " + insertError.message);
       return;
     }
 
-    if (!insertData) {
-      setMsg("❌ Insert não retornou dados.");
-      return;
-    }
+    setMsg("Conta criada com sucesso. Faça login.");
 
-    setMsg("✅ Perfil criado com sucesso. Faça login.");
     setMode("login");
+    setName("");
+    setClub("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
   }
 
   return (

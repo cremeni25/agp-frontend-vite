@@ -4,15 +4,15 @@ import { supabase } from "../supabaseClient";
 import "../styles/auth-block.css";
 
 export default function AuthBlock() {
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState("login"); // login | signup
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [club, setClub] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [msg, setMsg] = useState("");
 
-  async function entrar(e) {
+  async function handleLogin(e) {
     e.preventDefault();
+    setMsg("");
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -24,53 +24,69 @@ export default function AuthBlock() {
       return;
     }
 
-    const { data: perfil } = await supabase
+    const userId = data.user.id;
+
+    const { data: perfil, error: perfilError } = await supabase
       .from("perfis")
       .select("role")
-      .eq("user_id", data.user.id)
+      .eq("user_id", userId)
       .single();
 
-    if (!perfil) {
-      setMsg("Perfil não encontrado.");
+    if (perfilError || !perfil) {
+      setMsg("Perfil não encontrado para este usuário.");
       return;
     }
 
-    window.location.href = `/dashboard-${perfil.role}`;
+    switch (perfil.role) {
+      case "athlete":
+        window.location.href = "/dashboard-atleta";
+        break;
+      case "coach":
+        window.location.href = "/dashboard-comissao";
+        break;
+      case "club":
+        window.location.href = "/dashboard-clube";
+        break;
+      case "master":
+        window.location.href = "/dashboard-master";
+        break;
+      default:
+        setMsg("Perfil inválido.");
+    }
   }
 
-  async function cadastrar(e) {
+  async function handleSignup(e) {
     e.preventDefault();
+    setMsg("");
 
-    const { data, error } = await supabase.auth.signUp({
+    if (password !== confirm) {
+      setMsg("As senhas não coincidem.");
+      return;
+    }
+
+    const { error } = await supabase.auth.signUp({
       email,
       password
     });
 
     if (error) {
       setMsg(error.message);
-      return;
+    } else {
+      setMode("login");
+      setMsg("Conta criada. Faça login para continuar.");
     }
-
-    await supabase.from("perfis").insert({
-      user_id: data.user.id,
-      nome: name,
-      clube: club,
-      role: "athlete"
-    });
-
-    setMode("login");
-    setMsg("Cadastro criado. Faça login.");
   }
 
   return (
     <div className="auth-block">
       {mode === "login" ? (
-        <form onSubmit={entrar}>
+        <form onSubmit={handleLogin}>
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={e => setEmail(e.target.value)}
+            required
           />
 
           <input
@@ -78,61 +94,70 @@ export default function AuthBlock() {
             placeholder="Senha"
             value={password}
             onChange={e => setPassword(e.target.value)}
+            required
           />
 
-          <button type="submit">Entrar</button>
+          <button type="submit" className="primary">
+            Entrar
+          </button>
 
           <button
             type="button"
             className="link"
-            onClick={() => setMode("signup")}
+            onClick={() => {
+              setMode("signup");
+              setMsg("");
+            }}
           >
             Criar conta
           </button>
+
+          {msg && <div className="msg">{msg}</div>}
         </form>
       ) : (
-        <form onSubmit={cadastrar}>
-          <input
-            type="text"
-            placeholder="Nome"
-            value={name}
-            onChange={e => setName(e.target.value)}
-          />
-
-          <input
-            type="text"
-            placeholder="Clube"
-            value={club}
-            onChange={e => setClub(e.target.value)}
-          />
-
+        <form onSubmit={handleSignup}>
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={e => setEmail(e.target.value)}
+            required
           />
 
           <input
             type="password"
-            placeholder="Senha"
+            placeholder="Criar senha"
             value={password}
             onChange={e => setPassword(e.target.value)}
+            required
           />
 
-          <button type="submit">Cadastrar</button>
+          <input
+            type="password"
+            placeholder="Confirmar senha"
+            value={confirm}
+            onChange={e => setConfirm(e.target.value)}
+            required
+          />
+
+          <button type="submit" className="primary">
+            Criar conta
+          </button>
 
           <button
             type="button"
             className="link"
-            onClick={() => setMode("login")}
+            onClick={() => {
+              setMode("login");
+              setMsg("");
+            }}
           >
-            Já tenho conta
+            Voltar
           </button>
+
+          {msg && <div className="msg">{msg}</div>}
         </form>
       )}
-
-      {msg && <p className="msg">{msg}</p>}
     </div>
   );
 }

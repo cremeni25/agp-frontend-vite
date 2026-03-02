@@ -12,6 +12,9 @@ export default function AuthBlock() {
   const [name, setName] = useState("");
   const [club, setClub] = useState("");
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const [msg, setMsg] = useState("");
 
   // ================= LOGIN =================
@@ -30,7 +33,7 @@ export default function AuthBlock() {
     }
 
     if (!data.user) {
-      setMsg("Usuário não retornado no login.");
+      setMsg("Usuário não retornado.");
       return;
     }
 
@@ -74,7 +77,7 @@ export default function AuthBlock() {
     }
 
     if (!data.user) {
-      setMsg("Usuário criado, mas ID não retornado.");
+      setMsg("Usuário criado mas ID não retornado.");
       return;
     }
 
@@ -116,13 +119,21 @@ export default function AuthBlock() {
             required
           />
 
-          <input
-            type="password"
-            placeholder="Senha"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="password-wrapper">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Senha"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <span
+              className="eye"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              👁
+            </span>
+          </div>
 
           <button type="submit" className="primary">
             Entrar
@@ -167,21 +178,37 @@ export default function AuthBlock() {
             required
           />
 
-          <input
-            type="password"
-            placeholder="Criar senha"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="password-wrapper">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Criar senha"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <span
+              className="eye"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              👁
+            </span>
+          </div>
 
-          <input
-            type="password"
-            placeholder="Confirmar senha"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
+          <div className="password-wrapper">
+            <input
+              type={showConfirm ? "text" : "password"}
+              placeholder="Confirmar senha"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+            <span
+              className="eye"
+              onClick={() => setShowConfirm(!showConfirm)}
+            >
+              👁
+            </span>
+          </div>
 
           <button type="submit" className="primary">
             Criar conta

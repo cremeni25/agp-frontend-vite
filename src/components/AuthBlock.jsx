@@ -1,24 +1,63 @@
 // src/components/AuthBlock.jsx
-
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
 import "../styles/auth-block.css";
 
 export default function AuthBlock() {
-  const [isRegistering, setIsRegistering] = useState(false);
-
-  const [nome, setNome] = useState("");
-  const [clube, setClube] = useState("");
+  const [mode, setMode] = useState("login"); // login | signup
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
+  const [name, setName] = useState("");
+  const [club, setClub] = useState("");
   const [msg, setMsg] = useState("");
 
-  // ===============================
-  // REGISTRO
-  // ===============================
-  async function handleRegister(e) {
+  // ================= LOGIN =================
+  async function handleLogin(e) {
+    e.preventDefault();
+    setMsg("");
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      setMsg(error.message);
+      return;
+    }
+
+    const { data: perfil } = await supabase
+      .from("perfis")
+      .select("role")
+      .eq("user_id", data.user.id)
+      .single();
+
+    if (!perfil) {
+      setMsg("Perfil não encontrado.");
+      return;
+    }
+
+    switch (perfil.role) {
+      case "athlete":
+        window.location.href = "/dashboard-atleta";
+        break;
+      case "coach":
+        window.location.href = "/dashboard-comissao";
+        break;
+      case "club":
+        window.location.href = "/dashboard-clube";
+        break;
+      case "master":
+        window.location.href = "/dashboard-master";
+        break;
+      default:
+        setMsg("Perfil inválido.");
+    }
+  }
+
+  // ================= SIGNUP =================
+  async function handleSignup(e) {
     e.preventDefault();
     setMsg("");
 
@@ -27,99 +66,143 @@ export default function AuthBlock() {
       return;
     }
 
-    console.log("INICIANDO SIGNUP...");
-
     const { data, error } = await supabase.auth.signUp({
       email,
-      password,
+      password
     });
 
-    console.log("RETORNO SIGNUP:", data);
-    console.log("ERRO SIGNUP:", error);
-
     if (error) {
-      setMsg("Erro signup: " + error.message);
+      setMsg(error.message);
       return;
     }
 
     if (!data.user) {
-      setMsg("Usuário não retornado pelo signup.");
+      setMsg("Erro ao criar usuário.");
       return;
     }
 
-    const userId = data.user.id;
-    console.log("USER ID:", userId);
-
-    console.log("INICIANDO INSERT PERFIL...");
-
+    // 🔹 INSERE PERFIL CORRETAMENTE
     const { error: perfilError } = await supabase
-      .from("perfis_atletas")
-      .insert([
-        {
-          auth_id: userId,
-          nome: nome,
-          clube: clube,
-          funcao: "Atleta",
-        },
-      ]);
-
-    console.log("ERRO INSERT:", perfilError);
+      .from("perfis")
+      .insert({
+        user_id: data.user.id,
+        nome: name,
+        clube: club,
+        role: "athlete"
+      });
 
     if (perfilError) {
-      setMsg("Erro insert perfil: " + perfilError.message);
+      setMsg("Usuário criado, mas erro ao criar perfil.");
       return;
     }
 
-    setMsg("Cadastro completo com sucesso.");
+    // limpa tudo
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setName("");
+    setClub("");
+    setMode("login");
+    setMsg("Cadastro concluído. Faça login.");
   }
 
   return (
     <div className="auth-block">
-      <form onSubmit={handleRegister}>
-        <input
-          type="text"
-          placeholder="Nome completo"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          required
-        />
+      {mode === "login" ? (
+        <form onSubmit={handleLogin}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-        <input
-          type="text"
-          placeholder="Clube ou Associação"
-          value={clube}
-          onChange={(e) => setClube(e.target.value)}
-          required
-        />
+          <input
+            type="password"
+            placeholder="Senha"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+          <button type="submit" className="primary">
+            Entrar
+          </button>
 
-        <input
-          type="password"
-          placeholder="Senha"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+          <button
+            type="button"
+            className="link"
+            onClick={() => {
+              setMode("signup");
+              setMsg("");
+            }}
+          >
+            Criar conta
+          </button>
 
-        <input
-          type="password"
-          placeholder="Confirmar senha"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
+          {msg && <div className="msg">{msg}</div>}
+        </form>
+      ) : (
+        <form onSubmit={handleSignup}>
+          <input
+            type="text"
+            placeholder="Nome completo"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
 
-        <button type="submit">Cadastrar</button>
+          <input
+            type="text"
+            placeholder="Clube / Associação"
+            value={club}
+            onChange={(e) => setClub(e.target.value)}
+            required
+          />
 
-        {msg && <p className="auth-msg">{msg}</p>}
-      </form>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Criar senha"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Confirmar senha"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+
+          <button type="submit" className="primary">
+            Criar conta
+          </button>
+
+          <button
+            type="button"
+            className="link"
+            onClick={() => {
+              setMode("login");
+              setMsg("");
+            }}
+          >
+            Já tenho conta
+          </button>
+
+          {msg && <div className="msg">{msg}</div>}
+        </form>
+      )}
     </div>
   );
 }

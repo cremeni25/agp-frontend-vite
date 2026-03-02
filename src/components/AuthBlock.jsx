@@ -5,11 +5,17 @@ import "../styles/auth-block.css";
 
 export default function AuthBlock() {
   const [mode, setMode] = useState("login"); // login | signup
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [name, setName] = useState("");
   const [club, setClub] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [msg, setMsg] = useState("");
 
   // ================= LOGIN =================
@@ -27,33 +33,20 @@ export default function AuthBlock() {
       return;
     }
 
-    const { data: perfil } = await supabase
-      .from("perfis")
-      .select("role")
-      .eq("user_id", data.user.id)
+    // Buscar perfil corretamente na tabela real
+    const { data: perfil, error: perfilError } = await supabase
+      .from("perfis_atletas")
+      .select("*")
+      .eq("auth_id", data.user.id)
       .single();
 
-    if (!perfil) {
+    if (perfilError || !perfil) {
       setMsg("Perfil não encontrado.");
       return;
     }
 
-    switch (perfil.role) {
-      case "athlete":
-        window.location.href = "/dashboard-atleta";
-        break;
-      case "coach":
-        window.location.href = "/dashboard-comissao";
-        break;
-      case "club":
-        window.location.href = "/dashboard-clube";
-        break;
-      case "master":
-        window.location.href = "/dashboard-master";
-        break;
-      default:
-        setMsg("Perfil inválido.");
-    }
+    // Redirecionamento simples (mantendo sua arquitetura atual)
+    window.location.href = "/dashboard-atleta";
   }
 
   // ================= SIGNUP =================
@@ -66,6 +59,7 @@ export default function AuthBlock() {
       return;
     }
 
+    // Criar usuário na AUTH
     const { data, error } = await supabase.auth.signUp({
       email,
       password
@@ -81,14 +75,14 @@ export default function AuthBlock() {
       return;
     }
 
-    // 🔹 INSERE PERFIL CORRETAMENTE
+    // Criar perfil na tabela correta
     const { error: perfilError } = await supabase
-      .from("perfis")
+      .from("perfis_atletas")
       .insert({
-        user_id: data.user.id,
+        auth_id: data.user.id,
         nome: name,
         clube: club,
-        role: "athlete"
+        funcao: "Atleta"
       });
 
     if (perfilError) {
@@ -96,14 +90,15 @@ export default function AuthBlock() {
       return;
     }
 
-    // limpa tudo
+    // Limpar campos após cadastro
     setEmail("");
     setPassword("");
     setConfirmPassword("");
     setName("");
     setClub("");
+
     setMode("login");
-    setMsg("Cadastro concluído. Faça login.");
+    setMsg("Cadastro realizado com sucesso. Faça login.");
   }
 
   return (
@@ -118,13 +113,21 @@ export default function AuthBlock() {
             required
           />
 
-          <input
-            type="password"
-            placeholder="Senha"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="password-field">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Senha"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <span
+              className="toggle-password"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              👁
+            </span>
+          </div>
 
           <button type="submit" className="primary">
             Entrar
@@ -169,21 +172,39 @@ export default function AuthBlock() {
             required
           />
 
-          <input
-            type="password"
-            placeholder="Criar senha"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="password-field">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Criar senha"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <span
+              className="toggle-password"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              👁
+            </span>
+          </div>
 
-          <input
-            type="password"
-            placeholder="Confirmar senha"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
+          <div className="password-field">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirmar senha"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+            <span
+              className="toggle-password"
+              onClick={() =>
+                setShowConfirmPassword(!showConfirmPassword)
+              }
+            >
+              👁
+            </span>
+          </div>
 
           <button type="submit" className="primary">
             Criar conta

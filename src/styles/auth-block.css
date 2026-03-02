@@ -1,48 +1,74 @@
-/* src/styles/auth-block.css */
-
 .auth-block {
-  position: absolute;
-  right: 12vw;
-  top: 22vh;
-
-  width: 300px;
-
-  background: rgba(15, 30, 55, 0.6);
-  backdrop-filter: blur(12px);
-  border-radius: 14px;
-  padding: 24px;
-
-  z-index: 10;
+  width: 340px;
+  padding: 30px;
+  border-radius: 16px;
+  background: rgba(8, 25, 55, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .auth-block form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .auth-block input {
-  padding: 12px;
-  border-radius: 6px;
+  padding: 12px 14px;
+  border-radius: 8px;
   border: none;
+  outline: none;
+  font-size: 14px;
+  background: #eaeaea;
 }
 
-.auth-block button {
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper input {
+  width: 100%;
+}
+
+.eye {
+  position: absolute;
+  right: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  user-select: none;
+}
+
+.primary {
   padding: 12px;
-  border-radius: 6px;
-  background: rgba(20, 40, 70, 0.6);
-  border: 1px solid rgba(150, 190, 255, 0.6);
-  color: #eaf6ff;
+  border-radius: 8px;
+  border: 1px solid #3a6cf4;
+  background: linear-gradient(135deg, #1a2f5f, #0f1f3d);
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
-.auth-block .link {
+.primary:hover {
+  background: linear-gradient(135deg, #254a9b, #1a2f5f);
+}
+
+.link {
   background: none;
   border: none;
-  color: #a8cfff;
+  color: #9db8ff;
+  cursor: pointer;
+  font-size: 13px;
   text-decoration: underline;
 }
 
-.auth-block .msg {
+.msg {
+  margin-top: 10px;
   font-size: 13px;
-  color: #ffbcbc;
+  color: #ff6b6b;
 }

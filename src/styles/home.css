@@ -3,17 +3,17 @@
 .home-container {
   position: relative;
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh; /* 🔥 TROCA height por min-height */
   background-image: url("/home-agp.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  overflow: hidden;
+  overflow-x: hidden; /* 🔥 REMOVE overflow hidden vertical */
 }
 
 .home-overlay {
-  position: absolute;
-  inset: 0;
+  position: relative; /* 🔥 era absolute */
+  min-height: 100vh;
   background: radial-gradient(
     circle at center,
     rgba(0, 0, 0, 0.35) 0%,
@@ -23,6 +23,7 @@
   flex-direction: column;
   align-items: center;
   color: #ffffff;
+  padding-bottom: 60px; /* 🔥 garante espaço extra */
 }
 
 /* ===== BLOCO SUPERIOR ===== */
@@ -39,9 +40,8 @@
   margin: 0 auto;
 }
 
-/* 🔧 AJUSTE ÚNICO E REAL */
 .logo-subtitle {
-  margin-top: -56px; /* SOBE A FRASE — ajuste fino vertical */
+  margin-top: -56px;
   font-size: clamp(15px, 1.3vw, 20px);
   letter-spacing: 0.32em;
   text-transform: uppercase;

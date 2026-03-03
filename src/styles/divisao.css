@@ -1,0 +1,49 @@
+.divisao-container {
+  margin-top: 60px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+  padding: 0 60px;
+}
+
+.divisao-card {
+  background: rgba(10, 25, 50, 0.75);
+  border: 1px solid rgba(120, 180, 255, 0.4);
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.divisao-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px rgba(100, 180, 255, 0.4);
+}
+
+.divisao-card h3 {
+  color: #ffffff;
+  margin-bottom: 20px;
+}
+
+.divisao-card button {
+  padding: 10px 20px;
+  background: linear-gradient(90deg, #1e6cff, #23b7ff);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .divisao-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .divisao-container {
+    grid-template-columns: 1fr;
+  }
+}

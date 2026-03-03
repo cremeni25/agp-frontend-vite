@@ -1,22 +1,27 @@
 .auth-block {
-  width: 340px;
-  padding: 30px;
-  border-radius: 16px;
-  background: rgba(8, 25, 55, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
   display: flex;
-  flex-direction: column;
   justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  width: 100%;
 }
 
 .auth-block form {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(10, 25, 55, 0.92);
+  backdrop-filter: blur(12px);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 0 30px rgba(0, 170, 255, 0.15);
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-.auth-block input {
+/* Inputs */
+.auth-block input,
+.auth-block select {
   padding: 12px 14px;
   border-radius: 8px;
   border: none;
@@ -25,6 +30,7 @@
   background: #eaeaea;
 }
 
+/* Password wrapper */
 .password-wrapper {
   position: relative;
   display: flex;
@@ -37,38 +43,71 @@
 
 .eye {
   position: absolute;
-  right: 12px;
+  right: 10px;
   cursor: pointer;
-  font-size: 16px;
-  user-select: none;
+  font-size: 14px;
 }
 
+/* Buttons */
 .primary {
+  background: linear-gradient(90deg, #0066ff, #00b3ff);
+  color: white;
   padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #3a6cf4;
-  background: linear-gradient(135deg, #1a2f5f, #0f1f3d);
-  color: #fff;
-  font-weight: 500;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
   cursor: pointer;
   transition: 0.3s;
 }
 
 .primary:hover {
-  background: linear-gradient(135deg, #254a9b, #1a2f5f);
+  transform: scale(1.02);
 }
 
 .link {
   background: none;
   border: none;
-  color: #9db8ff;
+  color: #9ecbff;
   cursor: pointer;
   font-size: 13px;
-  text-decoration: underline;
 }
 
 .msg {
-  margin-top: 10px;
+  text-align: center;
   font-size: 13px;
-  color: #ff6b6b;
+  color: #fff;
+  margin-top: 6px;
+}
+
+/* ======================
+   TABLET ADJUSTMENT
+   ====================== */
+
+@media (max-width: 1024px) {
+  .auth-block form {
+    max-width: 380px;
+    padding: 24px;
+  }
+}
+
+/* ======================
+   MOBILE ADJUSTMENT
+   ====================== */
+
+@media (max-width: 600px) {
+  .auth-block {
+    padding: 20px 15px;
+  }
+
+  .auth-block form {
+    max-width: 100%;
+    padding: 22px;
+    border-radius: 14px;
+  }
+
+  .auth-block input,
+  .auth-block select {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
 }

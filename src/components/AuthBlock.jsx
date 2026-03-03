@@ -1,10 +1,13 @@
 // src/components/AuthBlock.jsx
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "../styles/auth-block.css";
 
-export default function AuthBlock() {
-  const [mode, setMode] = useState("login");
+export default function AuthBlock({ initialMode = "login" }) {
+  const navigate = useNavigate();
+
+  const [mode, setMode] = useState(initialMode);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,47 +31,35 @@ export default function AuthBlock() {
 
   const [msg, setMsg] = useState("");
 
-  // ================= LOAD SPORTS =================
   useEffect(() => {
     async function loadSports() {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("esportes")
         .select("*")
         .order("nome");
-
-      if (!error && data) {
-        setSports(data);
-      }
+      if (data) setSports(data);
     }
-
     loadSports();
   }, []);
 
-  // ================= LOAD MODALIDADES =================
   useEffect(() => {
     async function loadModalidades() {
       if (!selectedSportId) return;
-
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("modalidades")
         .select("*")
         .eq("esporte_id", selectedSportId)
         .order("nome");
-
-      if (!error && data) {
-        setModalidades(data);
-      }
+      if (data) setModalidades(data);
     }
-
     loadModalidades();
   }, [selectedSportId]);
 
-  // ================= LOGIN =================
   async function handleLogin(e) {
     e.preventDefault();
     setMsg("Entrando...");
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
@@ -81,7 +72,6 @@ export default function AuthBlock() {
     window.location.href = "/dashboard-atleta";
   }
 
-  // ================= SIGNUP =================
   async function handleSignup(e) {
     e.preventDefault();
     setMsg("Criando conta...");
@@ -123,21 +113,8 @@ export default function AuthBlock() {
       return;
     }
 
-    setMsg("Conta criada com sucesso. Faça login.");
-
-    // Reset
-    setMode("login");
-    setName("");
-    setClub("");
-    setAge("");
-    setSexo("");
-    setNivel("");
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
-    setSelectedSportId("");
-    setSelectedModalidadeId("");
-    setSelectedSportSlug("");
+    setMsg("Conta criada com sucesso.");
+    navigate("/");
   }
 
   return (
@@ -168,7 +145,7 @@ export default function AuthBlock() {
           <button
             type="button"
             className="link"
-            onClick={() => { setMode("signup"); setMsg(""); }}
+            onClick={() => navigate("/register")}
           >
             Criar conta
           </button>
@@ -177,37 +154,17 @@ export default function AuthBlock() {
         </form>
       ) : (
         <form onSubmit={handleSignup}>
-          <input
-            type="text"
-            placeholder="Nome completo"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
+          <input type="text" placeholder="Nome completo" value={name} onChange={(e)=>setName(e.target.value)} required />
+          <input type="text" placeholder="Clube / Associação" value={club} onChange={(e)=>setClub(e.target.value)} required />
+          <input type="number" placeholder="Idade" value={age} onChange={(e)=>setAge(e.target.value)} required />
 
-          <input
-            type="text"
-            placeholder="Clube / Associação"
-            value={club}
-            onChange={(e) => setClub(e.target.value)}
-            required
-          />
-
-          <input
-            type="number"
-            placeholder="Idade"
-            value={age}
-            onChange={(e) => setAge(e.target.value)}
-            required
-          />
-
-          <select value={sexo} onChange={(e) => setSexo(e.target.value)} required>
+          <select value={sexo} onChange={(e)=>setSexo(e.target.value)} required>
             <option value="">Sexo</option>
             <option value="MASCULINO">Masculino</option>
             <option value="FEMININO">Feminino</option>
           </select>
 
-          <select value={nivel} onChange={(e) => setNivel(e.target.value)} required>
+          <select value={nivel} onChange={(e)=>setNivel(e.target.value)} required>
             <option value="">Nível</option>
             <option value="INICIANTE">Iniciante</option>
             <option value="INTERMEDIARIO">Intermediário</option>
@@ -216,7 +173,7 @@ export default function AuthBlock() {
 
           <select
             value={selectedSportId}
-            onChange={(e) => {
+            onChange={(e)=>{
               const sport = sports.find(s => s.id === e.target.value);
               setSelectedSportId(e.target.value);
               setSelectedSportSlug(sport?.slug || "");
@@ -231,7 +188,7 @@ export default function AuthBlock() {
 
           <select
             value={selectedModalidadeId}
-            onChange={(e) => setSelectedModalidadeId(e.target.value)}
+            onChange={(e)=>setSelectedModalidadeId(e.target.value)}
             required
             disabled={!selectedSportId}
           >
@@ -241,33 +198,15 @@ export default function AuthBlock() {
             ))}
           </select>
 
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          <input type="email" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} required />
 
           <div className="password-wrapper">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Criar senha"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <input type={showPassword ? "text" : "password"} placeholder="Criar senha" value={password} onChange={(e)=>setPassword(e.target.value)} required />
             <span className="eye" onClick={() => setShowPassword(!showPassword)}>👁</span>
           </div>
 
           <div className="password-wrapper">
-            <input
-              type={showConfirm ? "text" : "password"}
-              placeholder="Confirmar senha"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
+            <input type={showConfirm ? "text" : "password"} placeholder="Confirmar senha" value={confirmPassword} onChange={(e)=>setConfirmPassword(e.target.value)} required />
             <span className="eye" onClick={() => setShowConfirm(!showConfirm)}>👁</span>
           </div>
 
@@ -276,7 +215,7 @@ export default function AuthBlock() {
           <button
             type="button"
             className="link"
-            onClick={() => { setMode("login"); setMsg(""); }}
+            onClick={() => navigate("/")}
           >
             Já tenho conta
           </button>

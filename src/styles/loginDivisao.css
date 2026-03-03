@@ -1,0 +1,52 @@
+.login-divisao-wrapper {
+  margin-top: 60px;
+  display: flex;
+  justify-content: center;
+}
+
+.login-divisao-card {
+  background: rgba(10, 25, 50, 0.8);
+  border: 1px solid rgba(120, 180, 255, 0.4);
+  border-radius: 12px;
+  padding: 40px;
+  width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  backdrop-filter: blur(6px);
+}
+
+.login-divisao-card h2 {
+  text-align: center;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.login-divisao-card input {
+  padding: 12px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.login-divisao-card button {
+  padding: 12px;
+  border-radius: 6px;
+  border: none;
+  background: linear-gradient(90deg, #1e6cff, #23b7ff);
+  color: white;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.login-links {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #cfe6ff;
+  cursor: pointer;
+}
+
+.login-links span:hover {
+  text-decoration: underline;
+}

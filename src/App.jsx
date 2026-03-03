@@ -12,16 +12,16 @@ function App() {
     <Router>
       <Routes>
 
-        {/* 1️⃣ Home */}
+        {/* Home */}
         <Route path="/" element={<Home />} />
 
-        {/* 2️⃣ Tela de escolha de divisão */}
+        {/* Tela de escolha de divisão */}
         <Route path="/divisao" element={<Divisao />} />
 
-        {/* 3️⃣ Login por divisão */}
+        {/* Login por divisão */}
         <Route path="/login/:tipo" element={<LoginDivisao />} />
 
-        {/* 4️⃣ Cadastro geral (se necessário manter) */}
+        {/* Cadastro */}
         <Route path="/register" element={<Register />} />
 
       </Routes>

@@ -1,26 +1,32 @@
 // src/App.jsx
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
+import Divisao from "./pages/Divisao";
 import Register from "./pages/Register";
+import LoginDivisao from "./pages/LoginDivisao";
 
-import DashboardAtleta from "./pages/DashboardAtleta";
-import DashboardComissao from "./pages/DashboardComissao";
-import DashboardClube from "./pages/DashboardClube";
-import DashboardMaster from "./pages/DashboardMaster";
-
-export default function App() {
+function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
+
+        {/* 1️⃣ Home */}
         <Route path="/" element={<Home />} />
+
+        {/* 2️⃣ Tela de escolha de divisão */}
+        <Route path="/divisao" element={<Divisao />} />
+
+        {/* 3️⃣ Login por divisão */}
+        <Route path="/login/:tipo" element={<LoginDivisao />} />
+
+        {/* 4️⃣ Cadastro geral (se necessário manter) */}
         <Route path="/register" element={<Register />} />
 
-        <Route path="/dashboard-atleta" element={<DashboardAtleta />} />
-        <Route path="/dashboard-comissao" element={<DashboardComissao />} />
-        <Route path="/dashboard-clube" element={<DashboardClube />} />
-        <Route path="/dashboard-master" element={<DashboardMaster />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
+
+export default App;

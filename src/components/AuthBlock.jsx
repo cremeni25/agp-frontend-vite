@@ -1,4 +1,5 @@
-import { useState } from "react";
+// src/components/AuthBlock.jsx
+import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import "../styles/auth-block.css";
 
@@ -11,11 +12,56 @@ export default function AuthBlock() {
 
   const [name, setName] = useState("");
   const [club, setClub] = useState("");
+  const [age, setAge] = useState("");
+  const [sexo, setSexo] = useState("");
+  const [nivel, setNivel] = useState("");
+
+  const [sports, setSports] = useState([]);
+  const [modalidades, setModalidades] = useState([]);
+
+  const [selectedSportId, setSelectedSportId] = useState("");
+  const [selectedSportSlug, setSelectedSportSlug] = useState("");
+  const [selectedModalidadeId, setSelectedModalidadeId] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [msg, setMsg] = useState("");
+
+  // ================= LOAD SPORTS =================
+  useEffect(() => {
+    async function loadSports() {
+      const { data, error } = await supabase
+        .from("esportes")
+        .select("*")
+        .order("nome");
+
+      if (!error && data) {
+        setSports(data);
+      }
+    }
+
+    loadSports();
+  }, []);
+
+  // ================= LOAD MODALIDADES =================
+  useEffect(() => {
+    async function loadModalidades() {
+      if (!selectedSportId) return;
+
+      const { data, error } = await supabase
+        .from("modalidades")
+        .select("*")
+        .eq("esporte_id", selectedSportId)
+        .order("nome");
+
+      if (!error && data) {
+        setModalidades(data);
+      }
+    }
+
+    loadModalidades();
+  }, [selectedSportId]);
 
   // ================= LOGIN =================
   async function handleLogin(e) {
@@ -29,27 +75,6 @@ export default function AuthBlock() {
 
     if (error) {
       setMsg("Erro no login: " + error.message);
-      return;
-    }
-
-    if (!data.user) {
-      setMsg("Usuário não retornado.");
-      return;
-    }
-
-    const { data: perfil, error: perfilError } = await supabase
-      .from("perfis_atletas")
-      .select("*")
-      .eq("auth_id", data.user.id)
-      .maybeSingle();
-
-    if (perfilError) {
-      setMsg("Erro ao buscar perfil: " + perfilError.message);
-      return;
-    }
-
-    if (!perfil) {
-      setMsg("Perfil não encontrado.");
       return;
     }
 
@@ -76,11 +101,6 @@ export default function AuthBlock() {
       return;
     }
 
-    if (!data.user) {
-      setMsg("Usuário criado mas ID não retornado.");
-      return;
-    }
-
     const authId = data.user.id;
 
     const { error: insertError } = await supabase
@@ -89,6 +109,12 @@ export default function AuthBlock() {
         auth_id: authId,
         nome: name,
         clube: club,
+        idade: age ? parseInt(age) : null,
+        sexo,
+        nivel,
+        esporte_id: selectedSportId,
+        modalidade_id: selectedModalidadeId,
+        esporte_slug: selectedSportSlug,
         funcao: "Atleta"
       });
 
@@ -99,12 +125,19 @@ export default function AuthBlock() {
 
     setMsg("Conta criada com sucesso. Faça login.");
 
+    // Reset
     setMode("login");
     setName("");
     setClub("");
+    setAge("");
+    setSexo("");
+    setNivel("");
     setEmail("");
     setPassword("");
     setConfirmPassword("");
+    setSelectedSportId("");
+    setSelectedModalidadeId("");
+    setSelectedSportSlug("");
   }
 
   return (
@@ -127,25 +160,15 @@ export default function AuthBlock() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <span
-              className="eye"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              👁
-            </span>
+            <span className="eye" onClick={() => setShowPassword(!showPassword)}>👁</span>
           </div>
 
-          <button type="submit" className="primary">
-            Entrar
-          </button>
+          <button type="submit" className="primary">Entrar</button>
 
           <button
             type="button"
             className="link"
-            onClick={() => {
-              setMode("signup");
-              setMsg("");
-            }}
+            onClick={() => { setMode("signup"); setMsg(""); }}
           >
             Criar conta
           </button>
@@ -171,6 +194,54 @@ export default function AuthBlock() {
           />
 
           <input
+            type="number"
+            placeholder="Idade"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+            required
+          />
+
+          <select value={sexo} onChange={(e) => setSexo(e.target.value)} required>
+            <option value="">Sexo</option>
+            <option value="MASCULINO">Masculino</option>
+            <option value="FEMININO">Feminino</option>
+          </select>
+
+          <select value={nivel} onChange={(e) => setNivel(e.target.value)} required>
+            <option value="">Nível</option>
+            <option value="INICIANTE">Iniciante</option>
+            <option value="INTERMEDIARIO">Intermediário</option>
+            <option value="AVANCADO">Avançado</option>
+          </select>
+
+          <select
+            value={selectedSportId}
+            onChange={(e) => {
+              const sport = sports.find(s => s.id === e.target.value);
+              setSelectedSportId(e.target.value);
+              setSelectedSportSlug(sport?.slug || "");
+            }}
+            required
+          >
+            <option value="">Esporte</option>
+            {sports.map(s => (
+              <option key={s.id} value={s.id}>{s.nome}</option>
+            ))}
+          </select>
+
+          <select
+            value={selectedModalidadeId}
+            onChange={(e) => setSelectedModalidadeId(e.target.value)}
+            required
+            disabled={!selectedSportId}
+          >
+            <option value="">Modalidade</option>
+            {modalidades.map(m => (
+              <option key={m.id} value={m.id}>{m.nome}</option>
+            ))}
+          </select>
+
+          <input
             type="email"
             placeholder="Email"
             value={email}
@@ -186,12 +257,7 @@ export default function AuthBlock() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <span
-              className="eye"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              👁
-            </span>
+            <span className="eye" onClick={() => setShowPassword(!showPassword)}>👁</span>
           </div>
 
           <div className="password-wrapper">
@@ -202,25 +268,15 @@ export default function AuthBlock() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
-            <span
-              className="eye"
-              onClick={() => setShowConfirm(!showConfirm)}
-            >
-              👁
-            </span>
+            <span className="eye" onClick={() => setShowConfirm(!showConfirm)}>👁</span>
           </div>
 
-          <button type="submit" className="primary">
-            Criar conta
-          </button>
+          <button type="submit" className="primary">Criar conta</button>
 
           <button
             type="button"
             className="link"
-            onClick={() => {
-              setMode("login");
-              setMsg("");
-            }}
+            onClick={() => { setMode("login"); setMsg(""); }}
           >
             Já tenho conta
           </button>

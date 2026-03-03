@@ -3,17 +3,17 @@
 .home-container {
   position: relative;
   width: 100vw;
-  min-height: 100vh; /* 🔥 TROCA height por min-height */
+  height: 100vh;
   background-image: url("/home-agp.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  overflow-x: hidden; /* 🔥 REMOVE overflow hidden vertical */
+  overflow: hidden;
 }
 
 .home-overlay {
-  position: relative; /* 🔥 era absolute */
-  min-height: 100vh;
+  position: absolute;
+  inset: 0;
   background: radial-gradient(
     circle at center,
     rgba(0, 0, 0, 0.35) 0%,
@@ -23,7 +23,6 @@
   flex-direction: column;
   align-items: center;
   color: #ffffff;
-  padding-bottom: 60px; /* 🔥 garante espaço extra */
 }
 
 /* ===== BLOCO SUPERIOR ===== */
@@ -86,4 +85,34 @@
 .cta:hover {
   box-shadow: 0 0 22px rgba(120, 180, 255, 0.45);
   transform: translateY(-1px);
+}
+
+/* ==========================================
+   🔥 AUTHBLOCK COMO OVERLAY LATERAL
+========================================== */
+
+.auth-block {
+  position: absolute;
+  right: 6vw;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .auth-block {
+    right: 4vw;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .auth-block {
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: none;
+    margin-top: 40px;
+  }
 }

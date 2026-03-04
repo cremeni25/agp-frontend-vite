@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import Divisao from "./pages/Divisao";
 import Register from "./pages/Register";
 import LoginDivisao from "./pages/LoginDivisao";
+import Login from "./pages/Login";
 
 function App() {
   return (
@@ -17,6 +18,9 @@ function App() {
 
         {/* Tela de escolha de divisão */}
         <Route path="/divisao" element={<Divisao />} />
+
+        {/* Login simples */}
+        <Route path="/login" element={<Login />} />
 
         {/* Login por divisão */}
         <Route path="/login/:tipo" element={<LoginDivisao />} />

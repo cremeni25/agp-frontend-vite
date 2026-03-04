@@ -9,7 +9,7 @@ export default function AuthBlock({ initialMode = "login" }) {
 
   const navigate = useNavigate();
 
-  const [mode, setMode] = useState(initialMode);
+  const [mode,setMode] = useState(initialMode);
 
   const [email,setEmail] = useState("");
   const [password,setPassword] = useState("");
@@ -42,22 +42,22 @@ export default function AuthBlock({ initialMode = "login" }) {
     async function loadSports(){
 
       const {data,error} = await supabase
-      .from("esportes")
-      .select("*")
-      .order("nome",{ascending:true})
+        .from("esportes")
+        .select("*")
+        .order("nome",{ascending:true});
 
       if(error){
-        console.log("Erro esportes",error)
-        return
+        console.log("Erro esportes:",error);
+        return;
       }
 
-      setSports(data || [])
+      setSports(data || []);
 
     }
 
-    loadSports()
+    loadSports();
 
-  },[])
+  },[]);
 
 
   /* --------------------------------------------------- */
@@ -69,28 +69,28 @@ export default function AuthBlock({ initialMode = "login" }) {
     async function loadModalidades(){
 
       if(!selectedSportId){
-        setModalidades([])
-        return
+        setModalidades([]);
+        return;
       }
 
       const {data,error} = await supabase
-      .from("modalidades")
-      .select("*")
-      .eq("esporte_id",selectedSportId)
-      .order("nome",{ascending:true})
+        .from("modalidades")
+        .select("*")
+        .eq("esporte_id",selectedSportId)
+        .order("nome",{ascending:true});
 
       if(error){
-        console.log("Erro modalidades",error)
-        return
+        console.log("Erro modalidades:",error);
+        return;
       }
 
-      setModalidades(data || [])
+      setModalidades(data || []);
 
     }
 
-    loadModalidades()
+    loadModalidades();
 
-  },[selectedSportId])
+  },[selectedSportId]);
 
 
   /* --------------------------------------------------- */
@@ -99,21 +99,20 @@ export default function AuthBlock({ initialMode = "login" }) {
 
   async function handleLogin(e){
 
-    e.preventDefault()
-
-    setMsg("Entrando...")
+    e.preventDefault();
+    setMsg("Entrando...");
 
     const {error} = await supabase.auth.signInWithPassword({
       email,
       password
-    })
+    });
 
     if(error){
-      setMsg(error.message)
-      return
+      setMsg("Erro no login: "+error.message);
+      return;
     }
 
-    window.location.href="/dashboard-atleta"
+    window.location.href="/dashboard-atleta";
 
   }
 
@@ -124,50 +123,49 @@ export default function AuthBlock({ initialMode = "login" }) {
 
   async function handleSignup(e){
 
-    e.preventDefault()
+    e.preventDefault();
 
     if(password!==confirmPassword){
-      setMsg("Senhas não coincidem")
-      return
+      setMsg("Senhas não coincidem.");
+      return;
     }
 
-    setMsg("Criando conta...")
+    setMsg("Criando conta...");
 
     const {data,error} = await supabase.auth.signUp({
       email,
       password
-    })
+    });
 
     if(error){
-      setMsg(error.message)
-      return
+      setMsg("Erro no cadastro: "+error.message);
+      return;
     }
 
-    const authId = data.user.id
+    const authId = data.user.id;
 
     const {error:insertError} = await supabase
-    .from("perfis_atletas")
-    .insert({
-      auth_id:authId,
-      nome:name,
-      clube:club,
-      idade:age ? parseInt(age) : null,
-      sexo,
-      nivel,
-      esporte_id:selectedSportId,
-      modalidade_id:selectedModalidadeId,
-      esporte_slug:selectedSportSlug,
-      funcao:"Atleta"
-    })
+      .from("perfis_atletas")
+      .insert({
+        auth_id:authId,
+        nome:name,
+        clube:club,
+        idade:age ? parseInt(age) : null,
+        sexo,
+        nivel,
+        esporte_id:selectedSportId,
+        modalidade_id:selectedModalidadeId,
+        esporte_slug:selectedSportSlug,
+        funcao:"Atleta"
+      });
 
     if(insertError){
-      setMsg(insertError.message)
-      return
+      setMsg("Erro ao criar perfil: "+insertError.message);
+      return;
     }
 
-    setMsg("Conta criada com sucesso")
-
-    navigate("/")
+    setMsg("Conta criada com sucesso.");
+    navigate("/");
 
   }
 
@@ -185,40 +183,42 @@ export default function AuthBlock({ initialMode = "login" }) {
         <form onSubmit={handleLogin}>
 
           <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e)=>setEmail(e.target.value)}
-          required
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e)=>setEmail(e.target.value)}
+            required
           />
 
           <div className="password-wrapper">
 
             <input
-            type={showPassword ? "text":"password"}
-            placeholder="Senha"
-            value={password}
-            onChange={(e)=>setPassword(e.target.value)}
-            required
+              type={showPassword ? "text":"password"}
+              placeholder="Senha"
+              value={password}
+              onChange={(e)=>setPassword(e.target.value)}
+              required
             />
 
-            <span className="eye"
-            onClick={()=>setShowPassword(!showPassword)}>
-            👁
+            <span
+              className="eye"
+              onClick={()=>setShowPassword(!showPassword)}
+            >
+              👁
             </span>
 
           </div>
 
           <button type="submit" className="primary">
-          Entrar
+            Entrar
           </button>
 
           <button
-          type="button"
-          className="link"
-          onClick={()=>navigate("/register")}
+            type="button"
+            className="link"
+            onClick={()=>navigate("/register")}
           >
-          Criar conta
+            Criar conta
           </button>
 
           {msg && <div className="msg">{msg}</div>}
@@ -230,73 +230,75 @@ export default function AuthBlock({ initialMode = "login" }) {
         <form onSubmit={handleSignup}>
 
           <input
-          type="text"
-          placeholder="Nome completo"
-          value={name}
-          onChange={(e)=>setName(e.target.value)}
-          required
+            type="text"
+            placeholder="Nome completo"
+            value={name}
+            onChange={(e)=>setName(e.target.value)}
+            required
           />
 
           <input
-          type="text"
-          placeholder="Clube / Associação"
-          value={club}
-          onChange={(e)=>setClub(e.target.value)}
-          required
+            type="text"
+            placeholder="Clube / Associação"
+            value={club}
+            onChange={(e)=>setClub(e.target.value)}
+            required
           />
 
           <input
-          type="number"
-          placeholder="Idade"
-          value={age}
-          onChange={(e)=>setAge(e.target.value)}
-          required
+            type="number"
+            placeholder="Idade"
+            value={age}
+            onChange={(e)=>setAge(e.target.value)}
+            required
           />
 
           <select
-          value={sexo}
-          onChange={(e)=>setSexo(e.target.value)}
-          required
+            value={sexo}
+            onChange={(e)=>setSexo(e.target.value)}
+            required
           >
+
             <option value="">Sexo</option>
             <option value="MASCULINO">Masculino</option>
             <option value="FEMININO">Feminino</option>
+
           </select>
 
 
           <select
-          value={nivel}
-          onChange={(e)=>setNivel(e.target.value)}
-          required
+            value={nivel}
+            onChange={(e)=>setNivel(e.target.value)}
+            required
           >
+
             <option value="">Nível</option>
-            <option value="INICIANTE">Iniciante</option>
-            <option value="INTERMEDIARIO">Intermediário</option>
-            <option value="AVANCADO">Avançado</option>
+            <option value="SAUDE">Saúde</option>
+            <option value="COMPETITIVO">Competitivo</option>
+            <option value="ALTO_RENDIMENTO">Alto rendimento</option>
+
           </select>
 
 
           <select
-          value={selectedSportId}
-          onChange={(e)=>{
+            value={selectedSportId}
+            onChange={(e)=>{
 
-            const id = e.target.value
+              const id = e.target.value;
 
-            const sport = sports.find(
-              s => String(s.id) === String(id)
-            )
+              const sport = sports.find(
+                s => String(s.id)===String(id)
+              );
 
-            setSelectedSportId(id)
-            setSelectedSportSlug(sport?.slug || "")
-            setSelectedModalidadeId("")
+              setSelectedSportId(id);
+              setSelectedSportSlug(sport?.slug || "");
+              setSelectedModalidadeId("");
 
-          }}
-          required
+            }}
+            required
           >
 
-            <option value="">
-            Esporte
-            </option>
+            <option value="">Esporte</option>
 
             {sports.map(s=>(
               <option key={s.id} value={s.id}>
@@ -308,15 +310,13 @@ export default function AuthBlock({ initialMode = "login" }) {
 
 
           <select
-          value={selectedModalidadeId}
-          onChange={(e)=>setSelectedModalidadeId(e.target.value)}
-          required
-          disabled={!selectedSportId}
+            value={selectedModalidadeId}
+            onChange={(e)=>setSelectedModalidadeId(e.target.value)}
+            required
+            disabled={!selectedSportId}
           >
 
-            <option value="">
-            Modalidade
-            </option>
+            <option value="">Modalidade</option>
 
             {modalidades.map(m=>(
               <option key={m.id} value={m.id}>
@@ -328,27 +328,29 @@ export default function AuthBlock({ initialMode = "login" }) {
 
 
           <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e)=>setEmail(e.target.value)}
-          required
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e)=>setEmail(e.target.value)}
+            required
           />
 
 
           <div className="password-wrapper">
 
             <input
-            type={showPassword ? "text":"password"}
-            placeholder="Criar senha"
-            value={password}
-            onChange={(e)=>setPassword(e.target.value)}
-            required
+              type={showPassword ? "text":"password"}
+              placeholder="Criar senha"
+              value={password}
+              onChange={(e)=>setPassword(e.target.value)}
+              required
             />
 
-            <span className="eye"
-            onClick={()=>setShowPassword(!showPassword)}>
-            👁
+            <span
+              className="eye"
+              onClick={()=>setShowPassword(!showPassword)}
+            >
+              👁
             </span>
 
           </div>
@@ -357,35 +359,37 @@ export default function AuthBlock({ initialMode = "login" }) {
           <div className="password-wrapper">
 
             <input
-            type={showConfirm ? "text":"password"}
-            placeholder="Confirmar senha"
-            value={confirmPassword}
-            onChange={(e)=>setConfirmPassword(e.target.value)}
-            required
+              type={showConfirm ? "text":"password"}
+              placeholder="Confirmar senha"
+              value={confirmPassword}
+              onChange={(e)=>setConfirmPassword(e.target.value)}
+              required
             />
 
-            <span className="eye"
-            onClick={()=>setShowConfirm(!showConfirm)}>
-            👁
+            <span
+              className="eye"
+              onClick={()=>setShowConfirm(!showConfirm)}
+            >
+              👁
             </span>
 
           </div>
 
 
           <button
-          type="submit"
-          className="primary"
+            type="submit"
+            className="primary"
           >
-          Criar conta
+            Criar conta
           </button>
 
 
           <button
-          type="button"
-          className="link"
-          onClick={()=>navigate("/")}
+            type="button"
+            className="link"
+            onClick={()=>navigate("/")}
           >
-          Já tenho conta
+            Já tenho conta
           </button>
 
 
@@ -397,6 +401,6 @@ export default function AuthBlock({ initialMode = "login" }) {
 
     </div>
 
-  )
+  );
 
 }

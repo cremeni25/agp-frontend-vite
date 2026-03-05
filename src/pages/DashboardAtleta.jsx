@@ -1,16 +1,10 @@
-// src/pages/DashboardAtleta.jsx
-
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
-import "../styles/dashboard-atleta.css";
 
 export default function DashboardAtleta() {
 
-  const [perfil, setPerfil] = useState(null);
-  const [score, setScore] = useState(null);
-  const [carga, setCarga] = useState([]);
-  const [sono, setSono] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
 
@@ -27,63 +21,40 @@ export default function DashboardAtleta() {
 
         const authId = session.user.id;
 
-        /* PERFIL */
-
-        const { data: perfilData, error: perfilError } = await supabase
+        const { data: perfil } = await supabase
           .from("perfis_atletas")
           .select("*")
           .eq("auth_id", authId)
           .single();
 
-        if (perfilError) {
-          console.log("Erro perfil:", perfilError);
-        }
-
-        setPerfil(perfilData);
-
-
-        /* SCORE */
-
-        const { data: scoreData, error: scoreError } = await supabase
+        const { data: score } = await supabase
           .from("score_atleta")
           .select("*")
           .limit(1);
 
-        if (!scoreError && scoreData) {
-          setScore(scoreData[0]);
-        }
-
-
-        /* CARGA */
-
-        const { data: cargaData, error: cargaError } = await supabase
+        const { data: carga } = await supabase
           .from("dados_fisiologicos_atleta")
           .select("*")
           .limit(5);
 
-        if (!cargaError && cargaData) {
-          setCarga(cargaData);
-        }
-
-
-        /* SONO */
-
-        const { data: sonoData, error: sonoError } = await supabase
+        const { data: sono } = await supabase
           .from("dados_biologicos_atleta")
           .select("*")
           .limit(5);
 
-        if (!sonoError && sonoData) {
-          setSono(sonoData);
-        }
+        setData({
+          perfil,
+          score,
+          carga,
+          sono
+        });
 
       } catch (err) {
 
-        console.log("Erro dashboard:", err);
+        console.error(err);
+        setError(err);
 
       }
-
-      setLoading(false);
 
     }
 
@@ -91,65 +62,53 @@ export default function DashboardAtleta() {
 
   }, []);
 
-
-  if (loading) {
+  if (error) {
     return (
-      <div className="dashboard-loading">
+      <div style={{ padding: 40 }}>
+        <h2>Erro no dashboard</h2>
+        <pre>{JSON.stringify(error, null, 2)}</pre>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div style={{ padding: 40 }}>
         Carregando dashboard...
       </div>
     );
   }
 
+  const perfil = data.perfil;
+
   return (
 
-    <div className="dashboard-atleta">
+    <div style={{ padding: 40 }}>
 
-      <header className="dashboard-header">
-        <h1>Dashboard do Atleta</h1>
-        <span>{perfil?.nivel || "-"}</span>
-      </header>
+      <h1>Dashboard do Atleta</h1>
 
-
-      <section className="dashboard-section">
+      <section>
         <h2>Perfil</h2>
-
-        <p><strong>Nome:</strong> {perfil?.nome || "-"}</p>
-        <p><strong>Clube:</strong> {perfil?.clube || "-"}</p>
-        <p><strong>Sexo:</strong> {perfil?.sexo || "-"}</p>
-        <p><strong>Idade:</strong> {perfil?.idade || "-"}</p>
+        <p><strong>Nome:</strong> {perfil?.nome}</p>
+        <p><strong>Clube:</strong> {perfil?.clube}</p>
+        <p><strong>Sexo:</strong> {perfil?.sexo}</p>
+        <p><strong>Idade:</strong> {perfil?.idade}</p>
+        <p><strong>Nível:</strong> {perfil?.nivel}</p>
       </section>
 
-
-      <section className="dashboard-section">
+      <section>
         <h2>Score Atual</h2>
-
-        {score
-          ? <pre>{JSON.stringify(score, null, 2)}</pre>
-          : <p>Sem score registrado</p>
-        }
-
+        <pre>{JSON.stringify(data.score, null, 2)}</pre>
       </section>
 
-
-      <section className="dashboard-section">
+      <section>
         <h2>Carga Recente</h2>
-
-        {carga.length
-          ? <pre>{JSON.stringify(carga, null, 2)}</pre>
-          : <p>Nenhuma carga registrada</p>
-        }
-
+        <pre>{JSON.stringify(data.carga, null, 2)}</pre>
       </section>
 
-
-      <section className="dashboard-section">
+      <section>
         <h2>Sono Recente</h2>
-
-        {sono.length
-          ? <pre>{JSON.stringify(sono, null, 2)}</pre>
-          : <p>Nenhum dado de sono</p>
-        }
-
+        <pre>{JSON.stringify(data.sono, null, 2)}</pre>
       </section>
 
     </div>

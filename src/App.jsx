@@ -6,31 +6,37 @@ import Home from "./pages/Home";
 import Divisao from "./pages/Divisao";
 import Register from "./pages/Register";
 import LoginDivisao from "./pages/LoginDivisao";
-import Login from "./pages/Login";
+import DashboardAtleta from "./pages/DashboardAtleta";
 
 function App() {
+
   return (
+
     <Router>
+
       <Routes>
 
-        {/* Home */}
+        {/* HOME */}
         <Route path="/" element={<Home />} />
 
-        {/* Tela de escolha de divisão */}
+        {/* DIVISÃO */}
         <Route path="/divisao" element={<Divisao />} />
 
-        {/* Login simples */}
-        <Route path="/login" element={<Login />} />
-
-        {/* Login por divisão */}
+        {/* LOGIN */}
         <Route path="/login/:tipo" element={<LoginDivisao />} />
 
-        {/* Cadastro */}
+        {/* CADASTRO */}
         <Route path="/register" element={<Register />} />
 
+        {/* DASHBOARD ATLETA */}
+        <Route path="/dashboard-atleta" element={<DashboardAtleta />} />
+
       </Routes>
+
     </Router>
+
   );
+
 }
 
 export default App;

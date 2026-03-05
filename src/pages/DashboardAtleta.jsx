@@ -3,58 +3,90 @@ import { supabase } from "../supabaseClient";
 
 export default function DashboardAtleta() {
 
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
+  const [perfil, setPerfil] = useState(null);
+  const [esporte, setEsporte] = useState(null);
+  const [modalidade, setModalidade] = useState(null);
+  const [score, setScore] = useState([]);
+  const [carga, setCarga] = useState([]);
+  const [sono, setSono] = useState([]);
 
   useEffect(() => {
 
     async function carregarDashboard() {
 
-      try {
+      const { data: { session } } = await supabase.auth.getSession();
 
-        const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = "/";
+        return;
+      }
 
-        if (!session) {
-          window.location.href = "/";
-          return;
-        }
+      const authId = session.user.id;
 
-        const authId = session.user.id;
+      /* PERFIL ATLETA */
 
-        const { data: perfil } = await supabase
-          .from("perfis_atletas")
+      const { data: perfilData } = await supabase
+        .from("perfis_atletas")
+        .select("*")
+        .eq("auth_id", authId)
+        .single();
+
+      setPerfil(perfilData);
+
+      /* ESPORTE */
+
+      if (perfilData?.esporte_id) {
+
+        const { data: esporteData } = await supabase
+          .from("esportes")
           .select("*")
-          .eq("auth_id", authId)
+          .eq("id", perfilData.esporte_id)
           .single();
 
-        const { data: score } = await supabase
-          .from("score_atleta")
-          .select("*")
-          .limit(1);
-
-        const { data: carga } = await supabase
-          .from("dados_fisiologicos_atleta")
-          .select("*")
-          .limit(5);
-
-        const { data: sono } = await supabase
-          .from("dados_biologicos_atleta")
-          .select("*")
-          .limit(5);
-
-        setData({
-          perfil,
-          score,
-          carga,
-          sono
-        });
-
-      } catch (err) {
-
-        console.error(err);
-        setError(err);
+        setEsporte(esporteData);
 
       }
+
+      /* MODALIDADE */
+
+      if (perfilData?.modalidade_id) {
+
+        const { data: modalidadeData } = await supabase
+          .from("modalidades")
+          .select("*")
+          .eq("id", perfilData.modalidade_id)
+          .single();
+
+        setModalidade(modalidadeData);
+
+      }
+
+      /* SCORE */
+
+      const { data: scoreData } = await supabase
+        .from("score_atleta")
+        .select("*")
+        .limit(1);
+
+      setScore(scoreData || []);
+
+      /* CARGA */
+
+      const { data: cargaData } = await supabase
+        .from("dados_fisiologicos_atleta")
+        .select("*")
+        .limit(5);
+
+      setCarga(cargaData || []);
+
+      /* SONO */
+
+      const { data: sonoData } = await supabase
+        .from("dados_biologicos_atleta")
+        .select("*")
+        .limit(5);
+
+      setSono(sonoData || []);
 
     }
 
@@ -62,24 +94,9 @@ export default function DashboardAtleta() {
 
   }, []);
 
-  if (error) {
-    return (
-      <div style={{ padding: 40 }}>
-        <h2>Erro no dashboard</h2>
-        <pre>{JSON.stringify(error, null, 2)}</pre>
-      </div>
-    );
+  if (!perfil) {
+    return <div style={{ padding: 40 }}>Carregando dashboard...</div>;
   }
-
-  if (!data) {
-    return (
-      <div style={{ padding: 40 }}>
-        Carregando dashboard...
-      </div>
-    );
-  }
-
-  const perfil = data.perfil;
 
   return (
 
@@ -89,26 +106,30 @@ export default function DashboardAtleta() {
 
       <section>
         <h2>Perfil</h2>
-        <p><strong>Nome:</strong> {perfil?.nome}</p>
-        <p><strong>Clube:</strong> {perfil?.clube}</p>
-        <p><strong>Sexo:</strong> {perfil?.sexo}</p>
-        <p><strong>Idade:</strong> {perfil?.idade}</p>
-        <p><strong>Nível:</strong> {perfil?.nivel}</p>
+
+        <p><strong>Nome:</strong> {perfil.nome}</p>
+        <p><strong>Clube:</strong> {perfil.clube}</p>
+        <p><strong>Sexo:</strong> {perfil.sexo}</p>
+        <p><strong>Idade:</strong> {perfil.idade}</p>
+        <p><strong>Nível:</strong> {perfil.nivel}</p>
+        <p><strong>Esporte:</strong> {esporte?.nome}</p>
+        <p><strong>Modalidade:</strong> {modalidade?.nome}</p>
+
       </section>
 
       <section>
         <h2>Score Atual</h2>
-        <pre>{JSON.stringify(data.score, null, 2)}</pre>
+        <pre>{JSON.stringify(score, null, 2)}</pre>
       </section>
 
       <section>
         <h2>Carga Recente</h2>
-        <pre>{JSON.stringify(data.carga, null, 2)}</pre>
+        <pre>{JSON.stringify(carga, null, 2)}</pre>
       </section>
 
       <section>
         <h2>Sono Recente</h2>
-        <pre>{JSON.stringify(data.sono, null, 2)}</pre>
+        <pre>{JSON.stringify(sono, null, 2)}</pre>
       </section>
 
     </div>

@@ -1,10 +1,11 @@
 // src/pages/Home.jsx
-import { useState } from "react";
+
+import { useNavigate } from "react-router-dom";
 import "../styles/home.css";
-import AuthBlock from "../components/AuthBlock";
 
 export default function Home() {
-  const [showAuth, setShowAuth] = useState(false);
+
+  const navigate = useNavigate();
 
   return (
     <div className="home-container">
@@ -29,7 +30,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* BLOCO INFERIOR — TEXTO + CTA (INTACTO) */}
+        {/* BLOCO INFERIOR — TEXTO + CTA */}
         <div className="content-block">
           <div className="hero-title">
             Transformando dados em decisões esportivas
@@ -39,18 +40,14 @@ export default function Home() {
             Uma plataforma inteligente para atletas, técnicos, clubes e gestão estratégica.
           </div>
 
-          {!showAuth && (
-            <button
-              className="cta"
-              onClick={() => setShowAuth(true)}
-            >
-              Entrar no sistema
-            </button>
-          )}
-        </div>
+          <button
+            className="cta"
+            onClick={() => navigate("/divisao")}
+          >
+            Entrar no sistema
+          </button>
 
-        {/* BLOCO DE LOGIN — SOBREPOSIÇÃO, NÃO AFETA A HOME */}
-        {showAuth && <AuthBlock />}
+        </div>
 
       </div>
     </div>

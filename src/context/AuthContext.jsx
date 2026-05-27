@@ -26,6 +26,7 @@ export function AuthProvider({ children }) {
           .single();
 
         setPerfil(perfilData);
+        console.log("PERFIL;", perfilData);
 
       }
 

@@ -12,27 +12,27 @@ export default function ProtectedRoute({
     loading
   } = useAuth();
 
-  // carregando
+  // CARREGANDO
   if (loading) {
-    return <div>Carregando...</div>;
+    return null;
   }
 
-  // sem sessão
+  // SEM LOGIN
   if (!session) {
-    return <Navigate to="/" />;
+    return <Navigate to="/divisao" />;
   }
 
-  // sem perfil
+  // SEM PERFIL
   if (!perfil) {
-    return <div>Perfil não encontrado.</div>;
+    return <Navigate to="/unauthorized" />;
   }
 
-  // validação de função
+  // ACESSO NEGADO
   if (
     tipoPermitido &&
-    perfil.funcao?.toLowerCase() !== tipoPermitido.toLowerCase()
+    perfil?.tipo_usuario !== tipoPermitido
   ) {
-    return <Navigate to="/" />;
+    return <Navigate to="/unauthorized" />;
   }
 
   return children;

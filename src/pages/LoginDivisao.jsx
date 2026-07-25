@@ -1,112 +1,129 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from "../supabaseClient";
+import {
+  getDashboardPath,
+  getProfileByRouteParam,
+  normalizeUserType
+} from "../config/accessProfiles";
 
 export default function LoginDivisao() {
-
   const { tipo } = useParams();
   const navigate = useNavigate();
+  const selectedProfile = getProfileByRouteParam(tipo);
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const handleLogin = async (event) => {
+    event.preventDefault();
     setErro("");
 
-    try {
+    if (!selectedProfile) {
+      setErro("Divisão de acesso inválida.");
+      return;
+    }
 
-      // 1️⃣ LOGIN SUPABASE
+    setLoading(true);
+
+    try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
+        email,
         password: senha
       });
 
-      if (error) {
+      if (error || !data.user) {
         setErro("Email ou senha inválidos.");
         return;
       }
 
-      const user = data.user;
-
-      // 2️⃣ BUSCAR PERFIL DO USUÁRIO
       const { data: perfil, error: perfilErro } = await supabase
         .from("perfis_atletas")
         .select("*")
-        .eq("auth_id", user.id)
-        .single();
+        .eq("auth_id", data.user.id)
+        .maybeSingle();
 
       if (perfilErro || !perfil) {
-        setErro("Perfil não encontrado.");
-        return;
-      }
-
-      const tipoUsuario = perfil.tipo_usuario;
-
-      // 3️⃣ VALIDAR SE A DIVISÃO ACESSADA É CORRETA
-      if (tipoUsuario !== tipo) {
-        setErro("Você não tem acesso a esta divisão.");
         await supabase.auth.signOut();
+        setErro("Perfil de acesso não encontrado.");
         return;
       }
 
-      // 4️⃣ REDIRECIONAMENTO SEGURO
-      if (tipoUsuario === "atletas") {
-        navigate("/dashboard-atleta");
+      const normalizedProfileType = normalizeUserType(
+        perfil.tipo_usuario || perfil.funcao
+      );
+      const [selectedType] = selectedProfile;
+
+      if (!normalizedProfileType || normalizedProfileType !== selectedType) {
+        await supabase.auth.signOut();
+        setErro("Você não tem acesso a esta divisão.");
+        return;
       }
 
-      if (tipoUsuario === "comissao") {
-        navigate("/dashboard-comissao");
+      const dashboardPath = getDashboardPath(normalizedProfileType);
+
+      if (!dashboardPath) {
+        await supabase.auth.signOut();
+        setErro("Dashboard não configurado para este perfil.");
+        return;
       }
 
-      if (tipoUsuario === "clubes") {
-        navigate("/dashboard-clubes");
-      }
-
-      if (tipoUsuario === "master") {
-        navigate("/dashboard-master");
-      }
-
-    } catch (err) {
+      navigate(dashboardPath, { replace: true });
+    } catch {
+      await supabase.auth.signOut();
       setErro("Erro inesperado no login.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (!selectedProfile) {
+    return (
+      <div className="login-container">
+        <p>Divisão de acesso inválida.</p>
+        <button type="button" onClick={() => navigate("/divisao", { replace: true })}>
+          Voltar
+        </button>
+      </div>
+    );
+  }
+
+  const [, profileConfig] = selectedProfile;
+
   return (
     <div className="login-container">
-
       <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-        {tipo === "atletas" && "Atletas"}
-        {tipo === "comissao" && "Comissão Técnica"}
-        {tipo === "clubes" && "Clubes & Associações"}
-        {tipo === "master" && "Master"}
+        {profileConfig.label}
       </h2>
 
       <form onSubmit={handleLogin}>
-
         <input
           type="email"
           placeholder="Email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(event) => setEmail(event.target.value)}
+          autoComplete="email"
+          required
         />
 
         <input
           type="password"
           placeholder="Senha"
           value={senha}
-          onChange={(e) => setSenha(e.target.value)}
+          onChange={(event) => setSenha(event.target.value)}
+          autoComplete="current-password"
+          required
         />
 
-        <button type="submit">
-          Entrar
+        <button type="submit" disabled={loading}>
+          {loading ? "Entrando..." : "Entrar"}
         </button>
-
       </form>
 
       {erro && (
-        <div style={{ color: "red", marginTop: "10px" }}>
+        <div role="alert" style={{ color: "red", marginTop: "10px" }}>
           {erro}
         </div>
       )}
@@ -118,23 +135,14 @@ export default function LoginDivisao() {
           marginTop: "10px"
         }}
       >
-
-        <span
-          style={{ cursor: "pointer" }}
-          onClick={() => navigate("/register")}
-        >
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/register")}>
           Criar conta
         </span>
 
-        <span
-          style={{ cursor: "pointer" }}
-          onClick={() => navigate("/divisao")}
-        >
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/divisao")}>
           Voltar
         </span>
-
       </div>
-
     </div>
   );
 }

@@ -1,66 +1,81 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { normalizeUserType } from "../config/accessProfiles";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
+
+async function loadUserProfile(userId) {
+  if (!userId) return null;
+
+  const { data, error } = await supabase
+    .from("perfis_atletas")
+    .select("*")
+    .eq("auth_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Erro ao carregar perfil do usuário:", error);
+    return null;
+  }
+
+  if (!data) return null;
+
+  return {
+    ...data,
+    tipo_usuario_normalizado: normalizeUserType(data.tipo_usuario || data.funcao)
+  };
+}
 
 export function AuthProvider({ children }) {
-
   const [session, setSession] = useState(null);
   const [perfil, setPerfil] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
 
-    const fetchSession = async () => {
+    async function synchronizeSession(nextSession) {
+      if (!active) return;
 
-      const { data } = await supabase.auth.getSession();
+      setSession(nextSession);
 
-      if (data.session) {
-
-        setSession(data.session);
-
-        const { data: perfilData } = await supabase
-          .from("perfis_atletas")
-          .select("*")
-          .eq("auth_id", data.session.user.id)
-          .single();
-
-        setPerfil(perfilData);
-        console.log("PERFIL;", perfilData);
-
+      if (!nextSession?.user?.id) {
+        setPerfil(null);
+        setLoading(false);
+        return;
       }
 
+      const profile = await loadUserProfile(nextSession.user.id);
+
+      if (!active) return;
+
+      setPerfil(profile);
       setLoading(false);
-    };
+    }
 
-    fetchSession();
+    async function initializeAuth() {
+      const { data, error } = await supabase.auth.getSession();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_, session) => {
+      if (error) {
+        console.error("Erro ao recuperar sessão:", error);
+      }
 
-        setSession(session);
+      await synchronizeSession(data?.session || null);
+    }
 
-        if (session) {
+    initializeAuth();
 
-          const { data: perfilData } = await supabase
-            .from("perfis_atletas")
-            .select("*")
-            .eq("auth_id", session.user.id)
-            .single();
-
-          setPerfil(perfilData);
-
-        } else {
-
-          setPerfil(null);
-
-        }
-
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, nextSession) => {
+        setLoading(true);
+        synchronizeSession(nextSession);
       }
     );
 
-    return () => listener.subscription.unsubscribe();
-
+    return () => {
+      active = false;
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -71,5 +86,11 @@ export function AuthProvider({ children }) {
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error("useAuth deve ser usado dentro de AuthProvider.");
+  }
+
+  return context;
 }

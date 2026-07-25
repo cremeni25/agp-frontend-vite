@@ -1,38 +1,39 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { normalizeUserType } from "../config/accessProfiles";
 
-export default function ProtectedRoute({
-  children,
-  tipoPermitido
-}) {
+export default function ProtectedRoute({ children, tipoPermitido }) {
+  const { session, perfil, loading } = useAuth();
+  const location = useLocation();
 
-  const {
-    session,
-    perfil,
-    loading
-  } = useAuth();
-
-  // CARREGANDO
   if (loading) {
     return null;
   }
 
-  // SEM LOGIN
   if (!session) {
-    return <Navigate to="/divisao" />;
+    return (
+      <Navigate
+        to="/divisao"
+        replace
+        state={{ from: location.pathname }}
+      />
+    );
   }
 
-  // SEM PERFIL
   if (!perfil) {
-    return <Navigate to="/unauthorized" />;
+    return <Navigate to="/unauthorized" replace />;
   }
 
-  // ACESSO NEGADO
+  const normalizedProfileType =
+    perfil.tipo_usuario_normalizado ||
+    normalizeUserType(perfil.tipo_usuario || perfil.funcao);
+  const normalizedAllowedType = normalizeUserType(tipoPermitido);
+
   if (
-    tipoPermitido &&
-    perfil?.tipo_usuario !== tipoPermitido
+    normalizedAllowedType &&
+    normalizedProfileType !== normalizedAllowedType
   ) {
-    return <Navigate to="/unauthorized" />;
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return children;

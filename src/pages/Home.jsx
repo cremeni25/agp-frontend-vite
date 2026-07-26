@@ -14,9 +14,6 @@ export default function Home() {
               <span>SPORTS INTELLIGENCE PLATFORM</span>
             </div>
           </div>
-          <button className="agp-button agp-button-secondary" onClick={() => navigate("/divisao")}>
-            Acessar plataforma
-          </button>
         </header>
 
         <section className="home-hero">

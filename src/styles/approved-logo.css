@@ -1,16 +1,35 @@
 .agp-brand {
-  min-height: 64px;
+  min-height: 82px;
+  position: relative;
+}
+
+.agp-brand::before {
+  content: "";
+  position: absolute;
+  width: 250px;
+  height: 92px;
+  left: -24px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 28px;
+  background: radial-gradient(circle at 38% 50%, rgba(56, 189, 248, .22), transparent 58%);
+  filter: blur(12px);
+  opacity: .8;
+  pointer-events: none;
 }
 
 .agp-brand-mark {
-  width: 190px;
-  height: 64px;
-  flex: 0 0 190px;
+  position: relative;
+  z-index: 1;
+  width: 245px;
+  height: 82px;
+  flex: 0 0 245px;
   color: transparent;
   font-size: 0;
   border-radius: 0;
   background: url('/agp-logo-approved.svg') center / contain no-repeat;
   box-shadow: none;
+  filter: brightness(1.72) saturate(1.18) contrast(1.08) drop-shadow(0 0 15px rgba(56, 189, 248, .22));
 }
 
 .agp-brand-copy {
@@ -22,10 +41,32 @@
   cursor: pointer;
 }
 
+.auth-context .agp-brand-mark {
+  width: 280px;
+  height: 94px;
+  flex-basis: 280px;
+}
+
+.auth-context .agp-brand::before {
+  width: 290px;
+  height: 108px;
+}
+
 @media (max-width: 720px) {
-  .agp-brand-mark {
-    width: 150px;
-    height: 54px;
-    flex-basis: 150px;
+  .agp-brand {
+    min-height: 66px;
+  }
+
+  .agp-brand::before {
+    width: 205px;
+    height: 78px;
+    left: -18px;
+  }
+
+  .agp-brand-mark,
+  .auth-context .agp-brand-mark {
+    width: 205px;
+    height: 66px;
+    flex-basis: 205px;
   }
 }

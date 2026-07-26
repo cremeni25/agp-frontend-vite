@@ -52,7 +52,7 @@ export default function LoginDivisao() {
 
       if (!normalizedProfileType || normalizedProfileType !== selectedType) {
         await supabase.auth.signOut();
-        setErro("Você não tem acesso a esta divisão.");
+        setErro("Estas credenciais não estão vinculadas a esta área de acesso.");
         return;
       }
 
@@ -99,7 +99,7 @@ export default function LoginDivisao() {
           </div>
           <span className="agp-eyebrow">Acesso seguro</span>
           <h1>Bem-vindo à área de <span>{profileConfig.label}.</span></h1>
-          <p>Entre para acessar dados, indicadores e ferramentas específicas da sua divisão.</p>
+          <p>Entre somente com as credenciais previamente vinculadas a esta área da plataforma.</p>
         </section>
 
         <section className="agp-panel agp-form-card">
@@ -118,8 +118,7 @@ export default function LoginDivisao() {
             <button className="agp-button agp-button-primary" type="submit" disabled={loading}>{loading ? "Entrando..." : "Entrar na plataforma"}</button>
           </form>
           <div className="agp-link-row">
-            <span className="agp-link" onClick={() => navigate("/register")}>Criar conta</span>
-            <span className="agp-link" onClick={() => navigate("/divisao")}>Voltar</span>
+            <span className="agp-link" onClick={() => navigate("/divisao")}>Voltar às áreas de acesso</span>
           </div>
         </section>
       </div>

@@ -5,6 +5,7 @@ services:
     buildCommand: npm ci && npm run build
     staticPublishPath: ./dist
     pullRequestPreviewsEnabled: true
+    # Mantém o preview sincronizado com cada atualização do pull request.
     envVars:
       - key: VITE_SUPABASE_URL
         sync: false

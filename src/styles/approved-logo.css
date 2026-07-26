@@ -1,0 +1,31 @@
+.agp-brand {
+  min-height: 64px;
+}
+
+.agp-brand-mark {
+  width: 190px;
+  height: 64px;
+  flex: 0 0 190px;
+  color: transparent;
+  font-size: 0;
+  border-radius: 0;
+  background: url('/agp-logo-approved.svg') center / contain no-repeat;
+  box-shadow: none;
+}
+
+.agp-brand-copy {
+  display: none;
+}
+
+.auth-context .agp-brand,
+.divisao-header .agp-brand {
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .agp-brand-mark {
+    width: 150px;
+    height: 54px;
+    flex-basis: 150px;
+  }
+}

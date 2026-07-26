@@ -4,8 +4,7 @@ import "../styles/divisao.css";
 const profiles = [
   { id: "atletas", code: "01", label: "Atletas", description: "Performance, evolução, rotina e histórico individual." },
   { id: "comissao", code: "02", label: "Comissão Técnica", description: "Acompanhamento técnico, avaliações e planejamento." },
-  { id: "clubes", code: "03", label: "Clubes & Associações", description: "Gestão coletiva, indicadores e visão institucional." },
-  { id: "master", code: "04", label: "Master", description: "Governança, usuários, parâmetros e operação da plataforma." }
+  { id: "clubes", code: "03", label: "Clubes & Associações", description: "Gestão coletiva, indicadores e visão institucional." }
 ];
 
 export default function Divisao() {

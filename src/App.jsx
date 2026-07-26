@@ -8,6 +8,8 @@ import Login from "./pages/Login";
 import Divisao from "./pages/Divisao";
 import LoginDivisao from "./pages/LoginDivisao";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 import DashboardAtleta from "./pages/DashboardAtleta";
 import DashboardComissao from "./pages/DashboardComissao";
@@ -21,20 +23,17 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* HOME */}
           <Route path="/" element={<Home />} />
-
-          {/* DIVISÃO */}
           <Route path="/divisao" element={<Divisao />} />
 
-          {/* LOGIN */}
           <Route path="/login" element={<Login />} />
           <Route path="/login/:tipo" element={<LoginDivisao />} />
+          <Route path="/acesso-administrativo" element={<LoginDivisao />} />
 
-          {/* CADASTRO */}
           <Route path="/register" element={<Register />} />
+          <Route path="/recuperar-senha" element={<ForgotPassword />} />
+          <Route path="/redefinir-senha" element={<ResetPassword />} />
 
-          {/* DASHBOARD ATLETA */}
           <Route
             path="/dashboard-atleta"
             element={
@@ -44,7 +43,6 @@ function App() {
             }
           />
 
-          {/* DASHBOARD COMISSÃO */}
           <Route
             path="/dashboard-comissao"
             element={
@@ -54,7 +52,6 @@ function App() {
             }
           />
 
-          {/* DASHBOARD CLUBE */}
           <Route
             path="/dashboard-clube"
             element={
@@ -64,7 +61,6 @@ function App() {
             }
           />
 
-          {/* DASHBOARD MASTER */}
           <Route
             path="/dashboard-master"
             element={
@@ -74,11 +70,7 @@ function App() {
             }
           />
 
-          {/* ACESSO NEGADO */}
-          <Route
-            path="/unauthorized"
-            element={<Unauthorized />}
-          />
+          <Route path="/unauthorized" element={<Unauthorized />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

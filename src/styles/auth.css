@@ -1,0 +1,40 @@
+.auth-layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 470px);
+  align-items: center;
+  gap: clamp(48px, 8vw, 120px);
+}
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+.auth-context { max-width: 650px; }
+.auth-context .agp-brand { margin-bottom: 74px; cursor: pointer; }
+.auth-context h1 {
+  margin: 20px 0 16px;
+  font-size: clamp(44px, 6vw, 76px);
+  line-height: 1;
+  letter-spacing: -.055em;
+}
+.auth-context h1 span {
+  background: linear-gradient(90deg, #9ee7ff, #c4b5fd);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.auth-context > p {
+  max-width: 590px;
+  margin: 0;
+  color: var(--agp-muted);
+  font-size: 18px;
+  line-height: 1.65;
+}
+.agp-form-card .agp-button-primary { width: 100%; margin-top: 4px; }
+
+@media (max-width: 900px) {
+  .auth-layout { grid-template-columns: 1fr; padding-top: 28px; padding-bottom: 48px; }
+  .auth-context .agp-brand { margin-bottom: 48px; }
+  .agp-form-card { justify-self: stretch; width: 100%; }
+}

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -28,47 +28,16 @@ function App() {
 
           <Route path="/login" element={<Login />} />
           <Route path="/login/:tipo" element={<LoginDivisao />} />
-          <Route path="/acesso-administrativo" element={<LoginDivisao />} />
+          <Route path="/acesso-administrativo" element={<Navigate to="/login/master" replace />} />
 
           <Route path="/register" element={<Register />} />
           <Route path="/recuperar-senha" element={<ForgotPassword />} />
           <Route path="/redefinir-senha" element={<ResetPassword />} />
 
-          <Route
-            path="/dashboard-atleta"
-            element={
-              <ProtectedRoute tipoPermitido="atleta">
-                <DashboardAtleta />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/dashboard-comissao"
-            element={
-              <ProtectedRoute tipoPermitido="comissao">
-                <DashboardComissao />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/dashboard-clube"
-            element={
-              <ProtectedRoute tipoPermitido="clube">
-                <DashboardClube />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/dashboard-master"
-            element={
-              <ProtectedRoute tipoPermitido="master">
-                <DashboardMaster />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/dashboard-atleta" element={<ProtectedRoute tipoPermitido="atleta"><DashboardAtleta /></ProtectedRoute>} />
+          <Route path="/dashboard-comissao" element={<ProtectedRoute tipoPermitido="comissao"><DashboardComissao /></ProtectedRoute>} />
+          <Route path="/dashboard-clube" element={<ProtectedRoute tipoPermitido="clube"><DashboardClube /></ProtectedRoute>} />
+          <Route path="/dashboard-master" element={<ProtectedRoute tipoPermitido="master"><DashboardMaster /></ProtectedRoute>} />
 
           <Route path="/unauthorized" element={<Unauthorized />} />
         </Routes>

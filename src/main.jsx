@@ -1,9 +1,8 @@
-// src/main.jsx
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 
-// 🔥 IMPORTAÇÃO GLOBAL DE CSS
+import "./styles/design-system.css";
 import "./styles/home.css";
 import "./styles/dashboard-atleta.css";
 import "./styles/dashboard-comissao.css";

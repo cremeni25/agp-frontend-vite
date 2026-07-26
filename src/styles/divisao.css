@@ -1,49 +1,72 @@
-.divisao-container {
-  margin-top: 60px;
+.division-intro {
+  max-width: 760px;
+  padding: 72px 0 38px;
+}
+.division-intro h1 {
+  margin: 18px 0 14px;
+  font-size: clamp(38px, 6vw, 70px);
+  line-height: 1;
+  letter-spacing: -0.055em;
+}
+.division-intro p {
+  margin: 0;
+  color: var(--agp-muted);
+  font-size: 18px;
+  line-height: 1.65;
+}
+
+.division-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 30px;
-  padding: 0 60px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
 }
-
-.divisao-card {
-  background: rgba(10, 25, 50, 0.75);
-  border: 1px solid rgba(120, 180, 255, 0.4);
-  border-radius: 12px;
-  padding: 30px;
-  text-align: center;
+.division-card {
+  min-height: 330px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   cursor: pointer;
-  backdrop-filter: blur(6px);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
 }
-
-.divisao-card:hover {
+.division-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 0 20px rgba(100, 180, 255, 0.4);
+  border-color: rgba(125, 211, 252, .44);
+  box-shadow: 0 30px 90px rgba(0,0,0,.48), 0 0 50px rgba(56,189,248,.08);
 }
-
-.divisao-card h3 {
-  color: #ffffff;
-  margin-bottom: 20px;
+.division-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--agp-muted);
+  font-size: 12px;
+  letter-spacing: .16em;
 }
-
-.divisao-card button {
-  padding: 10px 20px;
-  background: linear-gradient(90deg, #1e6cff, #23b7ff);
-  border: none;
-  border-radius: 6px;
-  color: white;
-  cursor: pointer;
+.division-arrow {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--agp-border);
+  border-radius: 12px;
+  color: #dff7ff;
+  font-size: 18px;
 }
-
-@media (max-width: 1100px) {
-  .divisao-container {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.division-card h2 {
+  margin: 0 0 12px;
+  font-size: clamp(28px, 4vw, 42px);
+  letter-spacing: -0.045em;
 }
+.division-card p {
+  margin: 0;
+  max-width: 500px;
+  color: var(--agp-muted);
+  line-height: 1.6;
+}
+.division-card .agp-button { align-self: flex-start; margin-top: 26px; }
 
-@media (max-width: 700px) {
-  .divisao-container {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 760px) {
+  .division-intro { padding-top: 52px; }
+  .division-grid { grid-template-columns: 1fr; }
+  .division-card { min-height: 290px; }
 }

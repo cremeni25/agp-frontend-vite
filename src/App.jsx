@@ -6,7 +6,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
 import ChangePassword from "./pages/ChangePassword";
 
 import DashboardAtleta from "./pages/DashboardAtleta";
@@ -29,7 +28,7 @@ function App() {
           <Route path="/register" element={<Navigate to="/login" replace />} />
 
           <Route path="/recuperar-senha" element={<ForgotPassword />} />
-          <Route path="/redefinir-senha" element={<ResetPassword />} />
+          <Route path="/redefinir-senha" element={<Navigate to="/login?administrativo=1&link-antigo=1" replace />} />
           <Route path="/alterar-senha" element={<ChangePassword />} />
 
           <Route path="/dashboard-atleta" element={<ProtectedRoute tipoPermitido="atleta"><DashboardAtleta /></ProtectedRoute>} />

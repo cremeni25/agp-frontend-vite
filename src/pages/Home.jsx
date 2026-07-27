@@ -15,14 +15,13 @@ export default function Home() {
 
         <section className="home-hero">
           <div className="home-hero-copy">
-            <span className="agp-eyebrow">Inteligência aplicada ao desenvolvimento esportivo</span>
-            <h1 className="agp-title">Da base ao alto rendimento: <span>dados que orientam evolução.</span></h1>
+            <span className="agp-eyebrow">Inteligência integrada para o desenvolvimento esportivo</span>
+            <h1 className="agp-title">Decisões coordenadas para formar <span>atletas de alto rendimento.</span></h1>
             <p className="agp-lead">
-              O AGP integra histórico físico, fisiológico, técnico, mental, recuperação e contexto para acompanhar cada etapa do desenvolvimento esportivo e apoiar decisões responsáveis.
+              O AGP conecta atletas, comissão técnica, profissionais da saúde, clubes, associações e gestão em uma única plataforma, integrando histórico, avaliações, acompanhamento e contexto para orientar cada etapa do desenvolvimento esportivo.
             </p>
             <div className="agp-actions">
               <button className="agp-button agp-button-primary" onClick={() => navigate("/login")}>Entrar na plataforma</button>
-              <button className="agp-button agp-button-secondary" onClick={() => navigate("/register")}>Criar conta de atleta</button>
             </div>
           </div>
 
@@ -30,16 +29,16 @@ export default function Home() {
             <div className="home-orbit home-orbit-one" />
             <div className="home-orbit home-orbit-two" />
             <div className="home-core"><small>AGP CORE</small><strong>360°</strong><span>Performance integrada</span></div>
-            <div className="home-signal home-signal-a">Físico</div>
-            <div className="home-signal home-signal-b">Técnico</div>
-            <div className="home-signal home-signal-c">Mental</div>
-            <div className="home-signal home-signal-d">Contexto</div>
+            <div className="home-signal home-signal-a">Atleta</div>
+            <div className="home-signal home-signal-b">Comissão</div>
+            <div className="home-signal home-signal-c">Saúde</div>
+            <div className="home-signal home-signal-d">Gestão</div>
           </div>
         </section>
 
         <section className="home-metrics">
           <article><strong>01</strong><span>Login único e seguro</span></article>
-          <article><strong>04</strong><span>Perfis identificados automaticamente</span></article>
+          <article><strong>04</strong><span>Perfis integrados por função</span></article>
           <article><strong>360°</strong><span>Leitura multidimensional</span></article>
         </section>
       </div>

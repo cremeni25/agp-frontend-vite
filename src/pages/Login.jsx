@@ -9,6 +9,7 @@ export default function Login() {
   const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const administrativo = params.get("administrativo") === "1";
   const senhaAlterada = params.get("senha-alterada") === "1";
+  const linkAntigo = params.get("link-antigo") === "1";
 
   const [email, setEmail] = useState(administrativo ? "anderson@cremeni.com.br" : "");
   const [senha, setSenha] = useState("");
@@ -90,6 +91,7 @@ export default function Login() {
           <h1>Entrar</h1>
           <p>Use o e-mail vinculado ao seu perfil institucional.</p>
           {senhaAlterada && <div className="agp-alert agp-alert-success" role="status">Senha pessoal definida. Entre novamente com a nova senha.</div>}
+          {linkAntigo && <div className="agp-alert" role="status">O fluxo antigo por link foi desativado. Entre com a credencial temporária; o AGP abrirá automaticamente a troca obrigatória de senha.</div>}
           <form className="agp-form" onSubmit={handleLogin}>
             <div className="agp-field">
               <label htmlFor="email">E-mail</label>
@@ -100,7 +102,7 @@ export default function Login() {
               <input id="senha" className="agp-input" type="password" placeholder="Digite sua senha" value={senha} onChange={(event) => setSenha(event.target.value)} autoComplete="current-password" required />
             </div>
             <div className="agp-link-row auth-support-row">
-              <span className="agp-link" onClick={() => navigate(recoveryPath)}>Recuperar senha</span>
+              {!administrativo && <span className="agp-link" onClick={() => navigate(recoveryPath)}>Recuperar senha</span>}
             </div>
             {erro && <div className="agp-alert" role="alert">{erro}</div>}
             <button className="agp-button agp-button-primary" type="submit" disabled={loading}>{loading ? "Entrando..." : "Entrar na plataforma"}</button>

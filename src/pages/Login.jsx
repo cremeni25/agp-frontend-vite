@@ -6,10 +6,9 @@ import { getDashboardPath, normalizeUserType } from "../config/accessProfiles";
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const administrativo = useMemo(
-    () => new URLSearchParams(location.search).get("administrativo") === "1",
-    [location.search]
-  );
+  const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const administrativo = params.get("administrativo") === "1";
+  const senhaAlterada = params.get("senha-alterada") === "1";
 
   const [email, setEmail] = useState(administrativo ? "anderson@cremeni.com.br" : "");
   const [senha, setSenha] = useState("");
@@ -28,7 +27,13 @@ export default function Login() {
       });
 
       if (error || !data.user) {
-        setErro("E-mail ou senha inválidos. No primeiro acesso, defina sua senha pelo link abaixo.");
+        setErro("E-mail ou senha inválidos.");
+        return;
+      }
+
+      const metadata = data.user.user_metadata || {};
+      if (metadata.agp_initial_password_issued === true && metadata.agp_password_changed !== true) {
+        navigate("/alterar-senha", { replace: true });
         return;
       }
 
@@ -84,6 +89,7 @@ export default function Login() {
         <section className="agp-panel agp-form-card">
           <h1>Entrar</h1>
           <p>Use o e-mail vinculado ao seu perfil institucional.</p>
+          {senhaAlterada && <div className="agp-alert agp-alert-success" role="status">Senha pessoal definida. Entre novamente com a nova senha.</div>}
           <form className="agp-form" onSubmit={handleLogin}>
             <div className="agp-field">
               <label htmlFor="email">E-mail</label>
@@ -94,7 +100,7 @@ export default function Login() {
               <input id="senha" className="agp-input" type="password" placeholder="Digite sua senha" value={senha} onChange={(event) => setSenha(event.target.value)} autoComplete="current-password" required />
             </div>
             <div className="agp-link-row auth-support-row">
-              <span className="agp-link" onClick={() => navigate(recoveryPath)}>Primeiro acesso ou recuperar senha</span>
+              <span className="agp-link" onClick={() => navigate(recoveryPath)}>Recuperar senha</span>
             </div>
             {erro && <div className="agp-alert" role="alert">{erro}</div>}
             <button className="agp-button agp-button-primary" type="submit" disabled={loading}>{loading ? "Entrando..." : "Entrar na plataforma"}</button>

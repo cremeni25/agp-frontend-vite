@@ -1,35 +1,35 @@
 .agp-brand {
-  min-height: 104px;
+  min-height: 116px;
   position: relative;
 }
 
 .agp-brand::before {
   content: "";
   position: absolute;
-  width: 330px;
-  height: 122px;
-  left: -28px;
+  width: 370px;
+  height: 136px;
+  left: -30px;
   top: 50%;
   transform: translateY(-50%);
-  border-radius: 34px;
-  background: radial-gradient(circle at 42% 50%, rgba(125, 211, 252, .28), transparent 62%);
-  filter: blur(14px);
-  opacity: .92;
+  border-radius: 38px;
+  background: radial-gradient(circle at 42% 50%, rgba(186, 230, 253, .34), transparent 64%);
+  filter: blur(15px);
+  opacity: .95;
   pointer-events: none;
 }
 
 .agp-brand-mark {
   position: relative;
   z-index: 1;
-  width: 315px;
-  height: 104px;
-  flex: 0 0 315px;
+  width: 350px;
+  height: 116px;
+  flex: 0 0 350px;
   color: transparent;
   font-size: 0;
   border-radius: 0;
   background: url('/agp-logo-approved.svg') center / contain no-repeat;
   box-shadow: none;
-  filter: brightness(2.35) saturate(.9) contrast(1.18) drop-shadow(0 2px 1px rgba(0, 20, 55, .9)) drop-shadow(0 0 18px rgba(125, 211, 252, .34));
+  filter: brightness(2.7) saturate(.82) contrast(1.2) drop-shadow(0 2px 1px rgba(0, 20, 55, .92)) drop-shadow(0 0 22px rgba(125, 211, 252, .42));
 }
 
 .agp-brand-copy {
@@ -42,31 +42,31 @@
 }
 
 .auth-context .agp-brand-mark {
-  width: 330px;
-  height: 110px;
-  flex-basis: 330px;
+  width: 360px;
+  height: 120px;
+  flex-basis: 360px;
 }
 
 .auth-context .agp-brand::before {
-  width: 345px;
-  height: 130px;
+  width: 382px;
+  height: 142px;
 }
 
 @media (max-width: 720px) {
   .agp-brand {
-    min-height: 78px;
+    min-height: 82px;
   }
 
   .agp-brand::before {
-    width: 238px;
-    height: 92px;
+    width: 255px;
+    height: 96px;
     left: -18px;
   }
 
   .agp-brand-mark,
   .auth-context .agp-brand-mark {
-    width: 235px;
-    height: 78px;
-    flex-basis: 235px;
+    width: 250px;
+    height: 82px;
+    flex-basis: 250px;
   }
 }

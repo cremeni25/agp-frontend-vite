@@ -7,38 +7,29 @@ export default function Home() {
     <main className="agp-shell">
       <div className="agp-page">
         <header className="agp-topbar">
-          <div className="agp-brand">
+          <div className="agp-brand" aria-label="AGP Sports Intelligence Platform">
             <div className="agp-brand-mark">AGP</div>
-            <div className="agp-brand-copy">
-              <strong>AGP</strong>
-              <span>SPORTS INTELLIGENCE PLATFORM</span>
-            </div>
+            <div className="agp-brand-copy"><strong>AGP</strong><span>SPORTS INTELLIGENCE PLATFORM</span></div>
           </div>
         </header>
 
         <section className="home-hero">
           <div className="home-hero-copy">
             <span className="agp-eyebrow">Inteligência aplicada ao desenvolvimento esportivo</span>
-            <h1 className="agp-title">
-              Da base ao alto rendimento: <span>dados que orientam evolução.</span>
-            </h1>
+            <h1 className="agp-title">Da base ao alto rendimento: <span>dados que orientam evolução.</span></h1>
             <p className="agp-lead">
-              O AGP valida o histórico físico, fisiológico, técnico, mental, de recuperação e contexto para acompanhar a formação do atleta ao longo do tempo e apoiar decisões responsáveis de desenvolvimento.
+              O AGP integra histórico físico, fisiológico, técnico, mental, recuperação e contexto para acompanhar cada etapa do desenvolvimento esportivo e apoiar decisões responsáveis.
             </p>
             <div className="agp-actions">
-              <button className="agp-button agp-button-primary" onClick={() => navigate("/divisao")}>Entrar no sistema</button>
-              <button className="agp-button agp-button-secondary" onClick={() => navigate("/register")}>Criar acesso</button>
+              <button className="agp-button agp-button-primary" onClick={() => navigate("/login")}>Entrar na plataforma</button>
+              <button className="agp-button agp-button-secondary" onClick={() => navigate("/register")}>Criar conta de atleta</button>
             </div>
           </div>
 
-          <div className="home-intelligence agp-panel" aria-label="Visão da plataforma">
+          <div className="home-intelligence agp-panel" aria-label="Visão integrada de performance">
             <div className="home-orbit home-orbit-one" />
             <div className="home-orbit home-orbit-two" />
-            <div className="home-core">
-              <small>AGP CORE</small>
-              <strong>360°</strong>
-              <span>Performance integrada</span>
-            </div>
+            <div className="home-core"><small>AGP CORE</small><strong>360°</strong><span>Performance integrada</span></div>
             <div className="home-signal home-signal-a">Físico</div>
             <div className="home-signal home-signal-b">Técnico</div>
             <div className="home-signal home-signal-c">Mental</div>
@@ -47,8 +38,8 @@ export default function Home() {
         </section>
 
         <section className="home-metrics">
-          <article><strong>01</strong><span>Visão individual do atleta</span></article>
-          <article><strong>03</strong><span>Áreas públicas de acesso</span></article>
+          <article><strong>01</strong><span>Login único e seguro</span></article>
+          <article><strong>04</strong><span>Perfis identificados automaticamente</span></article>
           <article><strong>360°</strong><span>Leitura multidimensional</span></article>
         </section>
       </div>

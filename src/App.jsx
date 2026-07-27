@@ -5,7 +5,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
@@ -26,8 +25,8 @@ function App() {
           <Route path="/acesso-administrativo" element={<Navigate to="/login?administrativo=1" replace />} />
           <Route path="/divisao" element={<Navigate to="/login" replace />} />
           <Route path="/login/:tipo" element={<Navigate to="/login" replace />} />
+          <Route path="/register" element={<Navigate to="/login" replace />} />
 
-          <Route path="/register" element={<Register />} />
           <Route path="/recuperar-senha" element={<ForgotPassword />} />
           <Route path="/redefinir-senha" element={<ResetPassword />} />
 

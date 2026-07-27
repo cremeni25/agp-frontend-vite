@@ -87,7 +87,8 @@ export default function LoginDivisao() {
     );
   }
 
-  const [, profileConfig] = selectedProfile;
+  const [selectedType, profileConfig] = selectedProfile;
+  const isMaster = selectedType === "master";
 
   return (
     <main className="agp-shell">
@@ -97,9 +98,9 @@ export default function LoginDivisao() {
             <div className="agp-brand-mark">AGP</div>
             <div className="agp-brand-copy"><strong>AGP</strong><span>SPORTS INTELLIGENCE PLATFORM</span></div>
           </div>
-          <span className="agp-eyebrow">Acesso seguro</span>
-          <h1>Bem-vindo à área de <span>{profileConfig.label}.</span></h1>
-          <p>Entre somente com as credenciais previamente vinculadas a esta área da plataforma.</p>
+          <span className="agp-eyebrow">{isMaster ? "Acesso administrativo reservado" : "Acesso seguro"}</span>
+          <h1>{isMaster ? "Administração da plataforma." : <>Bem-vindo à área de <span>{profileConfig.label}.</span></>}</h1>
+          <p>{isMaster ? "Área restrita ao proprietário e administradores autorizados do AGP." : "Entre somente com as credenciais previamente vinculadas a esta área da plataforma."}</p>
         </section>
 
         <section className="agp-panel agp-form-card">
@@ -114,11 +115,14 @@ export default function LoginDivisao() {
               <label htmlFor="senha">Senha</label>
               <input id="senha" className="agp-input" type="password" placeholder="Digite sua senha" value={senha} onChange={(event) => setSenha(event.target.value)} autoComplete="current-password" required />
             </div>
+            <div className="agp-link-row" style={{ justifyContent: "flex-end" }}>
+              <span className="agp-link" onClick={() => navigate(`/recuperar-senha?tipo=${selectedType}`)}>Esqueci minha senha</span>
+            </div>
             {erro && <div className="agp-alert" role="alert">{erro}</div>}
             <button className="agp-button agp-button-primary" type="submit" disabled={loading}>{loading ? "Entrando..." : "Entrar na plataforma"}</button>
           </form>
           <div className="agp-link-row">
-            <span className="agp-link" onClick={() => navigate("/divisao")}>Voltar às áreas de acesso</span>
+            <span className="agp-link" onClick={() => navigate(isMaster ? "/" : "/divisao")}>{isMaster ? "Voltar ao início" : "Voltar às áreas de acesso"}</span>
           </div>
         </section>
       </div>

@@ -18,20 +18,16 @@ export default function Home() {
 
         <section className="home-hero">
           <div className="home-hero-copy">
-            <span className="agp-eyebrow">Inteligência aplicada ao desempenho</span>
+            <span className="agp-eyebrow">Inteligência aplicada ao desenvolvimento esportivo</span>
             <h1 className="agp-title">
-              Dados esportivos que se transformam em <span>decisões melhores.</span>
+              Da base ao alto rendimento: <span>dados que orientam evolução.</span>
             </h1>
             <p className="agp-lead">
-              Uma plataforma integrada para atletas, comissão técnica, clubes e gestores acompanharem evolução, contexto e performance em uma única visão.
+              O AGP valida o histórico físico, fisiológico, técnico, mental, de recuperação e contexto para acompanhar a formação do atleta ao longo do tempo e apoiar decisões responsáveis de desenvolvimento.
             </p>
             <div className="agp-actions">
-              <button className="agp-button agp-button-primary" onClick={() => navigate("/divisao")}>
-                Entrar no sistema
-              </button>
-              <button className="agp-button agp-button-secondary" onClick={() => navigate("/register")}>
-                Criar acesso
-              </button>
+              <button className="agp-button agp-button-primary" onClick={() => navigate("/divisao")}>Entrar no sistema</button>
+              <button className="agp-button agp-button-secondary" onClick={() => navigate("/register")}>Criar acesso</button>
             </div>
           </div>
 
@@ -52,7 +48,7 @@ export default function Home() {
 
         <section className="home-metrics">
           <article><strong>01</strong><span>Visão individual do atleta</span></article>
-          <article><strong>04</strong><span>Perfis de acesso integrados</span></article>
+          <article><strong>03</strong><span>Áreas públicas de acesso</span></article>
           <article><strong>360°</strong><span>Leitura multidimensional</span></article>
         </section>
       </div>

@@ -13,11 +13,16 @@ export default function ProtectedRoute({ children, tipoPermitido }) {
   if (!session) {
     return (
       <Navigate
-        to="/divisao"
+        to="/login"
         replace
         state={{ from: location.pathname }}
       />
     );
+  }
+
+  const metadata = session.user?.user_metadata || {};
+  if (metadata.agp_initial_password_issued === true && metadata.agp_password_changed !== true) {
+    return <Navigate to="/alterar-senha" replace />;
   }
 
   if (!perfil) {

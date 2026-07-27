@@ -28,7 +28,7 @@ export default function Login() {
       });
 
       if (error || !data.user) {
-        setErro("Email ou senha inválidos.");
+        setErro("E-mail ou senha inválidos. No primeiro acesso, defina sua senha pelo link abaixo.");
         return;
       }
 
@@ -40,7 +40,7 @@ export default function Login() {
 
       if (perfilErro || !perfil) {
         await supabase.auth.signOut();
-        setErro("Perfil de acesso não encontrado. Procure o administrador da plataforma.");
+        setErro("Seu usuário existe, mas o vínculo institucional ainda não foi concluído.");
         return;
       }
 
@@ -62,6 +62,8 @@ export default function Login() {
     }
   }
 
+  const recoveryPath = `/recuperar-senha?email=${encodeURIComponent(email)}`;
+
   return (
     <main className="agp-shell">
       <div className="agp-page auth-layout">
@@ -70,36 +72,38 @@ export default function Login() {
             <div className="agp-brand-mark">AGP</div>
             <div className="agp-brand-copy"><strong>AGP</strong><span>SPORTS INTELLIGENCE PLATFORM</span></div>
           </div>
-          <span className="agp-eyebrow">Acesso seguro</span>
-          <h1>{administrativo ? "Acesso administrativo reservado." : "Acesse sua área no AGP."}</h1>
+          <span className="agp-eyebrow">Plataforma segura</span>
+          <h1>{administrativo ? "Acesso administrativo." : "Acesso único ao AGP."}</h1>
           <p>
             {administrativo
-              ? "Ambiente restrito ao proprietário e aos administradores autorizados."
-              : "Informe suas credenciais. O sistema identificará automaticamente seu perfil e abrirá o painel correspondente."}
+              ? "Ambiente reservado ao proprietário e aos administradores autorizados."
+              : "Entre com as credenciais recebidas da sua organização. O AGP identifica sua função e abre automaticamente o ambiente autorizado."}
           </p>
         </section>
 
         <section className="agp-panel agp-form-card">
           <h1>Entrar</h1>
-          <p>Use as credenciais vinculadas ao seu perfil.</p>
+          <p>Use o e-mail vinculado ao seu perfil institucional.</p>
           <form className="agp-form" onSubmit={handleLogin}>
             <div className="agp-field">
-              <label htmlFor="email">Email</label>
+              <label htmlFor="email">E-mail</label>
               <input id="email" className="agp-input" type="email" placeholder="seu@email.com" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required />
             </div>
             <div className="agp-field">
               <label htmlFor="senha">Senha</label>
               <input id="senha" className="agp-input" type="password" placeholder="Digite sua senha" value={senha} onChange={(event) => setSenha(event.target.value)} autoComplete="current-password" required />
             </div>
-            <div className="agp-link-row">
-              <span className="agp-link" onClick={() => navigate(`/recuperar-senha?email=${encodeURIComponent(email)}`)}>Esqueci minha senha</span>
+            <div className="agp-link-row auth-support-row">
+              <span className="agp-link" onClick={() => navigate(recoveryPath)}>Primeiro acesso ou recuperar senha</span>
             </div>
             {erro && <div className="agp-alert" role="alert">{erro}</div>}
             <button className="agp-button agp-button-primary" type="submit" disabled={loading}>{loading ? "Entrando..." : "Entrar na plataforma"}</button>
           </form>
+          <div className="auth-provisioning-note">
+            Novos usuários são convidados e vinculados pela instituição ou pela administração do AGP.
+          </div>
           <div className="agp-link-row">
             <span className="agp-link" onClick={() => navigate("/")}>Voltar ao início</span>
-            {!administrativo && <span className="agp-link" onClick={() => navigate("/register")}>Criar conta de atleta</span>}
           </div>
         </section>
       </div>

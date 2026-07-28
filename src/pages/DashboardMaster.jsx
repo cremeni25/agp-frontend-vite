@@ -52,7 +52,7 @@ export default function DashboardMaster() {
           <div>
             <span className="master-eyebrow">AGP Sports Intelligence</span>
             <h1>Centro de comando Master</h1>
-            <p>Visão consolidada da operação, usuários e atividade analítica.</p>
+            <p>Governança global, homologação e acompanhamento da evolução analítica.</p>
           </div>
           <div className="master-header-actions">
             <button className="master-button secondary" onClick={loadDashboard}>Atualizar dados</button>
@@ -70,7 +70,15 @@ export default function DashboardMaster() {
         </section>
 
         <section className="dashboard-section">
-          <div className="master-section-heading"><div><span className="master-eyebrow">Operação</span><h2>Gestão do sistema</h2></div></div>
+          <div className="master-section-heading"><div><span className="master-eyebrow">Validação</span><h2>Homologação operacional</h2></div></div>
+          <button className="master-action-card" onClick={() => navigate("/master/homologacao")}>
+            <strong>Centro de homologação AGP</strong>
+            <span>Inicializar e acompanhar o ambiente interno e os dois pilotos técnicos independentes.</span>
+          </button>
+        </section>
+
+        <section className="dashboard-section">
+          <div className="master-section-heading"><div><span className="master-eyebrow">Governança</span><h2>Administração global</h2></div></div>
           <div className="master-action-grid two-columns">
             <button className="master-action-card" onClick={() => navigate("/master/usuarios")}>
               <strong>Gestão de usuários</strong>
@@ -78,7 +86,7 @@ export default function DashboardMaster() {
             </button>
             <button className="master-action-card" onClick={() => navigate("/master/perfis")}>
               <strong>Perfis e permissões</strong>
-              <span>Definir o acesso Master, Atleta, Comissão Técnica ou Clube.</span>
+              <span>Auditar e corrigir papéis globais da plataforma.</span>
             </button>
           </div>
         </section>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { normalizeUserType } from "../config/accessProfiles";
 import "../styles/dashboard-master.css";
+import "../styles/master-profiles.css";
 
 const PROFILE_OPTIONS = [
   { value: "master", label: "Master" },

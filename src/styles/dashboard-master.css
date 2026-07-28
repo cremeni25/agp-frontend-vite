@@ -1,56 +1,307 @@
 .dashboard-master {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  background: radial-gradient(circle at center, #120a24, #020617);
+  min-height: 100vh;
+  background: radial-gradient(circle at top right, #17102f 0, #050817 42%, #020617 100%);
+  color: #eaf6ff;
 }
 
 .dashboard-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(10, 5, 25, 0.78);
-  color: #eaf6ff;
+  min-height: 100vh;
+  background: rgba(3, 7, 22, 0.82);
   padding: 32px;
-  overflow-y: auto;
+}
+
+.master-page {
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
 .dashboard-header {
   display: flex;
   justify-content: space-between;
+  gap: 24px;
   margin-bottom: 32px;
+}
+
+.master-header h1,
+.master-section-heading h2 {
+  margin: 6px 0 8px;
+}
+
+.master-header p,
+.master-panel p {
+  margin: 0;
+  color: #9fb4ca;
+}
+
+.master-eyebrow {
+  color: #8ad8ff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.master-header-actions,
+.action-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 .dashboard-section {
   margin-bottom: 32px;
 }
 
-.dashboard-section.grid {
+.dashboard-section.grid,
+.master-summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
 }
 
+.card,
+.master-panel,
+.master-table-card {
+  background: rgba(20, 20, 53, 0.82);
+  border: 1px solid rgba(121, 104, 255, 0.28);
+  border-radius: 14px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+}
+
 .card {
-  background: rgba(40, 20, 70, 0.55);
-  border: 1px solid rgba(160, 90, 255, 0.35);
-  border-radius: 8px;
-  padding: 20px;
+  padding: 22px;
 }
 
+.master-metric {
+  display: grid;
+  gap: 8px;
+}
+
+.master-metric span,
+.master-metric small {
+  color: #a8bdd2;
+}
+
+.master-metric strong {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.master-button,
+.master-link-button,
 .action-row button {
-  margin-right: 12px;
-  padding: 10px 18px;
-  border-radius: 6px;
-  background: rgba(40, 20, 70, 0.6);
-  color: #eaf6ff;
-  border: 1px solid rgba(160, 90, 255, 0.5);
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #163b63;
+  color: #f3f8ff;
+  border: 1px solid #2e78b8;
   cursor: pointer;
+  font-weight: 700;
 }
 
-.action-row button:hover {
-  box-shadow: 0 0 14px rgba(160, 90, 255, 0.4);
+.master-button.secondary {
+  background: rgba(35, 46, 78, 0.75);
+  border-color: #53698f;
 }
 
-.audit-list li {
-  margin-bottom: 8px;
+.master-button.danger {
+  background: rgba(104, 31, 52, 0.75);
+  border-color: #c75b79;
+}
+
+.master-button:hover,
+.master-link-button:hover,
+.master-action-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(73, 155, 255, 0.16);
+}
+
+.master-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.master-action-card {
+  min-height: 132px;
+  text-align: left;
+  padding: 22px;
+  border-radius: 14px;
+  border: 1px solid rgba(69, 151, 222, 0.42);
+  background: linear-gradient(145deg, rgba(17, 46, 81, 0.9), rgba(18, 19, 52, 0.9));
+  color: #edf7ff;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.master-action-card strong,
+.master-action-card span {
+  display: block;
+}
+
+.master-action-card strong {
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.master-action-card span {
+  color: #a9bdd2;
+  line-height: 1.45;
+}
+
+.master-content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.master-panel {
+  padding: 24px;
+}
+
+.master-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.master-section-heading > strong {
+  font-size: 2rem;
+}
+
+.master-activity-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.master-activity-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(141, 169, 198, 0.14);
+}
+
+.master-activity-list li:last-child {
+  border-bottom: 0;
+}
+
+.master-activity-list span {
+  display: block;
+  color: #8ea5bb;
+  margin-top: 4px;
+}
+
+.master-error {
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(245, 100, 124, 0.55);
+  background: rgba(111, 27, 48, 0.4);
+  border-radius: 10px;
+}
+
+.master-toolbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(180px, 260px) auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.master-input,
+.master-select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 9px;
+  border: 1px solid rgba(108, 151, 196, 0.45);
+  background: rgba(7, 17, 39, 0.92);
+  color: #eff7ff;
+}
+
+.master-result-count {
+  color: #9fb4ca;
+  white-space: nowrap;
+}
+
+.master-table-card {
+  overflow: hidden;
+}
+
+.master-table-wrap {
+  overflow-x: auto;
+}
+
+.master-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.master-table th,
+.master-table td {
+  padding: 15px 18px;
+  text-align: left;
+  border-bottom: 1px solid rgba(151, 177, 204, 0.12);
+  vertical-align: top;
+}
+
+.master-table th {
+  color: #8ad8ff;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.master-table td span {
+  display: block;
+  margin-top: 4px;
+  color: #93a9be;
+}
+
+.master-badge,
+.master-status {
+  display: inline-flex !important;
+  width: fit-content;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(64, 95, 139, 0.35);
+  color: #dcecff !important;
+  font-size: 0.78rem;
+  text-transform: capitalize;
+}
+
+.master-status.ativo,
+.master-status.active {
+  background: rgba(27, 119, 83, 0.35);
+  color: #95f0c8 !important;
+}
+
+.master-status.inativo,
+.master-status.inactive {
+  background: rgba(122, 39, 58, 0.38);
+  color: #ffafbd !important;
+}
+
+.master-empty,
+.dashboard-loading {
+  padding: 36px;
+  color: #9fb4ca;
+}
+
+@media (max-width: 760px) {
+  .dashboard-overlay {
+    padding: 20px;
+  }
+
+  .dashboard-header,
+  .master-header {
+    flex-direction: column;
+  }
+
+  .master-toolbar {
+    grid-template-columns: 1fr;
+  }
 }

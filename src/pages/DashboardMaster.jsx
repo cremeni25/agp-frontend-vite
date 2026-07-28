@@ -1,91 +1,164 @@
-// src/pages/DashboardMaster.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { normalizeUserType } from "../config/accessProfiles";
 import "../styles/dashboard-master.css";
 
+function resolveType(user) {
+  return normalizeUserType(user.tipo_usuario || user.funcao) || "não definido";
+}
+
 export default function DashboardMaster() {
-  const [resumo, setResumo] = useState(null);
+  const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
+  const [scores, setScores] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    async function carregarResumo() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        window.location.href = "/";
-        return;
-      }
+  async function loadDashboard() {
+    setLoading(true);
+    setError("");
 
-      // visão agregada global (placeholder seguro)
-      const { data, error } = await supabase
-        .from("resumo_master")
-        .select("*")
-        .single();
+    const [usersResult, scoresResult] = await Promise.all([
+      supabase.from("perfis_atletas").select("*"),
+      supabase.from("score_atleta").select("*").order("data_calculo", { ascending: false }).limit(8)
+    ]);
 
-      if (!error) setResumo(data);
-      setLoading(false);
+    if (usersResult.error) {
+      setError(`Falha ao carregar usuários: ${usersResult.error.message}`);
     }
 
-    carregarResumo();
+    setUsers(usersResult.data || []);
+    setScores(scoresResult.data || []);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    loadDashboard();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="dashboard-loading">
-        Carregando gestão master...
-      </div>
-    );
+  const summary = useMemo(() => {
+    const counts = { master: 0, atleta: 0, comissao: 0, clube: 0, indefinido: 0 };
+    users.forEach((user) => {
+      const type = resolveType(user);
+      if (type === "não definido") counts.indefinido += 1;
+      else if (Object.prototype.hasOwnProperty.call(counts, type)) counts[type] += 1;
+    });
+    return {
+      total: users.length,
+      ...counts
+    };
+  }, [users]);
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    navigate("/login", { replace: true });
   }
 
   return (
-    <div className="dashboard-master">
-      <div className="dashboard-overlay">
-
-        <header className="dashboard-header">
-          <h1>Dashboard Master</h1>
-          <span>Gestão global do AGP</span>
+    <main className="dashboard-master">
+      <div className="dashboard-overlay master-page">
+        <header className="dashboard-header master-header">
+          <div>
+            <span className="master-eyebrow">AGP Sports Intelligence</span>
+            <h1>Centro de comando Master</h1>
+            <p>Visão consolidada da operação, usuários e atividade analítica.</p>
+          </div>
+          <div className="master-header-actions">
+            <button className="master-button secondary" onClick={loadDashboard}>Atualizar dados</button>
+            <button className="master-button danger" onClick={signOut}>Sair</button>
+          </div>
         </header>
 
-        <section className="dashboard-section grid">
-          <div className="card">
-            <h3>Usuários ativos</h3>
-            <p>{resumo?.usuarios ?? "-"}</p>
-          </div>
+        {error && <div className="master-error" role="alert">{error}</div>}
 
-          <div className="card">
-            <h3>Atletas</h3>
-            <p>{resumo?.atletas ?? "-"}</p>
-          </div>
-
-          <div className="card">
-            <h3>Comissões</h3>
-            <p>{resumo?.comissoes ?? "-"}</p>
-          </div>
-
-          <div className="card">
-            <h3>Clubes</h3>
-            <p>{resumo?.clubes ?? "-"}</p>
-          </div>
+        <section className="dashboard-section grid master-summary-grid">
+          <article className="card master-metric">
+            <span>Usuários cadastrados</span>
+            <strong>{loading ? "…" : summary.total}</strong>
+            <small>Base institucional visível</small>
+          </article>
+          <article className="card master-metric">
+            <span>Atletas</span>
+            <strong>{loading ? "…" : summary.atleta}</strong>
+            <small>Perfis esportivos</small>
+          </article>
+          <article className="card master-metric">
+            <span>Comissões técnicas</span>
+            <strong>{loading ? "…" : summary.comissao}</strong>
+            <small>Perfis de acompanhamento</small>
+          </article>
+          <article className="card master-metric">
+            <span>Clubes e associações</span>
+            <strong>{loading ? "…" : summary.clube}</strong>
+            <small>Perfis institucionais</small>
+          </article>
         </section>
 
         <section className="dashboard-section">
-          <h2>Gestão</h2>
-          <div className="action-row">
-            <button>Gerenciar usuários</button>
-            <button>Perfis e permissões</button>
-            <button>Configurações do sistema</button>
+          <div className="master-section-heading">
+            <div>
+              <span className="master-eyebrow">Operação</span>
+              <h2>Gestão do sistema</h2>
+            </div>
+          </div>
+          <div className="master-action-grid">
+            <button className="master-action-card" onClick={() => navigate("/master/usuarios")}>
+              <strong>Gerenciar usuários</strong>
+              <span>Consultar a base, filtrar perfis e verificar vínculos.</span>
+            </button>
+            <button className="master-action-card" onClick={() => navigate("/master/usuarios?filtro=perfis")}>
+              <strong>Perfis e permissões</strong>
+              <span>Auditar os tipos de acesso registrados no AGP.</span>
+            </button>
+            <button className="master-action-card" onClick={loadDashboard}>
+              <strong>Sincronizar indicadores</strong>
+              <span>Atualizar contadores e atividade analítica agora.</span>
+            </button>
           </div>
         </section>
 
-        <section className="dashboard-section">
-          <h2>Auditoria</h2>
-          <ul className="audit-list">
-            <li>Acesso admin — hoje</li>
-            <li>Criação de usuário — ontem</li>
-            <li>Alteração de permissão — 2 dias</li>
-          </ul>
-        </section>
+        <section className="master-content-grid">
+          <article className="master-panel">
+            <div className="master-section-heading">
+              <div>
+                <span className="master-eyebrow">Qualidade cadastral</span>
+                <h2>Perfis que exigem atenção</h2>
+              </div>
+              <strong>{summary.indefinido}</strong>
+            </div>
+            <p>
+              Registros sem tipo de usuário reconhecido impedem o direcionamento correto e devem ser regularizados.
+            </p>
+            <button className="master-link-button" onClick={() => navigate("/master/usuarios")}>Abrir base de usuários</button>
+          </article>
 
+          <article className="master-panel">
+            <div className="master-section-heading">
+              <div>
+                <span className="master-eyebrow">Motor analítico</span>
+                <h2>Scores recentes</h2>
+              </div>
+              <strong>{scores.length}</strong>
+            </div>
+            {scores.length === 0 ? (
+              <p>Nenhum score disponível na base para exibição.</p>
+            ) : (
+              <ul className="master-activity-list">
+                {scores.slice(0, 5).map((score, index) => (
+                  <li key={score.id || `${score.atleta_id}-${index}`}>
+                    <div>
+                      <strong>Atleta {score.atleta_id || "não identificado"}</strong>
+                      <span>{score.nivel_classificacao || "Classificação pendente"}</span>
+                    </div>
+                    <b>{score.score_global ?? "—"}</b>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </article>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

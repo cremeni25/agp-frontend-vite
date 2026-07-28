@@ -10,6 +10,7 @@ export default function Login() {
   const administrativo = params.get("administrativo") === "1";
   const senhaAlterada = params.get("senha-alterada") === "1";
   const linkAntigo = params.get("link-antigo") === "1";
+  const ativado = params.get("ativado") === "1";
 
   const [email, setEmail] = useState(administrativo ? "anderson@cremeni.com.br" : "");
   const [senha, setSenha] = useState("");
@@ -91,7 +92,13 @@ export default function Login() {
           <h1>Entrar</h1>
           <p>Use o e-mail vinculado ao seu perfil institucional.</p>
           {senhaAlterada && <div className="agp-alert agp-alert-success" role="status">Senha pessoal definida. Entre novamente com a nova senha.</div>}
-          {linkAntigo && <div className="agp-alert" role="status">O fluxo antigo por link foi desativado. Entre com a credencial temporária; o AGP abrirá automaticamente a troca obrigatória de senha.</div>}
+          {ativado && <div className="agp-alert agp-alert-success" role="status">Acesso proprietário ativado. Entre com a senha pessoal definida.</div>}
+          {linkAntigo && <div className="agp-alert" role="status">O fluxo antigo por link foi desativado.</div>}
+          {administrativo && !ativado && (
+            <div className="auth-provisioning-note">
+              Primeiro acesso do proprietário: <span className="agp-link" onClick={() => navigate("/ativar-proprietario")}>ativar acesso definitivo</span>.
+            </div>
+          )}
           <form className="agp-form" onSubmit={handleLogin}>
             <div className="agp-field">
               <label htmlFor="email">E-mail</label>

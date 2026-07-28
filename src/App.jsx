@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ChangePassword from "./pages/ChangePassword";
+import OwnerActivation from "./pages/OwnerActivation";
 
 import DashboardAtleta from "./pages/DashboardAtleta";
 import DashboardComissao from "./pages/DashboardComissao";
@@ -23,6 +24,7 @@ function App() {
 
           <Route path="/login" element={<Login />} />
           <Route path="/acesso-administrativo" element={<Navigate to="/login?administrativo=1" replace />} />
+          <Route path="/ativar-proprietario" element={<OwnerActivation />} />
           <Route path="/divisao" element={<Navigate to="/login" replace />} />
           <Route path="/login/:tipo" element={<Navigate to="/login" replace />} />
           <Route path="/register" element={<Navigate to="/login" replace />} />

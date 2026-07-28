@@ -15,7 +15,7 @@ import DashboardClube from "./pages/DashboardClube";
 import DashboardMaster from "./pages/DashboardMaster";
 import MasterUsers from "./pages/MasterUsers";
 import MasterProfiles from "./pages/MasterProfiles";
-import MasterHomologation from "./pages/MasterHomologation";
+import MasterHomologation from "./pages/MasterHomologationOperational";
 import Unauthorized from "./pages/Unauthorized";
 
 function App() {

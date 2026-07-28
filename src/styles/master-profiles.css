@@ -1,0 +1,22 @@
+.master-success {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(45, 212, 191, 0.45);
+  border-radius: 10px;
+  background: rgba(13, 148, 136, 0.14);
+  color: #b9fff3;
+}
+
+.master-select.compact {
+  min-width: 210px;
+}
+
+.master-action-grid.two-columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 760px) {
+  .master-action-grid.two-columns {
+    grid-template-columns: 1fr;
+  }
+}

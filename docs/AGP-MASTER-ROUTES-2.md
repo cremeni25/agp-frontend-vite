@@ -1,1 +1,0 @@
-Dashboard, usuários e perfis possuem rotas independentes.

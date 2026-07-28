@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
-import { getDashboardPath, normalizeUserType } from "../config/accessProfiles";
+import { resolveUserAccess } from "../services/resolveUserAccess";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -28,42 +28,29 @@ export default function Login() {
         password: senha
       });
 
-      if (error || !data.user) {
+      if (error || !data.user || !data.session) {
         setErro("E-mail ou senha inválidos.");
         return;
       }
 
       const metadata = data.user.user_metadata || {};
-      if (metadata.agp_initial_password_issued === true && metadata.agp_password_changed !== true) {
+      if (
+        metadata.agp_initial_password_issued === true &&
+        metadata.agp_password_changed !== true
+      ) {
         navigate("/alterar-senha", { replace: true });
         return;
       }
 
-      const { data: perfil, error: perfilErro } = await supabase
-        .from("perfis_atletas")
-        .select("*")
-        .eq("auth_id", data.user.id)
-        .maybeSingle();
+      const access = await resolveUserAccess(data.session);
 
-      const tipoPerfil = normalizeUserType(perfil?.tipo_usuario || perfil?.funcao);
-      const tipoMetadata = normalizeUserType(metadata.tipo_usuario || metadata.funcao);
-      const proprietario = metadata.is_owner === true || data.user.email?.toLowerCase() === "anderson@cremeni.com.br";
-      const tipo = tipoPerfil || tipoMetadata || (proprietario ? "master" : null);
-      const destino = getDashboardPath(tipo);
-
-      if ((perfilErro || !perfil) && !tipoMetadata && !proprietario) {
-        await supabase.auth.signOut();
-        setErro("Seu usuário existe, mas o vínculo institucional ainda não foi concluído.");
-        return;
-      }
-
-      if (!tipo || !destino) {
+      if (!access.authorized || !access.dashboardPath) {
         await supabase.auth.signOut();
         setErro("O perfil deste usuário ainda não possui uma área configurada.");
         return;
       }
 
-      navigate(destino, { replace: true });
+      navigate(access.dashboardPath, { replace: true });
     } catch {
       await supabase.auth.signOut();
       setErro("Não foi possível concluir o acesso. Tente novamente.");

@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { normalizeUserType } from "../config/accessProfiles";
 
 export default function ProtectedRoute({ children, tipoPermitido }) {
-  const { session, perfil, loading } = useAuth();
+  const { session, userType, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -21,22 +21,22 @@ export default function ProtectedRoute({ children, tipoPermitido }) {
   }
 
   const metadata = session.user?.user_metadata || {};
-  if (metadata.agp_initial_password_issued === true && metadata.agp_password_changed !== true) {
+  if (
+    metadata.agp_initial_password_issued === true &&
+    metadata.agp_password_changed !== true
+  ) {
     return <Navigate to="/alterar-senha" replace />;
   }
 
-  if (!perfil) {
+  const normalizedAllowedType = normalizeUserType(tipoPermitido);
+
+  if (!userType) {
     return <Navigate to="/unauthorized" replace />;
   }
 
-  const normalizedProfileType =
-    perfil.tipo_usuario_normalizado ||
-    normalizeUserType(perfil.tipo_usuario || perfil.funcao);
-  const normalizedAllowedType = normalizeUserType(tipoPermitido);
-
   if (
     normalizedAllowedType &&
-    normalizedProfileType !== normalizedAllowedType
+    userType !== normalizedAllowedType
   ) {
     return <Navigate to="/unauthorized" replace />;
   }

@@ -1,25 +1,25 @@
 export const ACCESS_PROFILES = {
   atleta: {
     routeParam: "atletas",
-    aliases: ["atleta", "atletas"],
+    aliases: ["atleta", "atletas", "athlete"],
     label: "Atletas",
     dashboardPath: "/dashboard-atleta"
   },
   comissao: {
     routeParam: "comissao",
-    aliases: ["comissao", "comissão", "comissao_tecnica", "comissão técnica"],
+    aliases: ["comissao", "comissão", "comissao_tecnica", "comissão técnica", "tecnico", "técnico", "coach"],
     label: "Comissão Técnica",
     dashboardPath: "/dashboard-comissao"
   },
   clube: {
     routeParam: "clubes",
-    aliases: ["clube", "clubes", "associacao", "associação"],
+    aliases: ["clube", "clubes", "associacao", "associação", "instituicao", "instituição"],
     label: "Clubes & Associações",
     dashboardPath: "/dashboard-clube"
   },
   master: {
     routeParam: "master",
-    aliases: ["master"],
+    aliases: ["master", "owner", "proprietario", "proprietário", "admin", "administrador", "administradora"],
     label: "Master",
     dashboardPath: "/dashboard-master"
   }
@@ -27,9 +27,7 @@ export const ACCESS_PROFILES = {
 
 export function normalizeUserType(value) {
   if (!value) return null;
-
   const normalizedValue = String(value).trim().toLowerCase();
-
   return (
     Object.entries(ACCESS_PROFILES).find(([, profile]) =>
       profile.aliases.includes(normalizedValue)

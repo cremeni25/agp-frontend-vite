@@ -14,6 +14,7 @@ import DashboardComissao from "./pages/DashboardComissao";
 import DashboardClube from "./pages/DashboardClube";
 import DashboardMaster from "./pages/DashboardMaster";
 import MasterUsers from "./pages/MasterUsers";
+import MasterProfiles from "./pages/MasterProfiles";
 import Unauthorized from "./pages/Unauthorized";
 
 function App() {
@@ -22,14 +23,12 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
-
           <Route path="/login" element={<Login />} />
           <Route path="/acesso-administrativo" element={<Navigate to="/login?administrativo=1" replace />} />
           <Route path="/ativar-proprietario" element={<OwnerActivation />} />
           <Route path="/divisao" element={<Navigate to="/login" replace />} />
           <Route path="/login/:tipo" element={<Navigate to="/login" replace />} />
           <Route path="/register" element={<Navigate to="/login" replace />} />
-
           <Route path="/recuperar-senha" element={<ForgotPassword />} />
           <Route path="/redefinir-senha" element={<Navigate to="/login?administrativo=1&link-antigo=1" replace />} />
           <Route path="/alterar-senha" element={<ChangePassword />} />
@@ -39,6 +38,7 @@ function App() {
           <Route path="/dashboard-clube" element={<ProtectedRoute tipoPermitido="clube"><DashboardClube /></ProtectedRoute>} />
           <Route path="/dashboard-master" element={<ProtectedRoute tipoPermitido="master"><DashboardMaster /></ProtectedRoute>} />
           <Route path="/master/usuarios" element={<ProtectedRoute tipoPermitido="master"><MasterUsers /></ProtectedRoute>} />
+          <Route path="/master/perfis" element={<ProtectedRoute tipoPermitido="master"><MasterProfiles /></ProtectedRoute>} />
 
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="*" element={<Navigate to="/" replace />} />

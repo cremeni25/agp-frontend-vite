@@ -45,14 +45,17 @@ export default function Login() {
         .eq("auth_id", data.user.id)
         .maybeSingle();
 
-      if (perfilErro || !perfil) {
+      const tipoPerfil = normalizeUserType(perfil?.tipo_usuario || perfil?.funcao);
+      const tipoMetadata = normalizeUserType(metadata.tipo_usuario || metadata.funcao);
+      const proprietario = metadata.is_owner === true || data.user.email?.toLowerCase() === "anderson@cremeni.com.br";
+      const tipo = tipoPerfil || tipoMetadata || (proprietario ? "master" : null);
+      const destino = getDashboardPath(tipo);
+
+      if ((perfilErro || !perfil) && !tipoMetadata && !proprietario) {
         await supabase.auth.signOut();
         setErro("Seu usuário existe, mas o vínculo institucional ainda não foi concluído.");
         return;
       }
-
-      const tipo = normalizeUserType(perfil.tipo_usuario || perfil.funcao);
-      const destino = getDashboardPath(tipo);
 
       if (!tipo || !destino) {
         await supabase.auth.signOut();

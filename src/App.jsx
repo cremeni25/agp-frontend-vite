@@ -13,6 +13,7 @@ import DashboardAtleta from "./pages/DashboardAtleta";
 import DashboardComissao from "./pages/DashboardComissao";
 import DashboardClube from "./pages/DashboardClube";
 import DashboardMaster from "./pages/DashboardMaster";
+import MasterUsers from "./pages/MasterUsers";
 import Unauthorized from "./pages/Unauthorized";
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
           <Route path="/dashboard-comissao" element={<ProtectedRoute tipoPermitido="comissao"><DashboardComissao /></ProtectedRoute>} />
           <Route path="/dashboard-clube" element={<ProtectedRoute tipoPermitido="clube"><DashboardClube /></ProtectedRoute>} />
           <Route path="/dashboard-master" element={<ProtectedRoute tipoPermitido="master"><DashboardMaster /></ProtectedRoute>} />
+          <Route path="/master/usuarios" element={<ProtectedRoute tipoPermitido="master"><MasterUsers /></ProtectedRoute>} />
 
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="*" element={<Navigate to="/" replace />} />

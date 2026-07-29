@@ -53,6 +53,7 @@ export default function HomologationEnvironment() {
 
   const profileById = useMemo(() => Object.fromEntries(profiles.map((item) => [item.id, item])), [profiles]);
   const technicians = profiles.filter((item) => ["comissao", "comissão", "tecnico", "técnico", "treinador"].includes(String(item.tipo_usuario || item.funcao || "").toLowerCase()));
+  const techniciansWithAccess = technicians.filter((item) => item.auth_id);
   const athletes = profiles.filter((item) => String(item.tipo_usuario || item.funcao || "").toLowerCase() === "atleta");
 
   async function saveProject() {
@@ -66,7 +67,7 @@ export default function HomologationEnvironment() {
 
   async function addTechnician() {
     const profile = profiles.find((item) => item.id === selectedTechnician);
-    if (!profile?.auth_id || !institution) { setError("Selecione um técnico com conta de acesso vinculada."); return; }
+    if (!profile?.auth_id || !institution) { setError("O técnico selecionado não possui conta de acesso vinculada."); return; }
     setWorking(true); setMessage(""); setError("");
     const { error: memberError } = await supabase.from("agp_membros_instituicao").upsert({ instituicao_id: institution.id, auth_id: profile.auth_id, nome: profile.nome, email: profile.email, papel: "tecnico", acesso_total_tecnico: true, ativo: true }, { onConflict: "instituicao_id,auth_id" });
     if (memberError) setError(`Falha ao vincular técnico: ${memberError.message}`);
@@ -103,14 +104,21 @@ export default function HomologationEnvironment() {
         </article>
 
         <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Equipe</span><h2>Técnico avaliador</h2></div><strong>{members.filter((m) => m.papel === "tecnico").length}</strong></div>
-          <select className="master-select" value={selectedTechnician} onChange={(e) => setSelectedTechnician(e.target.value)}><option value="">Selecionar técnico existente</option>{technicians.map((item) => <option key={item.id} value={item.id}>{item.nome} — {item.email || "sem e-mail"}</option>)}</select>
-          <button className="master-button" disabled={working || !selectedTechnician} onClick={addTechnician}>Vincular técnico</button>
+          {techniciansWithAccess.length === 0 ? (
+            <div className="master-empty"><strong>Nenhum técnico com conta de acesso disponível.</strong><span>Defina o perfil de um usuário como Comissão técnica antes do vínculo.</span><button className="master-button" onClick={() => navigate("/master/perfis")}>Abrir perfis e permissões</button></div>
+          ) : (
+            <><select className="master-select" value={selectedTechnician} onChange={(e) => setSelectedTechnician(e.target.value)}><option value="">Selecionar técnico com acesso</option>{techniciansWithAccess.map((item) => <option key={item.id} value={item.id}>{item.nome} — {item.email || "sem e-mail"}</option>)}</select><button className="master-button" disabled={working || !selectedTechnician} onClick={addTechnician}>Vincular técnico selecionado</button></>
+          )}
           <ul className="master-activity-list">{members.filter((m) => m.papel === "tecnico").map((m) => <li key={m.id}><div><strong>{m.nome}</strong><span>{m.email}</span></div><b>{m.ativo ? "Ativo" : "Inativo"}</b></li>)}</ul>
         </article>
       </section>
 
       <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Participantes</span><h2>Atletas do projeto</h2></div><strong>{links.length}</strong></div>
-        <div className="master-toolbar"><select className="master-select" value={selectedAthlete} onChange={(e) => setSelectedAthlete(e.target.value)}><option value="">Selecionar atleta existente</option>{athletes.map((item) => <option key={item.id} value={item.id}>{item.nome} — {item.email || item.id}</option>)}</select><button className="master-button" disabled={working || !selectedAthlete} onClick={addAthlete}>Adicionar atleta</button></div>
+        {athletes.length === 0 ? (
+          <div className="master-empty"><strong>Nenhum perfil de atleta disponível.</strong><span>Cadastre o usuário e defina seu perfil como Atleta antes de vinculá-lo ao projeto.</span><button className="master-button" onClick={() => navigate("/master/perfis")}>Abrir perfis e permissões</button></div>
+        ) : (
+          <div className="master-toolbar"><select className="master-select" value={selectedAthlete} onChange={(e) => setSelectedAthlete(e.target.value)}><option value="">Selecionar atleta existente</option>{athletes.map((item) => <option key={item.id} value={item.id}>{item.nome} — {item.email || item.id}</option>)}</select><button className="master-button" disabled={working || !selectedAthlete} onClick={addAthlete}>Vincular atleta selecionado</button></div>
+        )}
         {links.length === 0 ? <div className="master-empty">Nenhum atleta vinculado a este piloto.</div> : <ul className="master-activity-list">{links.map((link) => { const athlete = profileById[link.atleta_id]; return <li key={link.id}><div><strong>{athlete?.nome || link.atleta_id}</strong><span>{athlete?.nivel || athlete?.categoria || "Perfil esportivo"}</span></div><b>{link.status}</b></li>; })}</ul>}
       </section>
     </div></main>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
-import AgpOperationalDemo from "../components/AgpOperationalDemo";
+import AgpEvidenceReadiness from "../components/AgpEvidenceReadiness";
 import "../styles/dashboard-master.css";
 
 export default function HomologationEnvironment() {
@@ -91,7 +91,7 @@ export default function HomologationEnvironment() {
       <header className="dashboard-header master-header"><div><span className="master-eyebrow">Projeto de validação</span><h1>{institution?.nome || "Homologação"}</h1><p>{project?.objetivo}</p></div><button className="master-button secondary" onClick={() => navigate("/master/homologacao")}>Voltar</button></header>
       {message && <div className="master-success">{message}</div>}{error && <div className="master-error" role="alert">{error}</div>}
 
-      {slug === "agp-homologacao-master" && <AgpOperationalDemo />}
+      {project && <AgpEvidenceReadiness projectId={project.id} athleteLinks={links} profileById={profileById} />}
 
       <section className="master-content-grid">
         <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Configuração</span><h2>Diretrizes do piloto</h2></div><strong>{project?.status}</strong></div>

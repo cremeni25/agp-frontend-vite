@@ -51,6 +51,7 @@ export default function MasterHomologationOperational() {
   const [athletes, setAthletes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
+  const [openingSlug, setOpeningSlug] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -105,68 +106,92 @@ export default function MasterHomologationOperational() {
     [institutions, projects, members, athletes]
   );
 
+  async function ensureEnvironment(definition) {
+    const { data: institution, error: institutionError } = await supabase
+      .from("agp_instituicoes")
+      .upsert(
+        {
+          nome: definition.nome,
+          slug: definition.slug,
+          tipo: "homologacao",
+          localidade: definition.localidade,
+          status: "ativo"
+        },
+        { onConflict: "slug" }
+      )
+      .select("*")
+      .single();
+
+    if (institutionError) {
+      throw new Error(`Falha ao criar ${definition.nome}: ${institutionError.message}`);
+    }
+
+    const { data: existing, error: existingError } = await supabase
+      .from("agp_projetos_validacao")
+      .select("id")
+      .eq("instituicao_id", institution.id)
+      .maybeSingle();
+
+    if (existingError) {
+      throw new Error(`Falha ao verificar projeto: ${existingError.message}`);
+    }
+
+    if (!existing) {
+      const { error: projectError } = await supabase
+        .from("agp_projetos_validacao")
+        .insert({
+          instituicao_id: institution.id,
+          nome: definition.projeto,
+          objetivo: definition.objetivo,
+          localidade: definition.localidade,
+          status: definition.status,
+          versao_motor: "agp-core-v2"
+        });
+
+      if (projectError) {
+        throw new Error(`Falha ao criar projeto: ${projectError.message}`);
+      }
+    }
+
+    return institution;
+  }
+
   async function initialize() {
     setWorking(true);
     setError("");
     setMessage("");
 
-    for (const definition of DEFINITIONS) {
-      const { data: institution, error: institutionError } = await supabase
-        .from("agp_instituicoes")
-        .upsert(
-          {
-            nome: definition.nome,
-            slug: definition.slug,
-            tipo: "homologacao",
-            localidade: definition.localidade,
-            status: "ativo"
-          },
-          { onConflict: "slug" }
-        )
-        .select("*")
-        .single();
-
-      if (institutionError) {
-        setError(`Falha ao criar ${definition.nome}: ${institutionError.message}`);
-        setWorking(false);
-        return;
+    try {
+      for (const definition of DEFINITIONS) {
+        await ensureEnvironment(definition);
       }
 
-      const { data: existing, error: existingError } = await supabase
-        .from("agp_projetos_validacao")
-        .select("id")
-        .eq("instituicao_id", institution.id)
-        .maybeSingle();
-
-      if (existingError) {
-        setError(`Falha ao verificar projeto: ${existingError.message}`);
-        setWorking(false);
-        return;
-      }
-
-      if (!existing) {
-        const { error: projectError } = await supabase
-          .from("agp_projetos_validacao")
-          .insert({
-            instituicao_id: institution.id,
-            nome: definition.projeto,
-            objetivo: definition.objetivo,
-            localidade: definition.localidade,
-            status: definition.status,
-            versao_motor: "agp-core-v2"
-          });
-
-        if (projectError) {
-          setError(`Falha ao criar projeto: ${projectError.message}`);
-          setWorking(false);
-          return;
-        }
-      }
+      setMessage("Ambientes de homologação inicializados.");
+      await load();
+    } catch (initializationError) {
+      setError(initializationError.message);
+    } finally {
+      setWorking(false);
     }
+  }
 
-    setMessage("Ambientes de homologação inicializados.");
-    await load();
-    setWorking(false);
+  async function openEnvironment(environment) {
+    setOpeningSlug(environment.slug);
+    setError("");
+    setMessage("");
+
+    try {
+      if (!environment.institution || !environment.project) {
+        await ensureEnvironment(environment);
+        await load();
+      }
+
+      navigate(`/master/homologacao/${environment.slug}`);
+    } catch (openingError) {
+      setError(openingError.message);
+    } finally {
+      setOpeningSlug("");
+    }
   }
 
   return (
@@ -193,6 +218,7 @@ export default function MasterHomologationOperational() {
           {environments.map((environment) => {
             const technicians = environment.members.filter((member) => member.papel === "tecnico");
             const isReady = Boolean(environment.institution && environment.project);
+            const isOpening = openingSlug === environment.slug;
 
             return (
               <article className="master-action-card" key={environment.slug}>
@@ -206,11 +232,12 @@ export default function MasterHomologationOperational() {
                   <b>{technicians.length} técnico(s) · {environment.athletes.length} atleta(s)</b>
                 </div>
                 <button
+                  type="button"
                   className="master-button"
-                  disabled={!isReady}
-                  onClick={() => navigate(`/master/homologacao/${environment.slug}`)}
+                  disabled={Boolean(openingSlug)}
+                  onClick={() => openEnvironment(environment)}
                 >
-                  Abrir ambiente
+                  {isOpening ? "Preparando..." : isReady ? "Abrir ambiente" : "Preparar e abrir"}
                 </button>
               </article>
             );

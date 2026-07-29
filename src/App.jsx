@@ -10,6 +10,7 @@ import ChangePassword from "./pages/ChangePassword";
 import OwnerActivation from "./pages/OwnerActivation";
 
 import DashboardAtleta from "./pages/DashboardAtleta";
+import AthleteDailyReadiness from "./pages/AthleteDailyReadiness";
 import DashboardComissao from "./pages/DashboardComissao";
 import DashboardClube from "./pages/DashboardClube";
 import DashboardMaster from "./pages/DashboardMaster";
@@ -36,6 +37,7 @@ function App() {
           <Route path="/alterar-senha" element={<ChangePassword />} />
 
           <Route path="/dashboard-atleta" element={<ProtectedRoute tipoPermitido="atleta"><DashboardAtleta /></ProtectedRoute>} />
+          <Route path="/atleta/prontidao-diaria" element={<ProtectedRoute tipoPermitido="atleta"><AthleteDailyReadiness /></ProtectedRoute>} />
           <Route path="/dashboard-comissao" element={<ProtectedRoute tipoPermitido="comissao"><DashboardComissao /></ProtectedRoute>} />
           <Route path="/dashboard-clube" element={<ProtectedRoute tipoPermitido="clube"><DashboardClube /></ProtectedRoute>} />
           <Route path="/dashboard-master" element={<ProtectedRoute tipoPermitido="master"><DashboardMaster /></ProtectedRoute>} />

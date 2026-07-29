@@ -41,9 +41,11 @@ export default function AgpEvidenceReadiness({ projectId, athleteLinks = [], pro
         supabase.from("agp_adesao_questionario_diario").select("*").eq("projeto_id", projectId)
       ]);
 
-      const firstError = queries.find((item) => item.error)?.error;
-      if (firstError) {
-        setError("O núcleo longitudinal ainda não foi aplicado ao banco AGP ou não está acessível.");
+      const failingIndex = queries.findIndex((item) => item.error);
+      if (failingIndex >= 0) {
+        const failure = queries[failingIndex].error;
+        const resources = ["protocolos", "instrumentos", "fontes científicas", "linhas de base", "coletas", "coletas validadas", "planos técnicos", "sessões", "documentos profissionais", "resultados analíticos", "visão de adesão"];
+        setError(`Falha ao consultar ${resources[failingIndex]}: ${failure.message}${failure.code ? ` (${failure.code})` : ""}`);
         setState(EMPTY);
       } else {
         setState({
@@ -106,10 +108,7 @@ export default function AgpEvidenceReadiness({ projectId, athleteLinks = [], pro
           </ol>
 
           <div className="master-section-heading">
-            <div>
-              <span className="master-eyebrow">Adesão diária</span>
-              <h2>Questionário de prontidão</h2>
-            </div>
+            <div><span className="master-eyebrow">Adesão diária</span><h2>Questionário de prontidão</h2></div>
             <strong>{state.adherence.length}</strong>
           </div>
 
@@ -121,10 +120,7 @@ export default function AgpEvidenceReadiness({ projectId, athleteLinks = [], pro
                 const athlete = profileById[item.atleta_id];
                 return (
                   <li key={item.atleta_id}>
-                    <div>
-                      <strong>{athlete?.nome || item.atleta_id}</strong>
-                      <span>{item.respostas_7d} resposta(s) nos últimos 7 dias · última: {item.ultima_resposta ? new Date(item.ultima_resposta).toLocaleString("pt-BR") : "sem resposta"}</span>
-                    </div>
+                    <div><strong>{athlete?.nome || item.atleta_id}</strong><span>{item.respostas_7d} resposta(s) nos últimos 7 dias · última: {item.ultima_resposta ? new Date(item.ultima_resposta).toLocaleString("pt-BR") : "sem resposta"}</span></div>
                     <b>{item.adesao_7d_percentual}%</b>
                   </li>
                 );

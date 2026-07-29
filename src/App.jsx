@@ -16,6 +16,7 @@ import DashboardMaster from "./pages/DashboardMaster";
 import MasterUsers from "./pages/MasterUsers";
 import MasterProfiles from "./pages/MasterProfiles";
 import MasterHomologation from "./pages/MasterHomologationOperational";
+import HomologationEnvironment from "./pages/HomologationEnvironment";
 import Unauthorized from "./pages/Unauthorized";
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
           <Route path="/master/usuarios" element={<ProtectedRoute tipoPermitido="master"><MasterUsers /></ProtectedRoute>} />
           <Route path="/master/perfis" element={<ProtectedRoute tipoPermitido="master"><MasterProfiles /></ProtectedRoute>} />
           <Route path="/master/homologacao" element={<ProtectedRoute tipoPermitido="master"><MasterHomologation /></ProtectedRoute>} />
+          <Route path="/master/homologacao/:slug" element={<ProtectedRoute tipoPermitido="master"><HomologationEnvironment /></ProtectedRoute>} />
 
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="*" element={<Navigate to="/" replace />} />

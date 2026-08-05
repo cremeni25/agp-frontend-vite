@@ -27,6 +27,10 @@ async function authorizedRequest(path, options = {}) {
   return body;
 }
 
+export function listTechnicalUsers() {
+  return authorizedRequest("/api/v1/administracao/equipe-tecnica/usuarios");
+}
+
 export function listTechnicalTeam() {
   return authorizedRequest("/api/v1/administracao/equipe-tecnica");
 }

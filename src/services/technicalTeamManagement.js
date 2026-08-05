@@ -39,6 +39,11 @@ export function listAuthenticatedUsers() {
   return authorizedRequest("/api/v1/administracao/equipe-tecnica/usuarios");
 }
 
+// Compatibilidade com a página da Equipe Técnica já publicada.
+export function listTechnicalUsers() {
+  return listAuthenticatedUsers();
+}
+
 export function createTechnicalMember(payload) {
   return authorizedRequest("/api/v1/administracao/equipe-tecnica", {
     method: "POST",

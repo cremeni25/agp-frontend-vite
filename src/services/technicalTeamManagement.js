@@ -27,12 +27,16 @@ async function authorizedRequest(path, options = {}) {
   return body;
 }
 
-export function listTechnicalUsers() {
-  return authorizedRequest("/api/v1/administracao/equipe-tecnica/usuarios");
-}
-
 export function listTechnicalTeam() {
   return authorizedRequest("/api/v1/administracao/equipe-tecnica");
+}
+
+export function listCanonicalTechnicalTeam() {
+  return authorizedRequest("/api/v1/administracao/equipe-tecnica/canonicos");
+}
+
+export function listAuthenticatedUsers() {
+  return authorizedRequest("/api/v1/administracao/equipe-tecnica/usuarios");
 }
 
 export function createTechnicalMember(payload) {

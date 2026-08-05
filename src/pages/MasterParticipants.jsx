@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { createInstitutionParticipant, listProjectParticipants } from "../services/participantOnboarding";
+import { grantParticipantConsent, listProjectConsents, revokeConsent } from "../services/consentManagement";
 import "../styles/dashboard-master.css";
 
 const EMPTY_FORM = {
@@ -19,14 +20,23 @@ const EMPTY_FORM = {
   tecnico_responsavel_pessoa_id: ""
 };
 
+const DEFAULT_CONSENT = {
+  versao_termo: "1.0.0",
+  finalidade: "monitoramento_esportivo",
+  tipo_consentimento: "tratamento_dados_esportivos"
+};
+
 export default function MasterParticipants() {
   const navigate = useNavigate();
   const [institutions, setInstitutions] = useState([]);
   const [projects, setProjects] = useState([]);
   const [participants, setParticipants] = useState([]);
+  const [consents, setConsents] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [consentForm, setConsentForm] = useState(DEFAULT_CONSENT);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
+  const [consentWorkingId, setConsentWorkingId] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -56,12 +66,26 @@ export default function MasterParticipants() {
     [participants]
   );
 
+  const consentByParticipant = useMemo(() => {
+    const map = {};
+    consents.forEach((item) => {
+      if (item.participante_id) map[item.participante_id] = item;
+    });
+    return map;
+  }, [consents]);
+
   async function loadParticipants(projectId) {
-    if (!projectId) { setParticipants([]); return; }
+    if (!projectId) { setParticipants([]); setConsents([]); return; }
     try {
-      setParticipants(await listProjectParticipants(projectId));
+      const [participantRows, consentRows] = await Promise.all([
+        listProjectParticipants(projectId),
+        listProjectConsents(projectId)
+      ]);
+      setParticipants(participantRows || []);
+      setConsents(consentRows || []);
     } catch (requestError) {
       setParticipants([]);
+      setConsents([]);
       setError(`Falha ao carregar participantes: ${requestError.message}`);
     }
   }
@@ -73,6 +97,7 @@ export default function MasterParticipants() {
         next.projeto_id = "";
         next.tecnico_responsavel_pessoa_id = "";
         setParticipants([]);
+        setConsents([]);
       }
       return next;
     });
@@ -80,6 +105,7 @@ export default function MasterParticipants() {
 
   async function handleProjectChange(projectId) {
     updateField("projeto_id", projectId);
+    setMessage(""); setError("");
     await loadParticipants(projectId);
   }
 
@@ -121,10 +147,44 @@ export default function MasterParticipants() {
     }
   }
 
+  async function grantConsent(participant) {
+    setConsentWorkingId(participant.participante_id); setMessage(""); setError("");
+    try {
+      await grantParticipantConsent(participant.participante_id, {
+        ...consentForm,
+        escopo: {
+          coleta_prontidao_diaria: true,
+          analise_longitudinal: true,
+          uso_institucional: true
+        }
+      });
+      setMessage(`Consentimento registrado para ${participant.nome}.`);
+      await loadParticipants(form.projeto_id);
+    } catch (requestError) {
+      setError(`Falha ao registrar consentimento: ${requestError.message}`);
+    } finally {
+      setConsentWorkingId("");
+    }
+  }
+
+  async function revokeParticipantConsent(participant, consent) {
+    if (!consent?.consentimento_id) { setError("Consentimento vigente não localizado."); return; }
+    setConsentWorkingId(participant.participante_id); setMessage(""); setError("");
+    try {
+      await revokeConsent(consent.consentimento_id);
+      setMessage(`Consentimento revogado para ${participant.nome}. Novas coletas foram bloqueadas.`);
+      await loadParticipants(form.projeto_id);
+    } catch (requestError) {
+      setError(`Falha ao revogar consentimento: ${requestError.message}`);
+    } finally {
+      setConsentWorkingId("");
+    }
+  }
+
   return (
     <main className="dashboard-master"><div className="dashboard-overlay master-page">
       <header className="dashboard-header master-header">
-        <div><span className="master-eyebrow">Governança institucional</span><h1>Central de Participantes</h1><p>Identidade, papel, projeto, acesso e situação de onboarding em um único fluxo auditável.</p></div>
+        <div><span className="master-eyebrow">Governança institucional</span><h1>Central de Participantes</h1><p>Identidade, papel, projeto, acesso, consentimento e situação de onboarding em um único fluxo auditável.</p></div>
         <button className="master-button secondary" onClick={() => navigate("/dashboard-master")}>Voltar</button>
       </header>
 
@@ -157,9 +217,31 @@ export default function MasterParticipants() {
         </form>
 
         <article className="master-panel">
-          <div className="master-section-heading"><div><span className="master-eyebrow">Projeto selecionado</span><h2>Participantes e pendências</h2></div><strong>{participants.length}</strong></div>
-          {!form.projeto_id ? <div className="master-empty">Selecione um projeto para consultar sua composição.</div> : participants.length === 0 ? <div className="master-empty">Nenhum participante canônico registrado neste projeto.</div> : <ul className="master-activity-list">{participants.map((item) => <li key={item.participante_id}><div><strong>{item.nome}</strong><span>{item.funcao_no_projeto} · {item.status_calculado}</span></div><b>{item.ativo ? "Ativo" : "Inativo"}</b></li>)}</ul>}
+          <div className="master-section-heading"><div><span className="master-eyebrow">Consentimento operacional</span><h2>Termo vigente</h2></div></div>
+          <label>Versão do termo<input className="master-input" value={consentForm.versao_termo} onChange={(e) => setConsentForm((current) => ({ ...current, versao_termo: e.target.value }))} /></label>
+          <label>Finalidade<input className="master-input" value={consentForm.finalidade} onChange={(e) => setConsentForm((current) => ({ ...current, finalidade: e.target.value }))} /></label>
+          <p>O consentimento libera coleta de prontidão diária e análise longitudinal. A revogação bloqueia novas coletas no banco de dados.</p>
         </article>
+      </section>
+
+      <section className="master-panel">
+        <div className="master-section-heading"><div><span className="master-eyebrow">Projeto selecionado</span><h2>Participantes, pendências e consentimento</h2></div><strong>{participants.length}</strong></div>
+        {!form.projeto_id ? <div className="master-empty">Selecione um projeto para consultar sua composição.</div> : participants.length === 0 ? <div className="master-empty">Nenhum participante canônico registrado neste projeto.</div> : (
+          <ul className="master-activity-list">{participants.map((item) => {
+            const consent = consentByParticipant[item.participante_id];
+            const isAthlete = item.funcao_no_projeto === "atleta";
+            const activeConsent = Boolean(consent?.vigente);
+            return <li key={item.participante_id}>
+              <div><strong>{item.nome}</strong><span>{item.funcao_no_projeto} · {item.status_calculado} · {isAthlete ? (activeConsent ? "consentimento vigente" : "consentimento pendente") : "consentimento não aplicável"}</span></div>
+              <div className="master-toolbar">
+                <b>{item.ativo ? "Ativo" : "Inativo"}</b>
+                {isAthlete && (activeConsent
+                  ? <button className="master-button danger" disabled={consentWorkingId === item.participante_id} onClick={() => revokeParticipantConsent(item, consent)}>Revogar</button>
+                  : <button className="master-button" disabled={consentWorkingId === item.participante_id} onClick={() => grantConsent(item)}>Conceder consentimento</button>)}
+              </div>
+            </li>;
+          })}</ul>
+        )}
       </section>
     </div></main>
   );

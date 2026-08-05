@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { listProjectParticipants } from "../services/participantOnboarding";
 import AgpEvidenceReadiness from "../components/AgpEvidenceReadiness";
 import "../styles/dashboard-master.css";
 
@@ -9,12 +10,10 @@ export default function HomologationEnvironment() {
   const navigate = useNavigate();
   const [institution, setInstitution] = useState(null);
   const [project, setProject] = useState(null);
-  const [profiles, setProfiles] = useState([]);
-  const [members, setMembers] = useState([]);
-  const [links, setLinks] = useState([]);
+  const [legacyProfiles, setLegacyProfiles] = useState([]);
+  const [legacyLinks, setLegacyLinks] = useState([]);
+  const [participants, setParticipants] = useState([]);
   const [form, setForm] = useState({ metodologia: "", diretrizes: "", localidade: "", data_inicio: "", data_fim: "", status: "preparacao" });
-  const [selectedTechnician, setSelectedTechnician] = useState("");
-  const [selectedAthlete, setSelectedAthlete] = useState("");
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
   const [message, setMessage] = useState("");
@@ -27,34 +26,35 @@ export default function HomologationEnvironment() {
     if (institutionError || !institutionData) { setError("Ambiente de homologação não encontrado."); setLoading(false); return; }
     setInstitution(institutionData);
 
-    const [projectResult, memberResult, profileResult] = await Promise.all([
+    const [projectResult, profileResult] = await Promise.all([
       supabase.from("agp_projetos_validacao").select("*").eq("instituicao_id", institutionData.id).maybeSingle(),
-      supabase.from("agp_membros_instituicao").select("*").eq("instituicao_id", institutionData.id).order("created_at"),
       supabase.from("perfis_atletas").select("*").order("nome")
     ]);
-
-    const firstError = projectResult.error || memberResult.error || profileResult.error;
+    const firstError = projectResult.error || profileResult.error;
     if (firstError) setError(`Falha ao carregar ambiente: ${firstError.message}`);
+    setLegacyProfiles(profileResult.data || []);
+
     const projectData = projectResult.data || null;
     setProject(projectData);
-    setMembers(memberResult.data || []);
-    setProfiles(profileResult.data || []);
-
     if (projectData) {
       setForm({ metodologia: projectData.metodologia || "", diretrizes: projectData.diretrizes || "", localidade: projectData.localidade || institutionData.localidade || "", data_inicio: projectData.data_inicio || "", data_fim: projectData.data_fim || "", status: projectData.status || "preparacao" });
-      const { data: linkData, error: linkError } = await supabase.from("agp_atletas_projeto").select("*").eq("projeto_id", projectData.id).order("created_at");
-      if (linkError) setError(`Falha ao carregar atletas: ${linkError.message}`);
-      setLinks(linkData || []);
-    } else setLinks([]);
+      const { data: links, error: linkError } = await supabase.from("agp_atletas_projeto").select("*").eq("projeto_id", projectData.id).order("created_at");
+      if (linkError) setError(`Falha ao carregar vínculos históricos: ${linkError.message}`);
+      setLegacyLinks(links || []);
+      try { setParticipants(await listProjectParticipants(projectData.id)); }
+      catch (requestError) { setParticipants([]); setError(`Núcleo de participantes indisponível: ${requestError.message}`); }
+    } else {
+      setLegacyLinks([]);
+      setParticipants([]);
+    }
     setLoading(false);
   }
 
   useEffect(() => { load(); }, [slug]);
 
-  const profileById = useMemo(() => Object.fromEntries(profiles.map((item) => [item.id, item])), [profiles]);
-  const technicians = profiles.filter((item) => ["comissao", "comissão", "tecnico", "técnico", "treinador"].includes(String(item.tipo_usuario || item.funcao || "").toLowerCase()));
-  const techniciansWithAccess = technicians.filter((item) => item.auth_id);
-  const athletes = profiles.filter((item) => String(item.tipo_usuario || item.funcao || "").toLowerCase() === "atleta");
+  const profileById = useMemo(() => Object.fromEntries(legacyProfiles.map((item) => [item.id, item])), [legacyProfiles]);
+  const technicians = participants.filter((item) => ["tecnico", "treinador"].includes(item.funcao_no_projeto));
+  const athletes = participants.filter((item) => item.funcao_no_projeto === "atleta");
 
   async function saveProject() {
     if (!project) return;
@@ -65,34 +65,17 @@ export default function HomologationEnvironment() {
     setWorking(false);
   }
 
-  async function addTechnician() {
-    const profile = profiles.find((item) => item.id === selectedTechnician);
-    if (!profile?.auth_id || !institution) { setError("O técnico selecionado não possui conta de acesso vinculada."); return; }
-    setWorking(true); setMessage(""); setError("");
-    const { error: memberError } = await supabase.from("agp_membros_instituicao").upsert({ instituicao_id: institution.id, auth_id: profile.auth_id, nome: profile.nome, email: profile.email, papel: "tecnico", acesso_total_tecnico: true, ativo: true }, { onConflict: "instituicao_id,auth_id" });
-    if (memberError) setError(`Falha ao vincular técnico: ${memberError.message}`);
-    else { setMessage("Técnico vinculado com acesso integral ao ambiente."); setSelectedTechnician(""); await load(); }
-    setWorking(false);
-  }
-
-  async function addAthlete() {
-    if (!project || !selectedAthlete) return;
-    setWorking(true); setMessage(""); setError("");
-    const technician = members.find((item) => item.papel === "tecnico" && item.ativo);
-    const { error: linkError } = await supabase.from("agp_atletas_projeto").upsert({ projeto_id: project.id, atleta_id: selectedAthlete, tecnico_responsavel_auth_id: technician?.auth_id || null, status: "ativo" }, { onConflict: "projeto_id,atleta_id" });
-    if (linkError) setError(`Falha ao vincular atleta: ${linkError.message}`);
-    else { setMessage("Atleta incluído no projeto de validação."); setSelectedAthlete(""); await load(); }
-    setWorking(false);
-  }
-
   if (loading) return <main className="dashboard-master"><div className="dashboard-loading">Carregando ambiente...</div></main>;
 
   return (
     <main className="dashboard-master"><div className="dashboard-overlay master-page">
-      <header className="dashboard-header master-header"><div><span className="master-eyebrow">Projeto de validação</span><h1>{institution?.nome || "Homologação"}</h1><p>{project?.objetivo}</p></div><button className="master-button secondary" onClick={() => navigate("/master/homologacao")}>Voltar</button></header>
+      <header className="dashboard-header master-header">
+        <div><span className="master-eyebrow">Projeto de validação</span><h1>{institution?.nome || "Homologação"}</h1><p>{project?.objetivo}</p></div>
+        <div className="master-header-actions"><button className="master-button secondary" onClick={() => navigate("/master/participantes")}>Central de Participantes</button><button className="master-button secondary" onClick={() => navigate("/master/homologacao")}>Voltar</button></div>
+      </header>
       {message && <div className="master-success">{message}</div>}{error && <div className="master-error" role="alert">{error}</div>}
 
-      {project && <AgpEvidenceReadiness projectId={project.id} athleteLinks={links} profileById={profileById} />}
+      {project && <AgpEvidenceReadiness projectId={project.id} athleteLinks={legacyLinks} profileById={profileById} />}
 
       <section className="master-content-grid">
         <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Configuração</span><h2>Diretrizes do piloto</h2></div><strong>{project?.status}</strong></div>
@@ -103,24 +86,16 @@ export default function HomologationEnvironment() {
           <button className="master-button" disabled={working || !project} onClick={saveProject}>Salvar configuração</button>
         </article>
 
-        <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Equipe</span><h2>Técnico avaliador</h2></div><strong>{members.filter((m) => m.papel === "tecnico").length}</strong></div>
-          {techniciansWithAccess.length === 0 ? (
-            <div className="master-empty"><strong>Nenhum técnico com conta de acesso disponível.</strong><span>Defina o perfil de um usuário como Comissão técnica antes do vínculo.</span><button className="master-button" onClick={() => navigate("/master/perfis")}>Abrir perfis e permissões</button></div>
-          ) : (
-            <><select className="master-select" value={selectedTechnician} onChange={(e) => setSelectedTechnician(e.target.value)}><option value="">Selecionar técnico com acesso</option>{techniciansWithAccess.map((item) => <option key={item.id} value={item.id}>{item.nome} — {item.email || "sem e-mail"}</option>)}</select><button className="master-button" disabled={working || !selectedTechnician} onClick={addTechnician}>Vincular técnico selecionado</button></>
-          )}
-          <ul className="master-activity-list">{members.filter((m) => m.papel === "tecnico").map((m) => <li key={m.id}><div><strong>{m.nome}</strong><span>{m.email}</span></div><b>{m.ativo ? "Ativo" : "Inativo"}</b></li>)}</ul>
+        <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Equipe canônica</span><h2>Técnicos vinculados</h2></div><strong>{technicians.length}</strong></div>
+          {technicians.length === 0 ? <div className="master-empty"><strong>Nenhum técnico cadastrado neste projeto.</strong><span>O vínculo deve ser criado pela Central de Participantes.</span><button className="master-button" onClick={() => navigate("/master/participantes")}>Cadastrar técnico</button></div> : <ul className="master-activity-list">{technicians.map((item) => <li key={item.participante_id}><div><strong>{item.nome}</strong><span>{item.funcao_no_projeto} · {item.status_calculado}</span></div><b>{item.ativo ? "Ativo" : "Inativo"}</b></li>)}</ul>}
         </article>
       </section>
 
-      <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Participantes</span><h2>Atletas do projeto</h2></div><strong>{links.length}</strong></div>
-        {athletes.length === 0 ? (
-          <div className="master-empty"><strong>Nenhum perfil de atleta disponível.</strong><span>Cadastre o usuário e defina seu perfil como Atleta antes de vinculá-lo ao projeto.</span><button className="master-button" onClick={() => navigate("/master/perfis")}>Abrir perfis e permissões</button></div>
-        ) : (
-          <div className="master-toolbar"><select className="master-select" value={selectedAthlete} onChange={(e) => setSelectedAthlete(e.target.value)}><option value="">Selecionar atleta existente</option>{athletes.map((item) => <option key={item.id} value={item.id}>{item.nome} — {item.email || item.id}</option>)}</select><button className="master-button" disabled={working || !selectedAthlete} onClick={addAthlete}>Vincular atleta selecionado</button></div>
-        )}
-        {links.length === 0 ? <div className="master-empty">Nenhum atleta vinculado a este piloto.</div> : <ul className="master-activity-list">{links.map((link) => { const athlete = profileById[link.atleta_id]; return <li key={link.id}><div><strong>{athlete?.nome || link.atleta_id}</strong><span>{athlete?.nivel || athlete?.categoria || "Perfil esportivo"}</span></div><b>{link.status}</b></li>; })}</ul>}
+      <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Participantes canônicos</span><h2>Atletas do projeto</h2></div><strong>{athletes.length}</strong></div>
+        {athletes.length === 0 ? <div className="master-empty"><strong>Nenhum atleta cadastrado neste projeto.</strong><span>Cadastre identidade, perfil esportivo, técnico responsável e pendências pela Central de Participantes.</span><button className="master-button" onClick={() => navigate("/master/participantes")}>Cadastrar atleta</button></div> : <ul className="master-activity-list">{athletes.map((item) => <li key={item.participante_id}><div><strong>{item.nome}</strong><span>Onboarding: {item.status_calculado}</span></div><b>{item.ativo ? "Ativo" : "Inativo"}</b></li>)}</ul>}
       </section>
+
+      {legacyLinks.length > 0 && <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Compatibilidade temporária</span><h2>Vínculos históricos</h2></div><strong>{legacyLinks.length}</strong></div><p>Estes vínculos permanecem somente para leitura do núcleo de evidências durante a migração. Novos cadastros não são mais realizados nesta tela.</p></section>}
     </div></main>
   );
 }

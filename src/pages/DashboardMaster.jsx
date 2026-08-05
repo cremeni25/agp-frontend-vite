@@ -64,17 +64,23 @@ export default function DashboardMaster() {
 
         <section className="dashboard-section grid master-summary-grid">
           <article className="card master-metric"><span>Usuários cadastrados</span><strong>{loading ? "…" : summary.total}</strong><small>Base institucional visível</small></article>
-          <article className="card master-metric"><span>Atletas</span><strong>{loading ? "…" : summary.atleta}</strong><small>Perfis esportivos</small></article>
+          <article className="card master-metric"><span>Atletas</span><strong>{loading ? "…" : summary.atleta}</strong><small>Perfis esportivos legados</small></article>
           <article className="card master-metric"><span>Comissões técnicas</span><strong>{loading ? "…" : summary.comissao}</strong><small>Perfis de acompanhamento</small></article>
           <article className="card master-metric"><span>Clubes e associações</span><strong>{loading ? "…" : summary.clube}</strong><small>Perfis institucionais</small></article>
         </section>
 
         <section className="dashboard-section">
-          <div className="master-section-heading"><div><span className="master-eyebrow">Validação</span><h2>Homologação operacional</h2></div></div>
-          <button className="master-action-card" onClick={() => navigate("/master/homologacao")}>
-            <strong>Centro de homologação AGP</strong>
-            <span>Inicializar e acompanhar o ambiente interno e os dois pilotos técnicos independentes.</span>
-          </button>
+          <div className="master-section-heading"><div><span className="master-eyebrow">Operação</span><h2>Participantes e homologação</h2></div></div>
+          <div className="master-action-grid two-columns">
+            <button className="master-action-card" onClick={() => navigate("/master/participantes")}>
+              <strong>Central de Participantes</strong>
+              <span>Cadastrar identidades, papéis, acessos, vínculos e pendências de onboarding.</span>
+            </button>
+            <button className="master-action-card" onClick={() => navigate("/master/homologacao")}>
+              <strong>Centro de homologação AGP</strong>
+              <span>Inicializar e acompanhar o ambiente interno e os dois pilotos técnicos independentes.</span>
+            </button>
+          </div>
         </section>
 
         <section className="dashboard-section">
@@ -99,7 +105,7 @@ export default function DashboardMaster() {
           </article>
 
           <article className="master-panel">
-            <div className="master-section-heading"><div><span className="master-eyebrow">Motor analítico</span><h2>Scores recentes</h2></div><strong>{scores.length}</strong></div>
+            <div className="master-section-heading"><div><span className="master-eyebrow">Motor analítico legado</span><h2>Scores armazenados</h2></div><strong>{scores.length}</strong></div>
             {scores.length === 0 ? <p>Nenhum score disponível na base para exibição.</p> : (
               <ul className="master-activity-list">
                 {scores.slice(0, 5).map((score, index) => (

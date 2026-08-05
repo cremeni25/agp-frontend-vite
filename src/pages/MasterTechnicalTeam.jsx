@@ -29,7 +29,7 @@ export default function MasterTechnicalTeam() {
       const [institutionRows, memberRows, usersResult] = await Promise.all([
         listInstitutions(),
         listTechnicalTeam(),
-        supabase.from("perfis_atletas").select("id,auth_id,nome,email,tipo_usuario,funcao").order("nome")
+        supabase.from("perfis_atletas").select("id,auth_id,nome,tipo_usuario,funcao").order("nome")
       ]);
       if (usersResult.error) throw usersResult.error;
       setInstitutions(institutionRows || []);
@@ -53,7 +53,7 @@ export default function MasterTechnicalTeam() {
   function selectUser(event) {
     const authId = event.target.value;
     const user = availableUsers.find((item) => item.auth_id === authId);
-    setForm((current) => ({ ...current, auth_id: authId, nome: user?.nome || "", email: user?.email || "" }));
+    setForm((current) => ({ ...current, auth_id: authId, nome: user?.nome || "", email: "" }));
   }
 
   function reset() {
@@ -117,9 +117,9 @@ export default function MasterTechnicalTeam() {
       <form className="master-panel" onSubmit={submit}>
         <span className="master-eyebrow">Cadastro mestre</span><h2>{editingId ? "Editar profissional" : "Novo profissional"}</h2>
         <label>Instituição<select name="instituicao_id" value={form.instituicao_id} onChange={change} required>{institutions.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}</select></label>
-        {!editingId && <label>Usuário<select name="auth_id" value={form.auth_id} onChange={selectUser} required><option value="">Selecione um usuário</option>{availableUsers.map((user) => <option key={user.auth_id} value={user.auth_id}>{user.nome || user.email || user.auth_id}</option>)}</select></label>}
+        {!editingId && <label>Usuário<select name="auth_id" value={form.auth_id} onChange={selectUser} required><option value="">Selecione um usuário</option>{availableUsers.map((user) => <option key={user.auth_id} value={user.auth_id}>{user.nome || user.auth_id}</option>)}</select></label>}
         <label>Nome<input name="nome" value={form.nome} onChange={change} required /></label>
-        <label>E-mail<input type="email" name="email" value={form.email} onChange={change} /></label>
+        <label>E-mail<input type="email" name="email" value={form.email} onChange={change} placeholder="Opcional" /></label>
         <label>Papel<select name="papel" value={form.papel} onChange={change}>{Object.entries(ROLE_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         <label className="master-checkbox"><input type="checkbox" name="acesso_total_tecnico" checked={form.acesso_total_tecnico} onChange={change} />Acesso técnico total</label>
         <label className="master-checkbox"><input type="checkbox" name="ativo" checked={form.ativo} onChange={change} />Vínculo ativo</label>

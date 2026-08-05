@@ -16,16 +16,13 @@ export default function DashboardMaster() {
   const [error, setError] = useState("");
 
   async function loadDashboard() {
-    setLoading(true);
-    setError("");
+    setLoading(true); setError("");
     const [usersResult, scoresResult] = await Promise.all([
       supabase.from("perfis_atletas").select("*"),
       supabase.from("score_atleta").select("*").order("data_calculo", { ascending: false }).limit(8)
     ]);
     if (usersResult.error) setError(`Falha ao carregar usuários: ${usersResult.error.message}`);
-    setUsers(usersResult.data || []);
-    setScores(scoresResult.data || []);
-    setLoading(false);
+    setUsers(usersResult.data || []); setScores(scoresResult.data || []); setLoading(false);
   }
 
   useEffect(() => { loadDashboard(); }, []);
@@ -40,49 +37,34 @@ export default function DashboardMaster() {
     return { total: users.length, ...counts };
   }, [users]);
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    navigate("/login", { replace: true });
-  }
+  async function signOut() { await supabase.auth.signOut(); navigate("/login", { replace: true }); }
 
-  return (
-    <main className="dashboard-master">
-      <div className="dashboard-overlay master-page">
-        <header className="dashboard-header master-header">
-          <div><span className="master-eyebrow">AGP Sports Intelligence</span><h1>Centro de comando Master</h1><p>Governança global, homologação e acompanhamento da evolução analítica.</p></div>
-          <div className="master-header-actions"><button className="master-button secondary" onClick={loadDashboard}>Atualizar dados</button><button className="master-button danger" onClick={signOut}>Sair</button></div>
-        </header>
-        {error && <div className="master-error" role="alert">{error}</div>}
+  return <main className="dashboard-master"><div className="dashboard-overlay master-page">
+    <header className="dashboard-header master-header"><div><span className="master-eyebrow">AGP Sports Intelligence</span><h1>Centro de comando Master</h1><p>Governança global, homologação e acompanhamento da evolução analítica.</p></div><div className="master-header-actions"><button className="master-button secondary" onClick={loadDashboard}>Atualizar dados</button><button className="master-button danger" onClick={signOut}>Sair</button></div></header>
+    {error && <div className="master-error" role="alert">{error}</div>}
 
-        <section className="dashboard-section grid master-summary-grid">
-          <article className="card master-metric"><span>Usuários cadastrados</span><strong>{loading ? "…" : summary.total}</strong><small>Base institucional visível</small></article>
-          <article className="card master-metric"><span>Atletas</span><strong>{loading ? "…" : summary.atleta}</strong><small>Perfis esportivos legados</small></article>
-          <article className="card master-metric"><span>Comissões técnicas</span><strong>{loading ? "…" : summary.comissao}</strong><small>Perfis de acompanhamento</small></article>
-          <article className="card master-metric"><span>Clubes e associações</span><strong>{loading ? "…" : summary.clube}</strong><small>Perfis institucionais</small></article>
-        </section>
+    <section className="dashboard-section grid master-summary-grid">
+      <article className="card master-metric"><span>Usuários cadastrados</span><strong>{loading ? "…" : summary.total}</strong><small>Base institucional visível</small></article>
+      <article className="card master-metric"><span>Atletas</span><strong>{loading ? "…" : summary.atleta}</strong><small>Perfis esportivos legados</small></article>
+      <article className="card master-metric"><span>Comissões técnicas</span><strong>{loading ? "…" : summary.comissao}</strong><small>Perfis de acompanhamento</small></article>
+      <article className="card master-metric"><span>Clubes e associações</span><strong>{loading ? "…" : summary.clube}</strong><small>Perfis institucionais</small></article>
+    </section>
 
-        <section className="dashboard-section">
-          <div className="master-section-heading"><div><span className="master-eyebrow">Operação</span><h2>Participantes, catálogo e homologação</h2></div></div>
-          <div className="master-action-grid">
-            <button className="master-action-card" onClick={() => navigate("/master/participantes")}><strong>Central de Participantes</strong><span>Cadastrar identidades, papéis, acessos, vínculos e pendências de onboarding.</span></button>
-            <button className="master-action-card" onClick={() => navigate("/master/catalogo-cientifico")}><strong>Catálogo científico</strong><span>Cadastrar, aprovar, versionar e ativar protocolos e instrumentos por projeto.</span></button>
-            <button className="master-action-card" onClick={() => navigate("/master/homologacao")}><strong>Centro de homologação AGP</strong><span>Inicializar e acompanhar o ambiente interno e os pilotos técnicos independentes.</span></button>
-          </div>
-        </section>
+    <section className="dashboard-section"><div className="master-section-heading"><div><span className="master-eyebrow">Operação</span><h2>Participantes, catálogo, coletas e homologação</h2></div></div><div className="master-action-grid">
+      <button className="master-action-card" onClick={() => navigate("/master/participantes")}><strong>Central de Participantes</strong><span>Cadastrar identidades, papéis, acessos, vínculos e pendências de onboarding.</span></button>
+      <button className="master-action-card" onClick={() => navigate("/master/catalogo-cientifico")}><strong>Catálogo científico</strong><span>Cadastrar, aprovar, versionar e ativar protocolos e instrumentos por projeto.</span></button>
+      <button className="master-action-card" onClick={() => navigate("/master/coletas")}><strong>Operação de coletas</strong><span>Aplicar instrumentos, salvar respostas, validar completude e consultar versões.</span></button>
+      <button className="master-action-card" onClick={() => navigate("/master/homologacao")}><strong>Centro de homologação AGP</strong><span>Inicializar e acompanhar o ambiente interno e os pilotos técnicos independentes.</span></button>
+    </div></section>
 
-        <section className="dashboard-section">
-          <div className="master-section-heading"><div><span className="master-eyebrow">Governança</span><h2>Administração global</h2></div></div>
-          <div className="master-action-grid two-columns">
-            <button className="master-action-card" onClick={() => navigate("/master/usuarios")}><strong>Gestão de usuários</strong><span>Consultar registros, vínculos, status e dados cadastrais.</span></button>
-            <button className="master-action-card" onClick={() => navigate("/master/perfis")}><strong>Perfis e permissões</strong><span>Auditar e corrigir papéis globais da plataforma.</span></button>
-          </div>
-        </section>
+    <section className="dashboard-section"><div className="master-section-heading"><div><span className="master-eyebrow">Governança</span><h2>Administração global</h2></div></div><div className="master-action-grid two-columns">
+      <button className="master-action-card" onClick={() => navigate("/master/usuarios")}><strong>Gestão de usuários</strong><span>Consultar registros, vínculos, status e dados cadastrais.</span></button>
+      <button className="master-action-card" onClick={() => navigate("/master/perfis")}><strong>Perfis e permissões</strong><span>Auditar e corrigir papéis globais da plataforma.</span></button>
+    </div></section>
 
-        <section className="master-content-grid">
-          <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Qualidade cadastral</span><h2>Perfis que exigem atenção</h2></div><strong>{summary.indefinido}</strong></div><p>Registros sem tipo reconhecido devem ser regularizados na área específica de perfis e permissões.</p><button className="master-link-button" onClick={() => navigate("/master/perfis")}>Regularizar perfis</button></article>
-          <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Motor analítico legado</span><h2>Scores armazenados</h2></div><strong>{scores.length}</strong></div>{scores.length === 0 ? <p>Nenhum score disponível na base para exibição.</p> : <ul className="master-activity-list">{scores.slice(0, 5).map((score, index) => <li key={score.id || `${score.atleta_id}-${index}`}><div><strong>Atleta {score.atleta_id || "não identificado"}</strong><span>{score.nivel_classificacao || "Classificação pendente"}</span></div><b>{score.score_global ?? "—"}</b></li>)}</ul>}</article>
-        </section>
-      </div>
-    </main>
-  );
+    <section className="master-content-grid">
+      <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Qualidade cadastral</span><h2>Perfis que exigem atenção</h2></div><strong>{summary.indefinido}</strong></div><p>Registros sem tipo reconhecido devem ser regularizados na área específica de perfis e permissões.</p><button className="master-link-button" onClick={() => navigate("/master/perfis")}>Regularizar perfis</button></article>
+      <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Motor analítico legado</span><h2>Scores armazenados</h2></div><strong>{scores.length}</strong></div>{scores.length === 0 ? <p>Nenhum score disponível na base para exibição.</p> : <ul className="master-activity-list">{scores.slice(0, 5).map((score, index) => <li key={score.id || `${score.atleta_id}-${index}`}><div><strong>Atleta {score.atleta_id || "não identificado"}</strong><span>{score.nivel_classificacao || "Classificação pendente"}</span></div><b>{score.score_global ?? "—"}</b></li>)}</ul>}</article>
+    </section>
+  </div></main>;
 }

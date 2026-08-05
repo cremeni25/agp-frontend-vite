@@ -20,6 +20,7 @@ import MasterParticipants from "./pages/MasterParticipants";
 import MasterProtocolCatalog from "./pages/MasterProtocolCatalog";
 import MasterCollections from "./pages/MasterCollections";
 import MasterAnalyticPipeline from "./pages/MasterAnalyticPipeline";
+import MasterProfessionalValidation from "./pages/MasterProfessionalValidation";
 import MasterHomologation from "./pages/MasterHomologationOperational";
 import HomologationEnvironment from "./pages/HomologationEnvironment";
 import Unauthorized from "./pages/Unauthorized";
@@ -51,6 +52,7 @@ function App() {
           <Route path="/master/catalogo-cientifico" element={<ProtectedRoute tipoPermitido="master"><MasterProtocolCatalog /></ProtectedRoute>} />
           <Route path="/master/coletas" element={<ProtectedRoute tipoPermitido="master"><MasterCollections /></ProtectedRoute>} />
           <Route path="/master/pipeline-analitico" element={<ProtectedRoute tipoPermitido="master"><MasterAnalyticPipeline /></ProtectedRoute>} />
+          <Route path="/master/validacao-profissional" element={<ProtectedRoute tipoPermitido="master"><MasterProfessionalValidation /></ProtectedRoute>} />
           <Route path="/master/homologacao" element={<ProtectedRoute tipoPermitido="master"><MasterHomologation /></ProtectedRoute>} />
           <Route path="/master/homologacao/:slug" element={<ProtectedRoute tipoPermitido="master"><HomologationEnvironment /></ProtectedRoute>} />
 

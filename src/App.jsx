@@ -16,6 +16,7 @@ import DashboardClube from "./pages/DashboardClube";
 import DashboardMaster from "./pages/DashboardMaster";
 import MasterAdministration from "./pages/MasterAdministration";
 import MasterInstitutions from "./pages/MasterInstitutions";
+import MasterProjects from "./pages/MasterProjects";
 import MasterUsers from "./pages/MasterUsers";
 import MasterProfiles from "./pages/MasterProfiles";
 import MasterParticipants from "./pages/MasterParticipants";
@@ -50,6 +51,7 @@ function App() {
           <Route path="/dashboard-master" element={<ProtectedRoute tipoPermitido="master"><DashboardMaster /></ProtectedRoute>} />
           <Route path="/dashboard-master/administracao" element={<ProtectedRoute tipoPermitido="master"><MasterAdministration /></ProtectedRoute>} />
           <Route path="/dashboard-master/administracao/instituicoes" element={<ProtectedRoute tipoPermitido="master"><MasterInstitutions /></ProtectedRoute>} />
+          <Route path="/dashboard-master/administracao/projetos" element={<ProtectedRoute tipoPermitido="master"><MasterProjects /></ProtectedRoute>} />
           <Route path="/master/usuarios" element={<ProtectedRoute tipoPermitido="master"><MasterUsers /></ProtectedRoute>} />
           <Route path="/master/perfis" element={<ProtectedRoute tipoPermitido="master"><MasterProfiles /></ProtectedRoute>} />
           <Route path="/master/participantes" element={<ProtectedRoute tipoPermitido="master"><MasterParticipants /></ProtectedRoute>} />

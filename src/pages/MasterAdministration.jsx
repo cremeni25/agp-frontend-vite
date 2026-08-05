@@ -3,7 +3,7 @@ import "../styles/dashboard-master.css";
 
 const ITEMS = [
   { title: "Instituições", description: "Cadastrar e administrar as entidades institucionais do AGP.", path: "/dashboard-master/administracao/instituicoes", active: true },
-  { title: "Projetos", description: "Administrar projetos vinculados às instituições.", active: false },
+  { title: "Projetos", description: "Administrar projetos vinculados às instituições.", path: "/dashboard-master/administracao/projetos", active: true },
   { title: "Clubes", description: "Administrar clubes e associações esportivas.", active: false },
   { title: "Equipe Técnica", description: "Administrar profissionais e vínculos técnicos.", active: false },
   { title: "Usuários", description: "Consultar registros, vínculos e status de acesso.", path: "/master/usuarios", active: true },

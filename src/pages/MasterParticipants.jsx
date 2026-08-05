@@ -4,6 +4,7 @@ import { supabase } from "../supabaseClient";
 import { createInstitutionParticipant, listProjectParticipants } from "../services/participantOnboarding";
 import { grantParticipantConsent, listProjectConsents, revokeConsent } from "../services/consentManagement";
 import { listProjectBaselines, saveParticipantBaseline } from "../services/baselineManagement";
+import { formatEligibilityPending, listProjectEligibility } from "../services/eligibilityManagement";
 import "../styles/dashboard-master.css";
 
 const EMPTY_FORM = { nome: "", data_nascimento: "", email_contato: "", telefone_contato: "", papel: "atleta", instituicao_id: "", projeto_id: "", modalidade: "", prova_posicao: "", categoria: "", nivel: "", tecnico_responsavel_pessoa_id: "" };
@@ -17,6 +18,7 @@ export default function MasterParticipants() {
   const [participants, setParticipants] = useState([]);
   const [consents, setConsents] = useState([]);
   const [baselines, setBaselines] = useState([]);
+  const [eligibility, setEligibility] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [consentForm, setConsentForm] = useState(DEFAULT_CONSENT);
   const [baselineForm, setBaselineForm] = useState(EMPTY_BASELINE);
@@ -45,21 +47,24 @@ export default function MasterParticipants() {
   const athletes = useMemo(() => participants.filter((item) => item.funcao_no_projeto === "atleta" && item.ativo), [participants]);
   const consentByParticipant = useMemo(() => Object.fromEntries(consents.filter((item) => item.participante_id).map((item) => [item.participante_id, item])), [consents]);
   const baselineByParticipant = useMemo(() => Object.fromEntries(baselines.filter((item) => item.participante_id).map((item) => [item.participante_id, item])), [baselines]);
+  const eligibilityByParticipant = useMemo(() => Object.fromEntries(eligibility.map((item) => [item.participante_id, item])), [eligibility]);
 
   async function loadParticipants(projectId) {
-    if (!projectId) { setParticipants([]); setConsents([]); setBaselines([]); return; }
+    if (!projectId) { setParticipants([]); setConsents([]); setBaselines([]); setEligibility([]); return; }
     try {
-      const [participantRows, consentRows, baselineRows] = await Promise.all([listProjectParticipants(projectId), listProjectConsents(projectId), listProjectBaselines(projectId)]);
-      setParticipants(participantRows || []); setConsents(consentRows || []); setBaselines(baselineRows || []);
+      const [participantRows, consentRows, baselineRows, eligibilityRows] = await Promise.all([
+        listProjectParticipants(projectId), listProjectConsents(projectId), listProjectBaselines(projectId), listProjectEligibility(projectId)
+      ]);
+      setParticipants(participantRows || []); setConsents(consentRows || []); setBaselines(baselineRows || []); setEligibility(eligibilityRows || []);
     } catch (requestError) {
-      setParticipants([]); setConsents([]); setBaselines([]); setError(`Falha ao carregar participantes: ${requestError.message}`);
+      setParticipants([]); setConsents([]); setBaselines([]); setEligibility([]); setError(`Falha ao carregar participantes: ${requestError.message}`);
     }
   }
 
   function updateField(field, value) {
     setForm((current) => {
       const next = { ...current, [field]: value };
-      if (field === "instituicao_id") { next.projeto_id = ""; next.tecnico_responsavel_pessoa_id = ""; setParticipants([]); setConsents([]); setBaselines([]); }
+      if (field === "instituicao_id") { next.projeto_id = ""; next.tecnico_responsavel_pessoa_id = ""; setParticipants([]); setConsents([]); setBaselines([]); setEligibility([]); }
       return next;
     });
   }
@@ -105,23 +110,7 @@ export default function MasterParticipants() {
   function selectBaselineAthlete(participantId) {
     const athlete = athletes.find((item) => item.participante_id === participantId);
     const current = baselineByParticipant[participantId];
-    setBaselineForm({
-      ...EMPTY_BASELINE,
-      participante_id: participantId,
-      categoria: current?.categoria || athlete?.categoria || "",
-      idade_cronologica: current?.idade_cronologica || "",
-      sexo_registrado: current?.sexo_registrado || "",
-      modalidade: current?.modalidade || athlete?.modalidade || "",
-      prova_posicao: current?.prova_posicao || athlete?.prova_posicao || "",
-      estagio_maturacional: current?.estagio_maturacional || "",
-      altura_cm: current?.altura_cm || "",
-      massa_kg: current?.massa_kg || "",
-      envergadura_cm: current?.envergadura_cm || "",
-      data_referencia: current?.data_referencia || new Date().toISOString().slice(0, 10),
-      origem: current?.origem || "avaliacao_institucional",
-      observacoes: current?.observacoes || "",
-      validar: true
-    });
+    setBaselineForm({ ...EMPTY_BASELINE, participante_id: participantId, categoria: current?.categoria || athlete?.categoria || "", idade_cronologica: current?.idade_cronologica || "", sexo_registrado: current?.sexo_registrado || "", modalidade: current?.modalidade || athlete?.modalidade || "", prova_posicao: current?.prova_posicao || athlete?.prova_posicao || "", estagio_maturacional: current?.estagio_maturacional || "", altura_cm: current?.altura_cm || "", massa_kg: current?.massa_kg || "", envergadura_cm: current?.envergadura_cm || "", data_referencia: current?.data_referencia || new Date().toISOString().slice(0, 10), origem: current?.origem || "avaliacao_institucional", observacoes: current?.observacoes || "", validar: true });
   }
 
   async function submitBaseline(event) {
@@ -138,7 +127,7 @@ export default function MasterParticipants() {
   }
 
   return <main className="dashboard-master"><div className="dashboard-overlay master-page">
-    <header className="dashboard-header master-header"><div><span className="master-eyebrow">Governança institucional</span><h1>Central de Participantes</h1><p>Identidade, consentimento, linha de base e elegibilidade analítica em um fluxo auditável.</p></div><button className="master-button secondary" onClick={() => navigate("/dashboard-master")}>Voltar</button></header>
+    <header className="dashboard-header master-header"><div><span className="master-eyebrow">Governança institucional</span><h1>Central de Participantes</h1><p>Identidade, consentimento, linha de base e elegibilidade oficial em um fluxo auditável.</p></div><button className="master-button secondary" onClick={() => navigate("/dashboard-master")}>Voltar</button></header>
     {message && <div className="master-success">{message}</div>}{error && <div className="master-error" role="alert">{error}</div>}
 
     <section className="master-content-grid">
@@ -152,14 +141,15 @@ export default function MasterParticipants() {
         {form.papel === "atleta" && <><input className="master-input" required placeholder="Modalidade" value={form.modalidade} onChange={(e) => updateField("modalidade", e.target.value)} /><div className="master-toolbar"><input className="master-input" placeholder="Prova ou posição" value={form.prova_posicao} onChange={(e) => updateField("prova_posicao", e.target.value)} /><input className="master-input" placeholder="Categoria" value={form.categoria} onChange={(e) => updateField("categoria", e.target.value)} /></div><input className="master-input" placeholder="Nível esportivo" value={form.nivel} onChange={(e) => updateField("nivel", e.target.value)} /><select className="master-select" value={form.tecnico_responsavel_pessoa_id} onChange={(e) => updateField("tecnico_responsavel_pessoa_id", e.target.value)}><option value="">Técnico responsável ainda não definido</option>{technicians.map((item) => <option key={item.pessoa_id} value={item.pessoa_id}>{item.nome}</option>)}</select></>}
         <button className="master-button" disabled={working || loading}>{working ? "Registrando..." : "Cadastrar participante"}</button>
       </form>
-
-      <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Consentimento operacional</span><h2>Termo vigente</h2></div></div><label>Versão do termo<input className="master-input" value={consentForm.versao_termo} onChange={(e) => setConsentForm((current) => ({ ...current, versao_termo: e.target.value }))} /></label><label>Finalidade<input className="master-input" value={consentForm.finalidade} onChange={(e) => setConsentForm((current) => ({ ...current, finalidade: e.target.value }))} /></label><p>O consentimento libera coletas; a linha de base completa libera análises.</p></article>
+      <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Consentimento operacional</span><h2>Termo vigente</h2></div></div><label>Versão do termo<input className="master-input" value={consentForm.versao_termo} onChange={(e) => setConsentForm((current) => ({ ...current, versao_termo: e.target.value }))} /></label><label>Finalidade<input className="master-input" value={consentForm.finalidade} onChange={(e) => setConsentForm((current) => ({ ...current, finalidade: e.target.value }))} /></label><p>A situação de coleta e análise é calculada exclusivamente pela regra unificada do backend.</p></article>
     </section>
 
-    <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Projeto selecionado</span><h2>Elegibilidade dos participantes</h2></div><strong>{participants.length}</strong></div>
+    <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Projeto selecionado</span><h2>Elegibilidade oficial dos participantes</h2></div><strong>{participants.length}</strong></div>
       {!form.projeto_id ? <div className="master-empty">Selecione um projeto para consultar sua composição.</div> : participants.length === 0 ? <div className="master-empty">Nenhum participante canônico registrado neste projeto.</div> : <ul className="master-activity-list">{participants.map((item) => {
-        const consent = consentByParticipant[item.participante_id]; const baseline = baselineByParticipant[item.participante_id]; const isAthlete = item.funcao_no_projeto === "atleta"; const activeConsent = Boolean(consent?.vigente); const activeBaseline = Boolean(baseline?.vigente); const eligible = isAthlete && activeConsent && activeBaseline;
-        return <li key={item.participante_id}><div><strong>{item.nome}</strong><span>{item.funcao_no_projeto} · {item.status_calculado}{isAthlete ? ` · consentimento ${activeConsent ? "vigente" : "pendente"} · linha de base ${activeBaseline ? `${baseline.completude}%` : "pendente"} · ${eligible ? "APTO PARA ANÁLISE" : "ANÁLISE BLOQUEADA"}` : ""}</span></div><div className="master-toolbar"><b>{item.ativo ? "Ativo" : "Inativo"}</b>{isAthlete && (activeConsent ? <button className="master-button danger" disabled={consentWorkingId === item.participante_id} onClick={() => revokeParticipantConsent(item, consent)}>Revogar</button> : <button className="master-button" disabled={consentWorkingId === item.participante_id} onClick={() => grantConsent(item)}>Conceder consentimento</button>)}{isAthlete && <button className="master-button secondary" onClick={() => selectBaselineAthlete(item.participante_id)}>{activeBaseline ? "Atualizar linha de base" : "Registrar linha de base"}</button>}</div></li>;
+        const consent = consentByParticipant[item.participante_id]; const baseline = baselineByParticipant[item.participante_id]; const isAthlete = item.funcao_no_projeto === "atleta";
+        const state = eligibilityByParticipant[item.participante_id] || { apto_coleta: false, apto_analise: false, pendencias: ["elegibilidade_indisponivel"] };
+        const pending = formatEligibilityPending(state.pendencias || []);
+        return <li key={item.participante_id}><div><strong>{item.nome}</strong><span>{item.funcao_no_projeto} · coleta {state.apto_coleta ? "liberada" : "bloqueada"} · análise {state.apto_analise ? "liberada" : "bloqueada"}</span>{isAthlete && pending.length > 0 && <small>Pendências: {pending.join(" · ")}</small>}</div><div className="master-toolbar"><b>{state.apto_analise ? "Apto" : state.apto_coleta ? "Só coleta" : item.ativo ? "Bloqueado" : "Inativo"}</b>{isAthlete && (consent?.vigente ? <button className="master-button danger" disabled={consentWorkingId === item.participante_id} onClick={() => revokeParticipantConsent(item, consent)}>Revogar</button> : <button className="master-button" disabled={consentWorkingId === item.participante_id} onClick={() => grantConsent(item)}>Conceder consentimento</button>)}{isAthlete && <button className="master-button secondary" onClick={() => selectBaselineAthlete(item.participante_id)}>{baseline?.vigente ? "Atualizar linha de base" : "Registrar linha de base"}</button>}</div></li>;
       })}</ul>}
     </section>
 

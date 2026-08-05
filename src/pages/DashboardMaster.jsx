@@ -50,22 +50,32 @@ export default function DashboardMaster() {
       <article className="card master-metric"><span>Clubes e associações</span><strong>{loading ? "…" : summary.clube}</strong><small>Perfis institucionais</small></article>
     </section>
 
-    <section className="dashboard-section"><div className="master-section-heading"><div><span className="master-eyebrow">Operação</span><h2>Participantes, evidências, análise e validação</h2></div></div><div className="master-action-grid">
-      <button className="master-action-card" onClick={() => navigate("/master/participantes")}><strong>Central de Participantes</strong><span>Cadastrar identidades, papéis, acessos, vínculos e pendências de onboarding.</span></button>
-      <button className="master-action-card" onClick={() => navigate("/master/catalogo-cientifico")}><strong>Catálogo científico</strong><span>Cadastrar, aprovar, versionar e ativar protocolos e instrumentos por projeto.</span></button>
-      <button className="master-action-card" onClick={() => navigate("/master/coletas")}><strong>Operação de coletas</strong><span>Aplicar instrumentos, salvar respostas, validar completude e consultar versões.</span></button>
-      <button className="master-action-card" onClick={() => navigate("/master/pipeline-analitico")}><strong>Pipeline analítico</strong><span>Selecionar evidências validadas, executar o motor versionado e consultar a rastreabilidade.</span></button>
-      <button className="master-action-card" onClick={() => navigate("/master/validacao-profissional")}><strong>Validação profissional</strong><span>Aprovar, rejeitar ou substituir resultados, emitir parecer e controlar visibilidade.</span></button>
-      <button className="master-action-card" onClick={() => navigate("/master/homologacao")}><strong>Centro de homologação AGP</strong><span>Inicializar e acompanhar o ambiente interno e os pilotos técnicos independentes.</span></button>
+    <section className="dashboard-section"><div className="master-section-heading"><div><span className="master-eyebrow">Administração</span><h2>Núcleo Administrativo</h2></div></div><div className="master-action-grid">
+      <button className="master-action-card" onClick={() => navigate("/dashboard-master/administracao")}><strong>Administração</strong><span>Instituições, projetos, clubes, equipe técnica, usuários, perfis e configurações.</span></button>
     </div></section>
 
-    <section className="dashboard-section"><div className="master-section-heading"><div><span className="master-eyebrow">Governança</span><h2>Administração global</h2></div></div><div className="master-action-grid two-columns">
-      <button className="master-action-card" onClick={() => navigate("/master/usuarios")}><strong>Gestão de usuários</strong><span>Consultar registros, vínculos, status e dados cadastrais.</span></button>
-      <button className="master-action-card" onClick={() => navigate("/master/perfis")}><strong>Perfis e permissões</strong><span>Auditar e corrigir papéis globais da plataforma.</span></button>
+    <section className="dashboard-section"><div className="master-section-heading"><div><span className="master-eyebrow">Operação</span><h2>Participantes e evidências</h2></div></div><div className="master-action-grid">
+      <button className="master-action-card" onClick={() => navigate("/master/participantes")}><strong>Participantes</strong><span>Cadastrar identidades, papéis, acessos, vínculos e pendências de onboarding.</span></button>
+      <button className="master-action-card" disabled><strong>Consentimentos</strong><span>Gestão operacional integrada à Central de Participantes.</span></button>
+      <button className="master-action-card" disabled><strong>Linha de Base</strong><span>Gestão operacional integrada à Central de Participantes.</span></button>
+      <button className="master-action-card" onClick={() => navigate("/master/coletas")}><strong>Coletas</strong><span>Aplicar instrumentos, salvar respostas, validar completude e consultar versões.</span></button>
+    </div></section>
+
+    <section className="dashboard-section"><div className="master-section-heading"><div><span className="master-eyebrow">Inteligência</span><h2>Ciência, análise e validação</h2></div></div><div className="master-action-grid">
+      <button className="master-action-card" onClick={() => navigate("/master/catalogo-cientifico")}><strong>Catálogo Científico</strong><span>Cadastrar, aprovar, versionar e ativar protocolos e instrumentos por projeto.</span></button>
+      <button className="master-action-card" disabled><strong>Protocolos</strong><span>Administração integrada ao Catálogo Científico.</span></button>
+      <button className="master-action-card" onClick={() => navigate("/master/pipeline-analitico")}><strong>Pipeline Analítico</strong><span>Executar o motor versionado e consultar a rastreabilidade.</span></button>
+      <button className="master-action-card" onClick={() => navigate("/master/validacao-profissional")}><strong>Validação Profissional</strong><span>Aprovar, rejeitar ou substituir resultados e emitir parecer.</span></button>
+    </div></section>
+
+    <section className="dashboard-section"><div className="master-section-heading"><div><span className="master-eyebrow">Governança</span><h2>Controle e rastreabilidade</h2></div></div><div className="master-action-grid">
+      <button className="master-action-card" onClick={() => navigate("/master/homologacao")}><strong>Homologação</strong><span>Acompanhar o ambiente interno e os pilotos técnicos independentes.</span></button>
+      <button className="master-action-card" disabled><strong>Auditoria</strong><span>Registro consolidado de operações e mudanças.</span></button>
+      <button className="master-action-card" disabled><strong>Logs</strong><span>Eventos técnicos e operacionais da plataforma.</span></button>
     </div></section>
 
     <section className="master-content-grid">
-      <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Qualidade cadastral</span><h2>Perfis que exigem atenção</h2></div><strong>{summary.indefinido}</strong></div><p>Registros sem tipo reconhecido devem ser regularizados na área específica de perfis e permissões.</p><button className="master-link-button" onClick={() => navigate("/master/perfis")}>Regularizar perfis</button></article>
+      <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Qualidade cadastral</span><h2>Perfis que exigem atenção</h2></div><strong>{summary.indefinido}</strong></div><p>Registros sem tipo reconhecido devem ser regularizados no Núcleo Administrativo.</p><button className="master-link-button" onClick={() => navigate("/master/perfis")}>Regularizar perfis</button></article>
       <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Motor analítico legado</span><h2>Scores armazenados</h2></div><strong>{scores.length}</strong></div>{scores.length === 0 ? <p>Nenhum score disponível na base para exibição.</p> : <ul className="master-activity-list">{scores.slice(0, 5).map((score, index) => <li key={score.id || `${score.atleta_id}-${index}`}><div><strong>Atleta {score.atleta_id || "não identificado"}</strong><span>{score.nivel_classificacao || "Classificação pendente"}</span></div><b>{score.score_global ?? "—"}</b></li>)}</ul>}</article>
     </section>
   </div></main>;

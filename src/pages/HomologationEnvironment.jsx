@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { listProjectParticipants } from "../services/participantOnboarding";
+import { formatEligibilityPending, listProjectEligibility } from "../services/eligibilityManagement";
 import AgpEvidenceReadiness from "../components/AgpEvidenceReadiness";
 import "../styles/dashboard-master.css";
 
@@ -13,6 +14,7 @@ export default function HomologationEnvironment() {
   const [legacyProfiles, setLegacyProfiles] = useState([]);
   const [legacyLinks, setLegacyLinks] = useState([]);
   const [participants, setParticipants] = useState([]);
+  const [eligibility, setEligibility] = useState([]);
   const [form, setForm] = useState({ metodologia: "", diretrizes: "", localidade: "", data_inicio: "", data_fim: "", status: "preparacao" });
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
@@ -41,11 +43,22 @@ export default function HomologationEnvironment() {
       const { data: links, error: linkError } = await supabase.from("agp_atletas_projeto").select("*").eq("projeto_id", projectData.id).order("created_at");
       if (linkError) setError(`Falha ao carregar vínculos históricos: ${linkError.message}`);
       setLegacyLinks(links || []);
-      try { setParticipants(await listProjectParticipants(projectData.id)); }
-      catch (requestError) { setParticipants([]); setError(`Núcleo de participantes indisponível: ${requestError.message}`); }
+      try {
+        const [participantRows, eligibilityRows] = await Promise.all([
+          listProjectParticipants(projectData.id),
+          listProjectEligibility(projectData.id)
+        ]);
+        setParticipants(participantRows || []);
+        setEligibility(eligibilityRows || []);
+      } catch (requestError) {
+        setParticipants([]);
+        setEligibility([]);
+        setError(`Núcleo operacional indisponível: ${requestError.message}`);
+      }
     } else {
       setLegacyLinks([]);
       setParticipants([]);
+      setEligibility([]);
     }
     setLoading(false);
   }
@@ -53,8 +66,11 @@ export default function HomologationEnvironment() {
   useEffect(() => { load(); }, [slug]);
 
   const profileById = useMemo(() => Object.fromEntries(legacyProfiles.map((item) => [item.id, item])), [legacyProfiles]);
+  const eligibilityByParticipant = useMemo(() => Object.fromEntries(eligibility.map((item) => [item.participante_id, item])), [eligibility]);
   const technicians = participants.filter((item) => ["tecnico", "treinador"].includes(item.funcao_no_projeto));
   const athletes = participants.filter((item) => item.funcao_no_projeto === "atleta");
+  const eligibleForCollection = eligibility.filter((item) => item.apto_coleta).length;
+  const eligibleForAnalysis = eligibility.filter((item) => item.apto_analise).length;
 
   async function saveProject() {
     if (!project) return;
@@ -75,6 +91,11 @@ export default function HomologationEnvironment() {
       </header>
       {message && <div className="master-success">{message}</div>}{error && <div className="master-error" role="alert">{error}</div>}
 
+      <section className="master-content-grid">
+        <article className="master-panel"><span className="master-eyebrow">Elegibilidade oficial</span><h2>Coleta</h2><strong>{eligibleForCollection}/{athletes.length}</strong><p>Atletas liberados pela regra unificada do backend.</p></article>
+        <article className="master-panel"><span className="master-eyebrow">Elegibilidade oficial</span><h2>Análise</h2><strong>{eligibleForAnalysis}/{athletes.length}</strong><p>Atletas com coleta liberada e linha de base vigente.</p></article>
+      </section>
+
       {project && <AgpEvidenceReadiness projectId={project.id} athleteLinks={legacyLinks} profileById={profileById} />}
 
       <section className="master-content-grid">
@@ -91,8 +112,12 @@ export default function HomologationEnvironment() {
         </article>
       </section>
 
-      <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Participantes canônicos</span><h2>Atletas do projeto</h2></div><strong>{athletes.length}</strong></div>
-        {athletes.length === 0 ? <div className="master-empty"><strong>Nenhum atleta cadastrado neste projeto.</strong><span>Cadastre identidade, perfil esportivo, técnico responsável e pendências pela Central de Participantes.</span><button className="master-button" onClick={() => navigate("/master/participantes")}>Cadastrar atleta</button></div> : <ul className="master-activity-list">{athletes.map((item) => <li key={item.participante_id}><div><strong>{item.nome}</strong><span>Onboarding: {item.status_calculado}</span></div><b>{item.ativo ? "Ativo" : "Inativo"}</b></li>)}</ul>}
+      <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Participantes canônicos</span><h2>Atletas e pendências oficiais</h2></div><strong>{athletes.length}</strong></div>
+        {athletes.length === 0 ? <div className="master-empty"><strong>Nenhum atleta cadastrado neste projeto.</strong><span>Cadastre identidade, perfil esportivo e vínculos pela Central de Participantes.</span><button className="master-button" onClick={() => navigate("/master/participantes")}>Cadastrar atleta</button></div> : <ul className="master-activity-list">{athletes.map((item) => {
+          const state = eligibilityByParticipant[item.participante_id] || { apto_coleta: false, apto_analise: false, pendencias: ["elegibilidade_indisponivel"] };
+          const pending = formatEligibilityPending(state.pendencias || []);
+          return <li key={item.participante_id}><div><strong>{item.nome}</strong><span>Coleta: {state.apto_coleta ? "liberada" : "bloqueada"} · Análise: {state.apto_analise ? "liberada" : "bloqueada"}</span>{pending.length > 0 && <small>Pendências: {pending.join(" · ")}</small>}</div><b>{state.apto_analise ? "Apto" : state.apto_coleta ? "Só coleta" : "Bloqueado"}</b></li>;
+        })}</ul>}
       </section>
 
       {legacyLinks.length > 0 && <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Compatibilidade temporária</span><h2>Vínculos históricos</h2></div><strong>{legacyLinks.length}</strong></div><p>Estes vínculos permanecem somente para leitura do núcleo de evidências durante a migração. Novos cadastros não são mais realizados nesta tela.</p></section>}

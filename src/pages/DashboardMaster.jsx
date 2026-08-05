@@ -50,10 +50,11 @@ export default function DashboardMaster() {
       <article className="card master-metric"><span>Clubes e associações</span><strong>{loading ? "…" : summary.clube}</strong><small>Perfis institucionais</small></article>
     </section>
 
-    <section className="dashboard-section"><div className="master-section-heading"><div><span className="master-eyebrow">Operação</span><h2>Participantes, catálogo, coletas e homologação</h2></div></div><div className="master-action-grid">
+    <section className="dashboard-section"><div className="master-section-heading"><div><span className="master-eyebrow">Operação</span><h2>Participantes, evidências e análise</h2></div></div><div className="master-action-grid">
       <button className="master-action-card" onClick={() => navigate("/master/participantes")}><strong>Central de Participantes</strong><span>Cadastrar identidades, papéis, acessos, vínculos e pendências de onboarding.</span></button>
       <button className="master-action-card" onClick={() => navigate("/master/catalogo-cientifico")}><strong>Catálogo científico</strong><span>Cadastrar, aprovar, versionar e ativar protocolos e instrumentos por projeto.</span></button>
       <button className="master-action-card" onClick={() => navigate("/master/coletas")}><strong>Operação de coletas</strong><span>Aplicar instrumentos, salvar respostas, validar completude e consultar versões.</span></button>
+      <button className="master-action-card" onClick={() => navigate("/master/pipeline-analitico")}><strong>Pipeline analítico</strong><span>Selecionar evidências validadas, executar o motor versionado e consultar a rastreabilidade.</span></button>
       <button className="master-action-card" onClick={() => navigate("/master/homologacao")}><strong>Centro de homologação AGP</strong><span>Inicializar e acompanhar o ambiente interno e os pilotos técnicos independentes.</span></button>
     </div></section>
 

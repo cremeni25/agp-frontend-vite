@@ -5,6 +5,7 @@ import { createInstitutionParticipant, listProjectParticipants } from "../servic
 import { grantParticipantConsent, listProjectConsents, revokeConsent } from "../services/consentManagement";
 import { listProjectBaselines, saveParticipantBaseline } from "../services/baselineManagement";
 import { formatEligibilityPending, listProjectEligibility } from "../services/eligibilityManagement";
+import { listCanonicalTechnicalTeam } from "../services/technicalTeamManagement";
 import "../styles/dashboard-master.css";
 
 const EMPTY_FORM = { nome: "", data_nascimento: "", email_contato: "", telefone_contato: "", papel: "atleta", instituicao_id: "", projeto_id: "", modalidade: "", prova_posicao: "", categoria: "", nivel: "", tecnico_responsavel_pessoa_id: "" };
@@ -15,6 +16,7 @@ export default function MasterParticipants() {
   const navigate = useNavigate();
   const [institutions, setInstitutions] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [technicalTeam, setTechnicalTeam] = useState([]);
   const [participants, setParticipants] = useState([]);
   const [consents, setConsents] = useState([]);
   const [baselines, setBaselines] = useState([]);
@@ -31,19 +33,29 @@ export default function MasterParticipants() {
 
   async function loadBase() {
     setLoading(true); setError("");
-    const [institutionResult, projectResult] = await Promise.all([
-      supabase.from("agp_instituicoes").select("id,nome,slug,status").order("nome"),
-      supabase.from("agp_projetos_validacao").select("id,instituicao_id,nome,objetivo,status").order("created_at")
-    ]);
-    const firstError = institutionResult.error || projectResult.error;
-    if (firstError) setError(`Falha ao carregar estrutura institucional: ${firstError.message}`);
-    setInstitutions(institutionResult.data || []); setProjects(projectResult.data || []); setLoading(false);
+    try {
+      const [institutionResult, projectResult, teamRows] = await Promise.all([
+        supabase.from("agp_instituicoes").select("id,nome,slug,status").order("nome"),
+        supabase.from("agp_projetos_validacao").select("id,instituicao_id,nome,objetivo,status").order("created_at"),
+        listCanonicalTechnicalTeam()
+      ]);
+      const firstError = institutionResult.error || projectResult.error;
+      if (firstError) throw firstError;
+      setInstitutions(institutionResult.data || []);
+      setProjects(projectResult.data || []);
+      setTechnicalTeam(teamRows || []);
+    } catch (requestError) {
+      setError(`Falha ao carregar estrutura institucional: ${requestError.message}`);
+      setInstitutions([]); setProjects([]); setTechnicalTeam([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { loadBase(); }, []);
 
   const availableProjects = useMemo(() => projects.filter((item) => !form.instituicao_id || item.instituicao_id === form.instituicao_id), [projects, form.instituicao_id]);
-  const technicians = useMemo(() => participants.filter((item) => ["tecnico", "treinador"].includes(item.funcao_no_projeto) && item.ativo), [participants]);
+  const technicians = useMemo(() => technicalTeam.filter((item) => item.ativo && item.pessoa_id && (!form.instituicao_id || item.instituicao_id === form.instituicao_id)), [technicalTeam, form.instituicao_id]);
   const athletes = useMemo(() => participants.filter((item) => item.funcao_no_projeto === "atleta" && item.ativo), [participants]);
   const consentByParticipant = useMemo(() => Object.fromEntries(consents.filter((item) => item.participante_id).map((item) => [item.participante_id, item])), [consents]);
   const baselineByParticipant = useMemo(() => Object.fromEntries(baselines.filter((item) => item.participante_id).map((item) => [item.participante_id, item])), [baselines]);
@@ -138,7 +150,7 @@ export default function MasterParticipants() {
         <input className="master-input" type="email" placeholder="E-mail de contato e futuro acesso" value={form.email_contato} onChange={(e) => updateField("email_contato", e.target.value)} /><input className="master-input" placeholder="Telefone" value={form.telefone_contato} onChange={(e) => updateField("telefone_contato", e.target.value)} />
         <select className="master-select" required value={form.instituicao_id} onChange={(e) => updateField("instituicao_id", e.target.value)}><option value="">Selecionar instituição</option>{institutions.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}</select>
         <select className="master-select" value={form.projeto_id} onChange={(e) => handleProjectChange(e.target.value)}><option value="">Sem projeto por enquanto</option>{availableProjects.map((item) => <option key={item.id} value={item.id}>{item.nome || item.objetivo || item.id}</option>)}</select>
-        {form.papel === "atleta" && <><input className="master-input" required placeholder="Modalidade" value={form.modalidade} onChange={(e) => updateField("modalidade", e.target.value)} /><div className="master-toolbar"><input className="master-input" placeholder="Prova ou posição" value={form.prova_posicao} onChange={(e) => updateField("prova_posicao", e.target.value)} /><input className="master-input" placeholder="Categoria" value={form.categoria} onChange={(e) => updateField("categoria", e.target.value)} /></div><input className="master-input" placeholder="Nível esportivo" value={form.nivel} onChange={(e) => updateField("nivel", e.target.value)} /><select className="master-select" value={form.tecnico_responsavel_pessoa_id} onChange={(e) => updateField("tecnico_responsavel_pessoa_id", e.target.value)}><option value="">Técnico responsável ainda não definido</option>{technicians.map((item) => <option key={item.pessoa_id} value={item.pessoa_id}>{item.nome}</option>)}</select></>}
+        {form.papel === "atleta" && <><input className="master-input" required placeholder="Modalidade" value={form.modalidade} onChange={(e) => updateField("modalidade", e.target.value)} /><div className="master-toolbar"><input className="master-input" placeholder="Prova ou posição" value={form.prova_posicao} onChange={(e) => updateField("prova_posicao", e.target.value)} /><input className="master-input" placeholder="Categoria" value={form.categoria} onChange={(e) => updateField("categoria", e.target.value)} /></div><input className="master-input" placeholder="Nível esportivo" value={form.nivel} onChange={(e) => updateField("nivel", e.target.value)} /><select className="master-select" value={form.tecnico_responsavel_pessoa_id} onChange={(e) => updateField("tecnico_responsavel_pessoa_id", e.target.value)}><option value="">Técnico responsável ainda não definido</option>{technicians.map((item) => <option key={item.pessoa_id} value={item.pessoa_id}>{item.nome} · {item.instituicao?.nome || "Instituição"}</option>)}</select></>}
         <button className="master-button" disabled={working || loading}>{working ? "Registrando..." : "Cadastrar participante"}</button>
       </form>
       <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Consentimento operacional</span><h2>Termo vigente</h2></div></div><label>Versão do termo<input className="master-input" value={consentForm.versao_termo} onChange={(e) => setConsentForm((current) => ({ ...current, versao_termo: e.target.value }))} /></label><label>Finalidade<input className="master-input" value={consentForm.finalidade} onChange={(e) => setConsentForm((current) => ({ ...current, finalidade: e.target.value }))} /></label><p>A situação de coleta e análise é calculada exclusivamente pela regra unificada do backend.</p></article>

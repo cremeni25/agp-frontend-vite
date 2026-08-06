@@ -11,43 +11,85 @@ function resolveType(user) {
 export default function DashboardMaster() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
+  const [participants, setParticipants] = useState([]);
+  const [technicalMembers, setTechnicalMembers] = useState([]);
+  const [institutions, setInstitutions] = useState([]);
   const [scores, setScores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   async function loadDashboard() {
-    setLoading(true); setError("");
-    const [usersResult, scoresResult] = await Promise.all([
-      supabase.from("perfis_atletas").select("*"),
+    setLoading(true);
+    setError("");
+
+    const [usersResult, participantsResult, technicalResult, institutionsResult, scoresResult] = await Promise.all([
+      supabase.from("perfis_atletas").select("id,tipo_usuario,funcao"),
+      supabase.from("agp_participantes_projeto").select("id,pessoa_id,funcao_no_projeto,ativo"),
+      supabase.from("agp_membros_instituicao").select("id,auth_id,ativo,papel"),
+      supabase.from("agp_instituicoes").select("id,status"),
       supabase.from("score_atleta").select("*").order("data_calculo", { ascending: false }).limit(8)
     ]);
-    if (usersResult.error) setError(`Falha ao carregar usuários: ${usersResult.error.message}`);
-    setUsers(usersResult.data || []); setScores(scoresResult.data || []); setLoading(false);
+
+    const firstError = usersResult.error || participantsResult.error || technicalResult.error || institutionsResult.error || scoresResult.error;
+    if (firstError) setError(`Falha ao carregar o painel: ${firstError.message}`);
+
+    setUsers(usersResult.data || []);
+    setParticipants(participantsResult.data || []);
+    setTechnicalMembers(technicalResult.data || []);
+    setInstitutions(institutionsResult.data || []);
+    setScores(scoresResult.data || []);
+    setLoading(false);
   }
 
   useEffect(() => { loadDashboard(); }, []);
 
   const summary = useMemo(() => {
-    const counts = { master: 0, atleta: 0, comissao: 0, clube: 0, indefinido: 0 };
+    const legacyCounts = { master: 0, atleta: 0, comissao: 0, clube: 0, indefinido: 0 };
     users.forEach((user) => {
       const type = resolveType(user);
-      if (type === "não definido") counts.indefinido += 1;
-      else if (Object.prototype.hasOwnProperty.call(counts, type)) counts[type] += 1;
+      if (type === "não definido") legacyCounts.indefinido += 1;
+      else if (Object.prototype.hasOwnProperty.call(legacyCounts, type)) legacyCounts[type] += 1;
     });
-    return { total: users.length, ...counts };
-  }, [users]);
 
-  async function signOut() { await supabase.auth.signOut(); navigate("/login", { replace: true }); }
+    const canonicalAthletes = new Set(
+      participants
+        .filter((item) => item.ativo && item.funcao_no_projeto === "atleta")
+        .map((item) => item.pessoa_id)
+        .filter(Boolean)
+    ).size;
+
+    const canonicalTechnical = new Set(
+      technicalMembers
+        .filter((item) => item.ativo)
+        .map((item) => item.auth_id || item.id)
+        .filter(Boolean)
+    ).size;
+
+    const activeInstitutions = institutions.filter((item) => item.status === "ativo").length;
+
+    return {
+      total: users.length,
+      atleta: canonicalAthletes,
+      comissao: canonicalTechnical,
+      clube: activeInstitutions,
+      indefinido: legacyCounts.indefinido
+    };
+  }, [users, participants, technicalMembers, institutions]);
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    navigate("/login", { replace: true });
+  }
 
   return <main className="dashboard-master"><div className="dashboard-overlay master-page">
     <header className="dashboard-header master-header"><div><span className="master-eyebrow">AGP Sports Intelligence</span><h1>Centro de comando Master</h1><p>Governança global, homologação e acompanhamento da evolução analítica.</p></div><div className="master-header-actions"><button className="master-button secondary" onClick={loadDashboard}>Atualizar dados</button><button className="master-button danger" onClick={signOut}>Sair</button></div></header>
     {error && <div className="master-error" role="alert">{error}</div>}
 
     <section className="dashboard-section grid master-summary-grid">
-      <article className="card master-metric"><span>Usuários cadastrados</span><strong>{loading ? "…" : summary.total}</strong><small>Base institucional visível</small></article>
-      <article className="card master-metric"><span>Atletas</span><strong>{loading ? "…" : summary.atleta}</strong><small>Perfis esportivos legados</small></article>
-      <article className="card master-metric"><span>Comissões técnicas</span><strong>{loading ? "…" : summary.comissao}</strong><small>Perfis de acompanhamento</small></article>
-      <article className="card master-metric"><span>Clubes e associações</span><strong>{loading ? "…" : summary.clube}</strong><small>Perfis institucionais</small></article>
+      <article className="card master-metric"><span>Usuários cadastrados</span><strong>{loading ? "…" : summary.total}</strong><small>Contas e perfis de acesso</small></article>
+      <article className="card master-metric"><span>Atletas</span><strong>{loading ? "…" : summary.atleta}</strong><small>Participantes canônicos ativos</small></article>
+      <article className="card master-metric"><span>Comissões técnicas</span><strong>{loading ? "…" : summary.comissao}</strong><small>Profissionais institucionais ativos</small></article>
+      <article className="card master-metric"><span>Clubes e associações</span><strong>{loading ? "…" : summary.clube}</strong><small>Instituições ativas</small></article>
     </section>
 
     <section className="dashboard-section"><div className="master-section-heading"><div><span className="master-eyebrow">Administração</span><h2>Núcleo Administrativo</h2></div></div><div className="master-action-grid">

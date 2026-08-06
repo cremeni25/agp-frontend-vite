@@ -21,6 +21,7 @@ import MasterTechnicalTeam from "./pages/MasterTechnicalTeam";
 import MasterUsers from "./pages/MasterUsers";
 import MasterProfiles from "./pages/MasterProfiles";
 import MasterParticipants from "./pages/MasterParticipants";
+import MasterParticipantsHub from "./pages/MasterParticipantsHub";
 import MasterAthletes from "./pages/MasterAthletes";
 import MasterTechnicalDirectory from "./pages/MasterTechnicalDirectory";
 import MasterInstitutionsDirectory from "./pages/MasterInstitutionsDirectory";
@@ -59,7 +60,8 @@ function App() {
           <Route path="/dashboard-master/administracao/equipe-tecnica" element={<ProtectedRoute tipoPermitido="master"><MasterTechnicalTeam /></ProtectedRoute>} />
           <Route path="/master/usuarios" element={<ProtectedRoute tipoPermitido="master"><MasterUsers /></ProtectedRoute>} />
           <Route path="/master/perfis" element={<ProtectedRoute tipoPermitido="master"><MasterProfiles /></ProtectedRoute>} />
-          <Route path="/master/participantes" element={<ProtectedRoute tipoPermitido="master"><MasterParticipants /></ProtectedRoute>} />
+          <Route path="/master/participantes" element={<ProtectedRoute tipoPermitido="master"><MasterParticipantsHub /></ProtectedRoute>} />
+          <Route path="/master/participantes/operacao" element={<ProtectedRoute tipoPermitido="master"><MasterParticipants /></ProtectedRoute>} />
           <Route path="/master/atletas" element={<ProtectedRoute tipoPermitido="master"><MasterAthletes /></ProtectedRoute>} />
           <Route path="/master/comissoes-tecnicas" element={<ProtectedRoute tipoPermitido="master"><MasterTechnicalDirectory /></ProtectedRoute>} />
           <Route path="/master/instituicoes" element={<ProtectedRoute tipoPermitido="master"><MasterInstitutionsDirectory /></ProtectedRoute>} />

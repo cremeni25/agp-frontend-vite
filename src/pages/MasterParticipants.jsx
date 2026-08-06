@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { createInstitutionParticipant, listProjectParticipants } from "../services/participantOnboarding";
 import { grantParticipantConsent, listProjectConsents, revokeConsent } from "../services/consentManagement";
@@ -23,6 +23,10 @@ function uniqueValues(rows, field) {
 
 export default function MasterParticipants() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const requestedInstitution = searchParams.get("instituicao") || "";
+  const requestedProject = searchParams.get("projeto") || "";
+  const requestedParticipant = searchParams.get("participante") || "";
   const [institutions, setInstitutions] = useState([]);
   const [projects, setProjects] = useState([]);
   const [technicalTeam, setTechnicalTeam] = useState([]);
@@ -43,6 +47,27 @@ export default function MasterParticipants() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  async function loadParticipants(projectId) {
+    if (!projectId) { setParticipants([]); setConsents([]); setBaselines([]); setEligibility([]); return; }
+    try {
+      await listProjectEligibility(projectId);
+      const [participantRows, consentRows, baselineRows, eligibilityRows] = await Promise.all([
+        listProjectParticipants(projectId), listProjectConsents(projectId), listProjectBaselines(projectId), listProjectEligibility(projectId)
+      ]);
+      setParticipants(participantRows || []);
+      setConsents(consentRows || []);
+      setBaselines(baselineRows || []);
+      setEligibility(eligibilityRows || []);
+      if (requestedParticipant && (participantRows || []).some((item) => item.participante_id === requestedParticipant)) {
+        const athlete = (participantRows || []).find((item) => item.participante_id === requestedParticipant);
+        const current = (baselineRows || []).find((item) => item.participante_id === requestedParticipant);
+        setBaselineForm({ ...EMPTY_BASELINE, participante_id: requestedParticipant, categoria: current?.categoria || athlete?.categoria || "", idade_cronologica: current?.idade_cronologica || "", sexo_registrado: current?.sexo_registrado || "", modalidade: current?.modalidade || athlete?.modalidade || "", prova_posicao: current?.prova_posicao || athlete?.prova_posicao || "", estagio_maturacional: current?.estagio_maturacional || "", altura_cm: current?.altura_cm || "", massa_kg: current?.massa_kg || "", envergadura_cm: current?.envergadura_cm || "", data_referencia: current?.data_referencia || new Date().toISOString().slice(0, 10), origem: current?.origem || "avaliacao_institucional", observacoes: current?.observacoes || "", validar: true });
+      }
+    } catch (requestError) {
+      setParticipants([]); setConsents([]); setBaselines([]); setEligibility([]); setError(`Falha ao carregar participantes: ${requestError.message}`);
+    }
+  }
+
   async function loadBase() {
     setLoading(true); setError("");
     try {
@@ -56,12 +81,21 @@ export default function MasterParticipants() {
       ]);
       const firstError = institutionResult.error || projectResult.error || sportResult.error || modalityResult.error || historyResult.error;
       if (firstError) throw firstError;
-      setInstitutions(institutionResult.data || []);
-      setProjects(projectResult.data || []);
+      const institutionRows = institutionResult.data || [];
+      const projectRows = projectResult.data || [];
+      setInstitutions(institutionRows);
+      setProjects(projectRows);
       setSports(sportResult.data || []);
       setModalities(modalityResult.data || []);
       setSportHistory(historyResult.data || []);
       setTechnicalTeam(teamRows || []);
+
+      const selectedProject = projectRows.find((item) => String(item.id) === String(requestedProject));
+      const institutionId = requestedInstitution || selectedProject?.instituicao_id || "";
+      if (institutionId || selectedProject) {
+        setForm((current) => ({ ...current, instituicao_id: institutionId, projeto_id: selectedProject?.id || "" }));
+      }
+      if (selectedProject?.id) await loadParticipants(selectedProject.id);
     } catch (requestError) {
       setError(`Falha ao carregar estrutura institucional: ${requestError.message}`);
       setInstitutions([]); setProjects([]); setSports([]); setModalities([]); setSportHistory([]); setTechnicalTeam([]);
@@ -81,18 +115,6 @@ export default function MasterParticipants() {
   const consentByParticipant = useMemo(() => Object.fromEntries(consents.filter((item) => item.participante_id).map((item) => [item.participante_id, item])), [consents]);
   const baselineByParticipant = useMemo(() => Object.fromEntries(baselines.filter((item) => item.participante_id).map((item) => [item.participante_id, item])), [baselines]);
   const eligibilityByParticipant = useMemo(() => Object.fromEntries(eligibility.map((item) => [item.participante_id, item])), [eligibility]);
-
-  async function loadParticipants(projectId) {
-    if (!projectId) { setParticipants([]); setConsents([]); setBaselines([]); setEligibility([]); return; }
-    try {
-      const [participantRows, consentRows, baselineRows, eligibilityRows] = await Promise.all([
-        listProjectParticipants(projectId), listProjectConsents(projectId), listProjectBaselines(projectId), listProjectEligibility(projectId)
-      ]);
-      setParticipants(participantRows || []); setConsents(consentRows || []); setBaselines(baselineRows || []); setEligibility(eligibilityRows || []);
-    } catch (requestError) {
-      setParticipants([]); setConsents([]); setBaselines([]); setEligibility([]); setError(`Falha ao carregar participantes: ${requestError.message}`);
-    }
-  }
 
   function updateField(field, value) {
     setForm((current) => {
@@ -184,12 +206,8 @@ export default function MasterParticipants() {
         {form.papel === "atleta" && <>
           <select className="master-select" required value={form.esporte_id} onChange={(e) => updateField("esporte_id", e.target.value)}><option value="">Selecionar esporte</option>{sports.map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}</select>
           <select className="master-select" required disabled={!form.esporte_id} value={form.modalidade} onChange={(e) => updateField("modalidade", e.target.value)}><option value="">Selecionar modalidade</option>{availableModalities.map((item) => <option key={item.id} value={item.nome}>{item.nome}</option>)}</select>
-          <div className="master-toolbar">
-            <input className="master-input" list="agp-provas-posicoes" placeholder="Prova ou posição" value={form.prova_posicao} onChange={(e) => updateField("prova_posicao", e.target.value)} />
-            <input className="master-input" list="agp-categorias" placeholder="Categoria" value={form.categoria} onChange={(e) => updateField("categoria", e.target.value)} />
-          </div>
-          <datalist id="agp-provas-posicoes">{positions.map((value) => <option key={value} value={value} />)}</datalist>
-          <datalist id="agp-categorias">{categories.map((value) => <option key={value} value={value} />)}</datalist>
+          <div className="master-toolbar"><input className="master-input" list="agp-provas-posicoes" placeholder="Prova ou posição" value={form.prova_posicao} onChange={(e) => updateField("prova_posicao", e.target.value)} /><input className="master-input" list="agp-categorias" placeholder="Categoria" value={form.categoria} onChange={(e) => updateField("categoria", e.target.value)} /></div>
+          <datalist id="agp-provas-posicoes">{positions.map((value) => <option key={value} value={value} />)}</datalist><datalist id="agp-categorias">{categories.map((value) => <option key={value} value={value} />)}</datalist>
           <select className="master-select" required value={form.nivel} onChange={(e) => updateField("nivel", e.target.value)}><option value="">Selecionar nível esportivo</option>{SPORT_LEVELS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
           <select className="master-select" value={form.tecnico_responsavel_pessoa_id} onChange={(e) => updateField("tecnico_responsavel_pessoa_id", e.target.value)}><option value="">Técnico responsável ainda não definido</option>{technicians.map((item) => <option key={item.pessoa_id} value={item.pessoa_id}>{item.nome} · {item.instituicao?.nome || "Instituição"}</option>)}</select>
         </>}

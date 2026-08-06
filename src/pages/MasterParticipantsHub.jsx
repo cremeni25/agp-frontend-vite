@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "../styles/dashboard-master.css";
+import "../styles/participants-hub.css";
 
 const SERVICES = [
   { id: "cadastro", title: "Cadastrar participante", description: "Criar atleta ou profissional, definir instituição, projeto e perfil esportivo.", action: "Iniciar cadastro" },
@@ -86,7 +87,7 @@ export default function MasterParticipantsHub() {
           <div className="master-section-heading"><div><span className="master-eyebrow">Serviços da Central</span><h2>O que você precisa fazer?</h2></div></div>
           <div className="master-content-grid">
             {SERVICES.map((service) => (
-              <button key={service.id} type="button" className="master-panel" onClick={() => openService(service.id)} style={{ textAlign: "left", cursor: "pointer", width: "100%" }}>
+              <button key={service.id} type="button" className="master-panel master-service-card" onClick={() => openService(service.id)}>
                 <span className="master-eyebrow">Serviço</span><h2>{service.title}</h2><p>{service.description}</p><strong>{service.action} →</strong>
               </button>
             ))}

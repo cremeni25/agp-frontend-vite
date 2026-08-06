@@ -69,7 +69,7 @@ export default function DashboardMaster() {
     <section className="dashboard-section"><div className="master-section-heading"><div><span className="master-eyebrow">Administração</span><h2>Núcleo Administrativo</h2></div></div><div className="master-action-grid"><button className="master-action-card" onClick={() => navigate("/dashboard-master/administracao")}><strong>Administração</strong><span>Instituições, projetos, clubes, equipe técnica, usuários, perfis e configurações.</span></button></div></section>
 
     <section className="dashboard-section"><div className="master-section-heading"><div><span className="master-eyebrow">Operação</span><h2>Participantes e evidências</h2></div></div><div className="master-action-grid">
-      <button className="master-action-card" onClick={() => navigate("/master/participantes")}><strong>Participantes</strong><span>Cadastrar identidades, papéis, acessos, vínculos e pendências de onboarding.</span></button>
+      <button className="master-action-card" onClick={() => navigate("/master/participantes")}><strong>Central de Participantes</strong><span>Acesso geral a cadastro, consulta, técnico responsável, consentimentos, linha de base e elegibilidade.</span></button>
       <button className="master-action-card" disabled><strong>Consentimentos</strong><span>Gestão operacional integrada à Central de Participantes.</span></button>
       <button className="master-action-card" disabled><strong>Linha de Base</strong><span>Gestão operacional integrada à Central de Participantes.</span></button>
       <button className="master-action-card" onClick={() => navigate("/master/coletas")}><strong>Coletas</strong><span>Aplicar instrumentos, salvar respostas, validar completude e consultar versões.</span></button>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { listProjectEligibility } from "../services/eligibilityManagement";
 import "../styles/dashboard-master.css";
 
 export default function MasterAthletes() {
@@ -14,6 +15,16 @@ export default function MasterAthletes() {
     setLoading(true);
     setError("");
     try {
+      const initialParticipants = await supabase
+        .from("agp_participantes_projeto")
+        .select("id,pessoa_id,projeto_id,status_onboarding,ativo,tecnico_responsavel_pessoa_id")
+        .eq("funcao_no_projeto", "atleta")
+        .order("created_at", { ascending: false });
+      if (initialParticipants.error) throw initialParticipants.error;
+
+      const projectIds = [...new Set((initialParticipants.data || []).map((item) => item.projeto_id).filter(Boolean))];
+      await Promise.all(projectIds.map((projectId) => listProjectEligibility(projectId)));
+
       const [participantsResult, peopleResult, projectsResult, institutionsResult, profilesResult] = await Promise.all([
         supabase.from("agp_participantes_projeto").select("id,pessoa_id,projeto_id,status_onboarding,ativo,tecnico_responsavel_pessoa_id").eq("funcao_no_projeto", "atleta").order("created_at", { ascending: false }),
         supabase.from("agp_pessoas").select("id,nome,email_contato,telefone_contato,data_nascimento,status"),
@@ -57,7 +68,7 @@ export default function MasterAthletes() {
     {error && <div className="master-error" role="alert">{error}</div>}
     <section className="master-panel"><input className="master-input" placeholder="Buscar por atleta, instituição, projeto, modalidade ou categoria" value={search} onChange={(event) => setSearch(event.target.value)} /></section>
     <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Base canônica</span><h2>Atletas cadastrados</h2></div><strong>{filtered.length}</strong></div>
-      {loading ? <div className="master-empty">Carregando atletas...</div> : filtered.length === 0 ? <div className="master-empty">Nenhum atleta encontrado.</div> : <ul className="master-activity-list">{filtered.map((item) => <li key={item.id}><div><strong>{item.person.nome || "Nome não informado"}</strong><span>{item.institution.nome || "Instituição não identificada"} · {item.project.nome || "Projeto não identificado"}</span><small>{item.profile.modalidade || "Modalidade não informada"}{item.profile.prova_posicao ? ` · ${item.profile.prova_posicao}` : ""}{item.profile.categoria ? ` · ${item.profile.categoria}` : ""} · {item.ativo ? "Ativo" : "Inativo"}</small></div><div className="master-row-actions"><b>{item.status_onboarding || "rascunho"}</b><button className="master-button secondary" onClick={() => navigate(`/master/participantes?instituicao=${item.project.instituicao_id || ""}&projeto=${item.projeto_id}`)}>Abrir cadastro</button></div></li>)}</ul>}
+      {loading ? <div className="master-empty">Carregando atletas...</div> : filtered.length === 0 ? <div className="master-empty">Nenhum atleta encontrado.</div> : <ul className="master-activity-list">{filtered.map((item) => <li key={item.id}><div><strong>{item.person.nome || "Nome não informado"}</strong><span>{item.institution.nome || "Instituição não identificada"} · {item.project.nome || "Projeto não identificado"}</span><small>{item.profile.modalidade || "Modalidade não informada"}{item.profile.prova_posicao ? ` · ${item.profile.prova_posicao}` : ""}{item.profile.categoria ? ` · ${item.profile.categoria}` : ""} · {item.ativo ? "Ativo" : "Inativo"}</small></div><div className="master-row-actions"><b>{item.status_onboarding || "rascunho"}</b><button className="master-button secondary" onClick={() => navigate(`/master/participantes?instituicao=${item.project.instituicao_id || ""}&projeto=${item.projeto_id}&participante=${item.id}`)}>Abrir cadastro</button></div></li>)}</ul>}
     </section>
   </div></main>;
 }

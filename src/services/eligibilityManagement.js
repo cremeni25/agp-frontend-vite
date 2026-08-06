@@ -2,15 +2,17 @@ import { supabase } from "../supabaseClient";
 
 const API_URL = (import.meta.env.VITE_API_URL || "https://performance-atleta-ai.onrender.com").replace(/\/$/, "");
 
-async function authorizedRequest(path) {
+async function authorizedRequest(path, options = {}) {
   const { data, error } = await supabase.auth.getSession();
   if (error || !data.session?.access_token) throw new Error("Sessão Master indisponível.");
 
   const response = await fetch(`${API_URL}${path}`, {
+    method: options.method || "GET",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${data.session.access_token}`
-    }
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined
   });
 
   const payload = await response.json().catch(() => null);
@@ -28,6 +30,20 @@ export function listProjectEligibility(projectId) {
 
 export function getParticipantEligibility(participantId) {
   return authorizedRequest(`/api/v1/participantes/${participantId}/elegibilidade`);
+}
+
+export function assignAthleteTechnician(participantId, technicianPersonId, reason = "Alteração operacional na ficha do atleta") {
+  return authorizedRequest(`/api/v1/participantes/${participantId}/vinculo-tecnico`, {
+    method: "PATCH",
+    body: {
+      tecnico_responsavel_pessoa_id: technicianPersonId,
+      motivo: reason
+    }
+  });
+}
+
+export function listAthleteTechnicianHistory(participantId) {
+  return authorizedRequest(`/api/v1/participantes/${participantId}/historico-tecnicos`);
 }
 
 export const ELIGIBILITY_LABELS = {

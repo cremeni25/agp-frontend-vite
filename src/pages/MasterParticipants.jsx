@@ -43,7 +43,6 @@ export default function MasterParticipants() {
   const requestedInstitution = searchParams.get("instituicao") || "";
   const requestedProject = searchParams.get("projeto") || "";
   const requestedParticipant = searchParams.get("participante") || "";
-
   const [institutions, setInstitutions] = useState([]);
   const [projects, setProjects] = useState([]);
   const [technicalTeam, setTechnicalTeam] = useState([]);
@@ -169,14 +168,21 @@ export default function MasterParticipants() {
       const result = await assignAthleteTechnician(participant.participante_id, technicianId);
       setMessage(result.alterado ? `Técnico responsável atualizado para ${participant.nome}.` : `O técnico selecionado já é responsável por ${participant.nome}.`);
       await loadParticipants(form.projeto_id);
-      setTechnicianHistory((current) => ({ ...current, [participant.participante_id]: await listAthleteTechnicianHistory(participant.participante_id) }));
+      const historyRows = await listAthleteTechnicianHistory(participant.participante_id);
+      setTechnicianHistory((current) => ({ ...current, [participant.participante_id]: historyRows }));
     } catch (requestError) { setError(`Falha ao vincular técnico: ${requestError.message}`); } finally { setTechnicianWorkingId(""); }
   }
 
   async function toggleTechnicianHistory(participantId) {
-    if (technicianHistory[participantId]) return setTechnicianHistory((current) => ({ ...current, [participantId]: null }));
-    try { setTechnicianHistory((current) => ({ ...current, [participantId]: [] })); setTechnicianHistory((current) => ({ ...current, [participantId]: await listAthleteTechnicianHistory(participantId) })); }
-    catch (requestError) { setError(`Falha ao consultar histórico técnico: ${requestError.message}`); }
+    if (technicianHistory[participantId]) {
+      setTechnicianHistory((current) => ({ ...current, [participantId]: null }));
+      return;
+    }
+    try {
+      setTechnicianHistory((current) => ({ ...current, [participantId]: [] }));
+      const historyRows = await listAthleteTechnicianHistory(participantId);
+      setTechnicianHistory((current) => ({ ...current, [participantId]: historyRows }));
+    } catch (requestError) { setError(`Falha ao consultar histórico técnico: ${requestError.message}`); }
   }
 
   async function grantConsent(participant) {
@@ -212,7 +218,6 @@ export default function MasterParticipants() {
   return <main className="dashboard-master"><div className="dashboard-overlay master-page">
     <header className="dashboard-header master-header"><div><span className="master-eyebrow">Governança institucional</span><h1>Central de Participantes</h1><p>Identidade, consentimento, linha de base, técnico responsável e elegibilidade em um fluxo auditável.</p></div><button className="master-button secondary" onClick={() => navigate("/dashboard-master")}>Voltar</button></header>
     {message && <div className="master-success">{message}</div>}{error && <div className="master-error" role="alert">{error}</div>}
-
     <section className="master-content-grid">
       <form className="master-panel" onSubmit={submit}>
         <div className="master-section-heading"><div><span className="master-eyebrow">Novo cadastro</span><h2>Onboarding institucional</h2></div></div>
@@ -226,7 +231,6 @@ export default function MasterParticipants() {
       </form>
       <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Consentimento operacional</span><h2>Termo vigente</h2></div></div><label>Versão do termo<input className="master-input" value={consentForm.versao_termo} onChange={(e) => setConsentForm((current) => ({ ...current, versao_termo: e.target.value }))} /></label><label>Finalidade<input className="master-input" value={consentForm.finalidade} onChange={(e) => setConsentForm((current) => ({ ...current, finalidade: e.target.value }))} /></label><p>A situação de coleta e análise é calculada exclusivamente pela regra unificada do backend.</p></article>
     </section>
-
     <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Projeto selecionado</span><h2>Elegibilidade oficial dos participantes</h2></div><strong>{participants.length}</strong></div>
       {!form.projeto_id ? <div className="master-empty">Selecione um projeto para consultar sua composição.</div> : participants.length === 0 ? <div className="master-empty">Nenhum participante canônico registrado neste projeto.</div> : <ul className="master-activity-list">{participants.map((item) => {
         const consent = consentByParticipant[item.participante_id]; const baseline = baselineByParticipant[item.participante_id]; const isAthlete = item.funcao_no_projeto === "atleta"; const state = eligibilityByParticipant[item.participante_id] || { apto_coleta: false, apto_analise: false, pendencias: ["elegibilidade_indisponivel"] }; const pending = formatEligibilityPending(state.pendencias || []); const history = technicianHistory[item.participante_id];
@@ -236,7 +240,6 @@ export default function MasterParticipants() {
         </div><div className="master-toolbar"><b>{state.apto_analise ? "Apto" : state.apto_coleta ? "Só coleta" : item.ativo ? "Bloqueado" : "Inativo"}</b>{isAthlete && (consent?.vigente ? <button className="master-button danger" disabled={consentWorkingId === item.participante_id} onClick={() => revokeParticipantConsent(item, consent)}>Revogar</button> : <button className="master-button" disabled={consentWorkingId === item.participante_id} onClick={() => grantConsent(item)}>Conceder consentimento</button>)}{isAthlete && <button className="master-button secondary" onClick={() => selectBaselineAthlete(item.participante_id)}>{baseline?.vigente ? "Atualizar linha de base" : "Registrar linha de base"}</button>}</div></li>;
       })}</ul>}
     </section>
-
     <form className="master-panel" onSubmit={submitBaseline}><div className="master-section-heading"><div><span className="master-eyebrow">Parâmetros iniciais</span><h2>Linha de base do atleta</h2></div><strong>{baselineForm.participante_id ? "Selecionado" : "Pendente"}</strong></div><select className="master-select" required value={baselineForm.participante_id} onChange={(e) => selectBaselineAthlete(e.target.value)}><option value="">Selecionar atleta</option>{athletes.map((item) => <option key={item.participante_id} value={item.participante_id}>{item.nome}</option>)}</select><div className="master-toolbar"><input className="master-input" list="agp-categorias" required placeholder="Categoria" value={baselineForm.categoria} onChange={(e) => setBaselineForm({ ...baselineForm, categoria: e.target.value })} /><input className="master-input" required type="number" min="1" max="120" step="0.01" placeholder="Idade cronológica" value={baselineForm.idade_cronologica} onChange={(e) => setBaselineForm({ ...baselineForm, idade_cronologica: e.target.value })} /><select className="master-select" required value={baselineForm.sexo_registrado} onChange={(e) => setBaselineForm({ ...baselineForm, sexo_registrado: e.target.value })}><option value="">Sexo registrado</option><option value="masculino">Masculino</option><option value="feminino">Feminino</option><option value="outro">Outro</option></select></div><div className="master-toolbar"><select className="master-select" required value={baselineForm.modalidade} onChange={(e) => setBaselineForm({ ...baselineForm, modalidade: e.target.value })}><option value="">Selecionar modalidade</option>{modalities.map((item) => <option key={item.id} value={item.nome}>{item.nome}</option>)}</select><input className="master-input" list="agp-provas-posicoes" placeholder="Prova ou posição" value={baselineForm.prova_posicao} onChange={(e) => setBaselineForm({ ...baselineForm, prova_posicao: e.target.value })} /><input className="master-input" placeholder="Estágio maturacional" value={baselineForm.estagio_maturacional} onChange={(e) => setBaselineForm({ ...baselineForm, estagio_maturacional: e.target.value })} /></div><div className="master-toolbar"><input className="master-input" required type="number" min="30" max="260" step="0.1" placeholder="Altura (cm)" value={baselineForm.altura_cm} onChange={(e) => setBaselineForm({ ...baselineForm, altura_cm: e.target.value })} /><input className="master-input" required type="number" min="5" max="400" step="0.1" placeholder="Massa (kg)" value={baselineForm.massa_kg} onChange={(e) => setBaselineForm({ ...baselineForm, massa_kg: e.target.value })} /><input className="master-input" type="number" min="30" max="300" step="0.1" placeholder="Envergadura (cm)" value={baselineForm.envergadura_cm} onChange={(e) => setBaselineForm({ ...baselineForm, envergadura_cm: e.target.value })} /></div><div className="master-toolbar"><input className="master-input" required type="date" value={baselineForm.data_referencia} onChange={(e) => setBaselineForm({ ...baselineForm, data_referencia: e.target.value })} /><input className="master-input" required placeholder="Origem dos dados" value={baselineForm.origem} onChange={(e) => setBaselineForm({ ...baselineForm, origem: e.target.value })} /><label><input type="checkbox" checked={baselineForm.validar} onChange={(e) => setBaselineForm({ ...baselineForm, validar: e.target.checked })} /> Validar imediatamente</label></div><textarea className="master-input" rows="3" placeholder="Observações da avaliação inicial" value={baselineForm.observacoes} onChange={(e) => setBaselineForm({ ...baselineForm, observacoes: e.target.value })} /><button className="master-button" disabled={baselineWorking || !baselineForm.participante_id}>{baselineWorking ? "Registrando..." : "Salvar linha de base completa"}</button></form>
   </div></main>;
 }

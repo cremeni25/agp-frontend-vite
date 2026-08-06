@@ -86,10 +86,10 @@ export default function DashboardMaster() {
     {error && <div className="master-error" role="alert">{error}</div>}
 
     <section className="dashboard-section grid master-summary-grid">
-      <article className="card master-metric"><span>Usuários cadastrados</span><strong>{loading ? "…" : summary.total}</strong><small>Contas e perfis de acesso</small></article>
-      <article className="card master-metric"><span>Atletas</span><strong>{loading ? "…" : summary.atleta}</strong><small>Participantes canônicos ativos</small></article>
-      <article className="card master-metric"><span>Comissões técnicas</span><strong>{loading ? "…" : summary.comissao}</strong><small>Profissionais institucionais ativos</small></article>
-      <article className="card master-metric"><span>Clubes e associações</span><strong>{loading ? "…" : summary.clube}</strong><small>Instituições ativas</small></article>
+      <button type="button" className="card master-metric" onClick={() => navigate("/master/usuarios")}><span>Usuários cadastrados</span><strong>{loading ? "…" : summary.total}</strong><small>Consultar contas e perfis de acesso</small></button>
+      <button type="button" className="card master-metric" onClick={() => navigate("/master/participantes")}><span>Atletas</span><strong>{loading ? "…" : summary.atleta}</strong><small>Consultar participantes canônicos ativos</small></button>
+      <button type="button" className="card master-metric" onClick={() => navigate("/dashboard-master/administracao/equipe-tecnica")}><span>Comissões técnicas</span><strong>{loading ? "…" : summary.comissao}</strong><small>Consultar profissionais institucionais ativos</small></button>
+      <button type="button" className="card master-metric" onClick={() => navigate("/dashboard-master/administracao/instituicoes")}><span>Clubes e associações</span><strong>{loading ? "…" : summary.clube}</strong><small>Consultar instituições ativas</small></button>
     </section>
 
     <section className="dashboard-section"><div className="master-section-heading"><div><span className="master-eyebrow">Administração</span><h2>Núcleo Administrativo</h2></div></div><div className="master-action-grid">

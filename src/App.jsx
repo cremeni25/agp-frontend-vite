@@ -23,6 +23,7 @@ import MasterProfiles from "./pages/MasterProfiles";
 import MasterParticipantsHub from "./pages/MasterParticipantsHub";
 import MasterParticipantService from "./pages/MasterParticipantService";
 import MasterAthletes from "./pages/MasterAthletes";
+import MasterAthleteProfile from "./pages/MasterAthleteProfile";
 import MasterTechnicalDirectory from "./pages/MasterTechnicalDirectory";
 import MasterInstitutionsDirectory from "./pages/MasterInstitutionsDirectory";
 import MasterProtocolCatalog from "./pages/MasterProtocolCatalog";
@@ -63,6 +64,7 @@ function App() {
           <Route path="/master/participantes" element={<ProtectedRoute tipoPermitido="master"><MasterParticipantsHub /></ProtectedRoute>} />
           <Route path="/master/participantes/operacao" element={<ProtectedRoute tipoPermitido="master"><MasterParticipantService /></ProtectedRoute>} />
           <Route path="/master/atletas" element={<ProtectedRoute tipoPermitido="master"><MasterAthletes /></ProtectedRoute>} />
+          <Route path="/master/atletas/:participantId" element={<ProtectedRoute tipoPermitido="master"><MasterAthleteProfile /></ProtectedRoute>} />
           <Route path="/master/comissoes-tecnicas" element={<ProtectedRoute tipoPermitido="master"><MasterTechnicalDirectory /></ProtectedRoute>} />
           <Route path="/master/instituicoes" element={<ProtectedRoute tipoPermitido="master"><MasterInstitutionsDirectory /></ProtectedRoute>} />
           <Route path="/master/catalogo-cientifico" element={<ProtectedRoute tipoPermitido="master"><MasterProtocolCatalog /></ProtectedRoute>} />

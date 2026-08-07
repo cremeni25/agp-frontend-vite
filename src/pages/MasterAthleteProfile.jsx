@@ -75,11 +75,12 @@ export default function MasterAthleteProfile() {
   }, [record]);
 
   const pending = formatEligibilityPending(eligibility?.pendencias || []);
+  const eligibilityLabel = eligibility?.apto_analise ? "Apto para análise" : eligibility?.apto_coleta ? "Apto somente para coleta" : "Bloqueado";
   const openService = (service) => navigate(`/master/participantes/operacao?${contextQuery}&servico=${service}`);
 
   return <main className="dashboard-master"><div className="dashboard-overlay master-page">
     <header className="dashboard-header master-header">
-      <div><span className="master-eyebrow">Ficha individual</span><h1>{record?.person?.nome || "Atleta"}</h1><p>Cadastro, vínculos e situação operacional deste atleta.</p></div>
+      <div><span className="master-eyebrow">Ficha individual</span><h1>{record?.person?.nome || "Atleta"}</h1><p>Identificação, contexto esportivo e operações deste atleta.</p></div>
       <div className="master-header-actions"><button className="master-button secondary" onClick={() => navigate("/master/atletas")}>Voltar para atletas</button><button className="master-button secondary" onClick={() => navigate("/master/participantes")}>Central de Participantes</button><button className="master-button" onClick={load}>Atualizar</button></div>
     </header>
 
@@ -92,23 +93,14 @@ export default function MasterAthleteProfile() {
       </section>
 
       <section className="master-panel">
-        <div className="master-section-heading"><div><span className="master-eyebrow">Situação do atleta</span><h2>Resumo operacional</h2></div><strong>{eligibility?.apto_analise ? "Apto" : eligibility?.apto_coleta ? "Só coleta" : "Bloqueado"}</strong></div>
-        <div className="master-content-grid">
-          <article className="master-panel"><span className="master-eyebrow">Técnico responsável</span><h2>{record.technician?.nome || "Não definido"}</h2><p>{record.technician?.email_contato || "Sem técnico vinculado"}</p></article>
-          <article className="master-panel"><span className="master-eyebrow">Consentimento</span><h2>{consent ? "Vigente" : "Pendente"}</h2><p>{consent ? `Versão ${consent.versao_termo || "registrada"}` : "Nenhum consentimento vigente"}</p></article>
-          <article className="master-panel"><span className="master-eyebrow">Linha de base</span><h2>{baseline ? "Registrada" : "Pendente"}</h2><p>{baseline ? `Completude ${baseline.completude ?? "registrada"}%` : "Linha de base ainda não registrada"}</p></article>
-        </div>
-        {pending.length > 0 && <div className="master-feedback error" style={{ marginTop: 16 }}>Pendências: {pending.join(" · ")}</div>}
-      </section>
-
-      <section className="master-panel">
-        <div className="master-section-heading"><div><span className="master-eyebrow">Operações deste atleta</span><h2>O que deseja consultar ou alterar?</h2></div></div>
+        <div className="master-section-heading"><div><span className="master-eyebrow">Operações deste atleta</span><h2>Consultar ou alterar</h2></div></div>
         <div className="master-action-grid">
-          <button className="master-action-card" onClick={() => openService("tecnico")}><strong>Técnico responsável</strong><span>Consultar vínculo atual, alterar técnico e ver histórico.</span></button>
-          <button className="master-action-card" onClick={() => openService("consentimento")}><strong>Consentimentos</strong><span>Consultar, conceder ou revogar consentimento.</span></button>
-          <button className="master-action-card" onClick={() => openService("linha-base")}><strong>Linha de base</strong><span>Consultar ou atualizar os parâmetros iniciais.</span></button>
-          <button className="master-action-card" onClick={() => openService("elegibilidade")}><strong>Elegibilidade</strong><span>Consultar bloqueios, coleta e análise.</span></button>
+          <button className="master-action-card" onClick={() => openService("tecnico")}><strong>Técnico responsável</strong><span>Atual: {record.technician?.nome || "não definido"}. Consultar vínculo, alterar técnico e ver histórico.</span></button>
+          <button className="master-action-card" onClick={() => openService("consentimento")}><strong>Consentimentos</strong><span>Status: {consent ? "vigente" : "pendente"}. Consultar, conceder ou revogar consentimento.</span></button>
+          <button className="master-action-card" onClick={() => openService("linha-base")}><strong>Linha de base</strong><span>Status: {baseline ? "registrada" : "pendente"}. Consultar ou atualizar os parâmetros iniciais.</span></button>
+          <button className="master-action-card" onClick={() => openService("elegibilidade")}><strong>Elegibilidade</strong><span>Status: {eligibilityLabel}. Consultar bloqueios, coleta e análise.</span></button>
         </div>
+        {pending.length > 0 && <div className="master-feedback error" style={{ marginTop: 16 }}>Pendências atuais: {pending.join(" · ")}</div>}
       </section>
     </>}
   </div></main>;

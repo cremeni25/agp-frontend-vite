@@ -435,6 +435,56 @@
   color: #ffd5dc;
 }
 
+.master-state-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0 22px;
+}
+
+.master-state-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(90, 153, 212, 0.35);
+  background: rgba(9, 25, 49, 0.72);
+}
+
+.master-state-card h3 {
+  margin: 5px 0 7px;
+  color: #f3f8ff;
+  font-size: 1rem;
+}
+
+.master-state-card p {
+  color: #9fb4ca;
+  line-height: 1.45;
+}
+
+.master-segmented-control {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.master-segmented-control button {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #53698f;
+  background: rgba(35, 46, 78, 0.72);
+  color: #c6d5e5;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.master-segmented-control button.active {
+  border-color: #4aa8ed;
+  background: #164c75;
+  color: #f5fbff;
+  box-shadow: 0 0 0 2px rgba(74, 168, 237, 0.12);
+}
+
 @media (max-width: 1050px) {
   .master-split {
     grid-template-columns: 1fr;
@@ -453,7 +503,8 @@
 
   .master-toolbar,
   .master-form-grid,
-  .master-list-row {
+  .master-list-row,
+  .master-state-grid {
     grid-template-columns: 1fr;
   }
 

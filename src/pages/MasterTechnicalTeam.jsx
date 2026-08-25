@@ -65,9 +65,9 @@ export default function MasterTechnicalTeam() {
   useEffect(() => { load(); }, []);
 
   function change(event) {
-    const { name, value, type, checked } = event.target;
+    const { name, value } = event.target;
     setForm((current) => {
-      const next = { ...current, [name]: type === "checkbox" ? checked : value };
+      const next = { ...current, [name]: value };
       if (name === "instituicao_id" && !editingId) {
         next.auth_id = "";
         next.nome = "";
@@ -75,6 +75,12 @@ export default function MasterTechnicalTeam() {
       }
       return next;
     });
+    setError("");
+    setMessage("");
+  }
+
+  function setBooleanField(name, value) {
+    setForm((current) => ({ ...current, [name]: value }));
     setError("");
     setMessage("");
   }
@@ -165,8 +171,25 @@ export default function MasterTechnicalTeam() {
         <label>Nome<input name="nome" value={form.nome} onChange={change} required /></label>
         <label>E-mail<input type="email" name="email" value={form.email} onChange={change} placeholder="Opcional" /></label>
         <label>Papel<select name="papel" value={form.papel} onChange={change}>{Object.entries(ROLE_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-        <label className="master-checkbox"><input type="checkbox" name="acesso_total_tecnico" checked={form.acesso_total_tecnico} onChange={change} />Acesso técnico total</label>
-        <label className="master-checkbox"><input type="checkbox" name="ativo" checked={form.ativo} onChange={change} />Vínculo ativo</label>
+
+        <div className="master-state-grid">
+          <section className="master-state-card">
+            <div><span className="master-eyebrow">Permissão</span><h3>Acesso técnico total</h3><p>Permite acesso técnico ampliado aos dados autorizados da instituição.</p></div>
+            <div className="master-segmented-control" role="group" aria-label="Acesso técnico total">
+              <button type="button" className={!form.acesso_total_tecnico ? "active" : ""} onClick={() => setBooleanField("acesso_total_tecnico", false)}>Desativado</button>
+              <button type="button" className={form.acesso_total_tecnico ? "active" : ""} onClick={() => setBooleanField("acesso_total_tecnico", true)}>Ativado</button>
+            </div>
+          </section>
+
+          <section className="master-state-card">
+            <div><span className="master-eyebrow">Situação</span><h3>Vínculo profissional</h3><p>Define se o profissional está disponível para novas operações na instituição.</p></div>
+            <div className="master-segmented-control" role="group" aria-label="Vínculo profissional">
+              <button type="button" className={!form.ativo ? "active" : ""} onClick={() => setBooleanField("ativo", false)}>Inativo</button>
+              <button type="button" className={form.ativo ? "active" : ""} onClick={() => setBooleanField("ativo", true)}>Ativo</button>
+            </div>
+          </section>
+        </div>
+
         <div className="master-row-actions"><button className="master-button" disabled={createDisabled}>{saving ? "Salvando..." : editingId ? "Salvar alterações" : "Vincular profissional"}</button>{editingId && <button type="button" className="master-button secondary" onClick={reset}>Cancelar</button>}</div>
       </form>
       <div className="master-panel"><div className="master-panel-title"><div><span className="master-eyebrow">Base técnica</span><h2>Profissionais vinculados</h2></div><strong>{members.length}</strong></div>

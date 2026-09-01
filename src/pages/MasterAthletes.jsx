@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { listProjectEligibility } from "../services/eligibilityManagement";
 import "../styles/dashboard-master.css";
 
 export default function MasterAthletes() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const technicianId = params.get("tecnico") || "";
+  const technicianName = params.get("tecnico_nome") || "";
+  const contextual = Boolean(technicianId);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -49,16 +53,23 @@ export default function MasterAthletes() {
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return rows;
-    return rows.filter((item) => [item.person.nome, item.person.email_contato, item.project.nome, item.institution.nome, item.profile.modalidade, item.profile.categoria].some((value) => String(value || "").toLowerCase().includes(term)));
-  }, [rows, search]);
+    return rows.filter((item) => {
+      if (technicianId && String(item.tecnico_responsavel_pessoa_id || "") !== String(technicianId)) return false;
+      if (!term) return true;
+      return [item.person.nome, item.person.email_contato, item.project.nome, item.institution.nome, item.profile.modalidade, item.profile.categoria].some((value) => String(value || "").toLowerCase().includes(term));
+    });
+  }, [rows, search, technicianId]);
+
+  const pageTitle = contextual ? `Atletas de ${technicianName || "técnico selecionado"}` : "Atletas";
+  const pageDescription = contextual ? "Consulta exclusiva dos atletas atualmente vinculados a este técnico." : "Consulta global dos participantes canônicos ativos e seus vínculos institucionais.";
 
   return <main className="dashboard-master"><div className="dashboard-overlay master-page">
-    <header className="dashboard-header master-header"><div><span className="master-eyebrow">Operação</span><h1>Atletas</h1><p>Consulta global dos participantes canônicos ativos e seus vínculos institucionais.</p></div><div className="master-header-actions"><button className="master-button secondary" onClick={() => navigate("/dashboard-master")}>Voltar</button><button className="master-button secondary" onClick={() => navigate("/master/participantes")}>Central de Participantes</button><button className="master-button" onClick={load}>Atualizar</button></div></header>
+    <header className="dashboard-header master-header"><div><span className="master-eyebrow">Operação</span><h1>{pageTitle}</h1><p>{pageDescription}</p></div><div className="master-header-actions"><button className="master-button secondary" onClick={() => navigate(contextual ? "/master/comissoes-tecnicas" : "/dashboard-master")}>{contextual ? "Voltar para comissões" : "Voltar"}</button><button className="master-button secondary" onClick={() => navigate("/master/participantes")}>Central de Participantes</button>{contextual && <button className="master-button secondary" onClick={() => navigate("/master/atletas")}>Ver todos os atletas</button>}<button className="master-button" onClick={load}>Atualizar</button></div></header>
+    {contextual && <div className="master-feedback success">Filtro ativo: exibindo somente atletas vinculados a {technicianName || "este técnico"}.</div>}
     {error && <div className="master-error" role="alert">{error}</div>}
-    <section className="master-panel"><input className="master-input" placeholder="Buscar por atleta, instituição, projeto, modalidade ou categoria" value={search} onChange={(event) => setSearch(event.target.value)} /></section>
-    <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Base canônica</span><h2>Atletas cadastrados</h2></div><strong>{filtered.length}</strong></div>
-      {loading ? <div className="master-empty">Carregando atletas...</div> : filtered.length === 0 ? <div className="master-empty">Nenhum atleta encontrado.</div> : <ul className="master-activity-list">{filtered.map((item) => <li key={item.id}><div><strong>{item.person.nome || "Nome não informado"}</strong><span>{item.institution.nome || "Instituição não identificada"} · {item.project.nome || "Projeto não identificado"}</span><small>{item.profile.modalidade || "Modalidade não informada"}{item.profile.prova_posicao ? ` · ${item.profile.prova_posicao}` : ""}{item.profile.categoria ? ` · ${item.profile.categoria}` : ""} · {item.ativo ? "Ativo" : "Inativo"}</small></div><div className="master-row-actions"><b>{item.status_onboarding || "rascunho"}</b><button className="master-button secondary" onClick={() => navigate(`/master/atletas/${item.id}`)}>Abrir ficha</button></div></li>)}</ul>}
+    <section className="master-panel"><input className="master-input" placeholder={contextual ? "Buscar dentro dos atletas deste técnico" : "Buscar por atleta, instituição, projeto, modalidade ou categoria"} value={search} onChange={(event) => setSearch(event.target.value)} /></section>
+    <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">{contextual ? "Vínculo técnico" : "Base canônica"}</span><h2>{contextual ? "Atletas vinculados" : "Atletas cadastrados"}</h2></div><strong>{filtered.length}</strong></div>
+      {loading ? <div className="master-empty">Carregando atletas...</div> : filtered.length === 0 ? <div className="master-empty">{contextual ? "Nenhum atleta está atualmente vinculado a este técnico." : "Nenhum atleta encontrado."}</div> : <ul className="master-activity-list">{filtered.map((item) => <li key={item.id}><div><strong>{item.person.nome || "Nome não informado"}</strong><span>{item.institution.nome || "Instituição não identificada"} · {item.project.nome || "Projeto não identificado"}</span><small>{item.profile.modalidade || "Modalidade não informada"}{item.profile.prova_posicao ? ` · ${item.profile.prova_posicao}` : ""}{item.profile.categoria ? ` · ${item.profile.categoria}` : ""} · {item.ativo ? "Ativo" : "Inativo"}</small></div><div className="master-row-actions"><b>{item.status_onboarding || "rascunho"}</b><button className="master-button secondary" onClick={() => navigate(`/master/atletas/${item.id}`)}>Abrir ficha</button></div></li>)}</ul>}
     </section>
   </div></main>;
 }

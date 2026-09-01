@@ -86,6 +86,12 @@ export default function MasterTechnicalTeam() {
     setError("");
   }
 
+  function setBoolean(name, value) {
+    setForm((current) => ({ ...current, [name]: value === "true" }));
+    setError("");
+    setMessage("");
+  }
+
   function reset() {
     setEditingId(null);
     setForm((current) => ({ ...EMPTY, instituicao_id: current.instituicao_id || institutions[0]?.id || "" }));
@@ -165,8 +171,18 @@ export default function MasterTechnicalTeam() {
         <label>Nome<input name="nome" value={form.nome} onChange={change} required /></label>
         <label>E-mail<input type="email" name="email" value={form.email} onChange={change} placeholder="Opcional" /></label>
         <label>Papel<select name="papel" value={form.papel} onChange={change}>{Object.entries(ROLE_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-        <label className="master-checkbox"><input type="checkbox" name="acesso_total_tecnico" checked={form.acesso_total_tecnico} onChange={change} />Acesso técnico total</label>
-        <label className="master-checkbox"><input type="checkbox" name="ativo" checked={form.ativo} onChange={change} />Vínculo ativo</label>
+        <label>Acesso técnico total
+          <select value={String(form.acesso_total_tecnico)} onChange={(event) => setBoolean("acesso_total_tecnico", event.target.value)}>
+            <option value="false">Desativado — acesso restrito ao escopo técnico atribuído</option>
+            <option value="true">Ativado — acesso técnico ampliado na instituição</option>
+          </select>
+        </label>
+        <label>Vínculo profissional
+          <select value={String(form.ativo)} onChange={(event) => setBoolean("ativo", event.target.value)}>
+            <option value="true">Ativo — disponível para novas operações</option>
+            <option value="false">Inativo — preservado no histórico, indisponível para novas operações</option>
+          </select>
+        </label>
         <div className="master-row-actions"><button className="master-button" disabled={createDisabled}>{saving ? "Salvando..." : editingId ? "Salvar alterações" : "Vincular profissional"}</button>{editingId && <button type="button" className="master-button secondary" onClick={reset}>Cancelar</button>}</div>
       </form>
       <div className="master-panel"><div className="master-panel-title"><div><span className="master-eyebrow">Base técnica</span><h2>Profissionais vinculados</h2></div><strong>{members.length}</strong></div>

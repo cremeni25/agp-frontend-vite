@@ -1,0 +1,217 @@
+.athlete-cockpit-page {
+  display: grid;
+  gap: 20px;
+}
+
+.athlete-cockpit-header {
+  margin-bottom: 0;
+}
+
+.athlete-intelligence-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(250px, 0.5fr);
+  gap: 22px;
+  align-items: center;
+  padding: 28px;
+  border: 1px solid rgba(69, 151, 222, 0.52);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(13, 48, 82, 0.94), rgba(22, 18, 57, 0.94));
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.24);
+}
+
+.athlete-intelligence-hero h2 {
+  margin: 8px 0 10px;
+  font-size: clamp(1.45rem, 3vw, 2.25rem);
+}
+
+.athlete-intelligence-hero p {
+  margin: 0;
+  color: #b9cadd;
+  line-height: 1.55;
+  max-width: 820px;
+}
+
+.athlete-pending-line {
+  margin-top: 16px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  border: 1px solid rgba(248, 113, 113, 0.42);
+  background: rgba(115, 31, 47, 0.28);
+  color: #ffd5dc;
+  font-size: 0.92rem;
+}
+
+.athlete-next-action {
+  display: grid;
+  gap: 10px;
+  align-content: center;
+}
+
+.athlete-next-action > span {
+  color: #8ad8ff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.athlete-next-action .master-button {
+  min-height: 54px;
+  font-size: 1rem;
+}
+
+.athlete-journey {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.athlete-stage {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 11px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(102, 126, 160, 0.32);
+  background: rgba(15, 25, 52, 0.74);
+}
+
+.athlete-stage > span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(75, 104, 148, 0.32);
+  color: #b8c9db;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.athlete-stage.done {
+  border-color: rgba(66, 211, 155, 0.42);
+  background: rgba(17, 77, 62, 0.24);
+}
+
+.athlete-stage.done > span {
+  background: rgba(37, 150, 108, 0.34);
+  color: #b8f3dd;
+}
+
+.athlete-stage strong,
+.athlete-stage small {
+  display: block;
+}
+
+.athlete-stage small {
+  margin-top: 4px;
+  color: #91a9bf;
+  line-height: 1.35;
+}
+
+.athlete-360-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.athlete-360-card {
+  min-width: 0;
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(121, 104, 255, 0.28);
+  background: rgba(20, 20, 53, 0.82);
+}
+
+.athlete-360-card h3 {
+  margin: 8px 0 12px;
+  font-size: 1.2rem;
+  overflow-wrap: anywhere;
+}
+
+.athlete-360-card p {
+  margin: 6px 0;
+  color: #a9bdd2;
+  line-height: 1.42;
+}
+
+.athlete-360-card small {
+  display: block;
+  margin-top: 14px;
+  color: #d0dceb;
+}
+
+.athlete-decision-panel {
+  border-color: rgba(69, 151, 222, 0.35);
+}
+
+.athlete-decision-content,
+.athlete-empty-intelligence {
+  padding: 18px;
+  border-radius: 12px;
+  background: rgba(6, 16, 37, 0.65);
+  border: 1px solid rgba(108, 151, 196, 0.22);
+}
+
+.athlete-decision-content strong,
+.athlete-empty-intelligence strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1.04rem;
+}
+
+.athlete-decision-content p,
+.athlete-empty-intelligence p {
+  margin: 0;
+  line-height: 1.55;
+  color: #9fb4ca;
+}
+
+.athlete-admin-details summary {
+  cursor: pointer;
+  font-weight: 800;
+  color: #eaf6ff;
+}
+
+.athlete-admin-details > p {
+  margin: 14px 0 !important;
+}
+
+.athlete-admin-actions {
+  justify-content: flex-start;
+}
+
+@media (max-width: 1100px) {
+  .athlete-journey {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .athlete-360-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .athlete-cockpit-page {
+    gap: 14px;
+  }
+
+  .athlete-intelligence-hero {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+
+  .athlete-journey,
+  .athlete-360-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .athlete-stage {
+    grid-template-columns: auto 1fr;
+  }
+
+  .athlete-next-action .master-button,
+  .athlete-admin-actions .master-button {
+    width: 100%;
+  }
+}

@@ -1,0 +1,109 @@
+.daily-operation-page {
+  padding-bottom: 48px;
+}
+
+.daily-status-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.daily-status-strip article,
+.daily-guidance {
+  background: rgba(15, 27, 56, 0.94);
+  border: 1px solid rgba(87, 176, 255, 0.26);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.daily-status-strip span,
+.daily-status-strip small {
+  display: block;
+  color: #9fb4ca;
+}
+
+.daily-status-strip strong {
+  display: block;
+  margin: 8px 0;
+  font-size: 1.8rem;
+}
+
+.daily-guidance {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.55fr);
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.daily-guidance h2 {
+  margin: 6px 0 8px;
+}
+
+.daily-guidance p {
+  margin: 0;
+  color: #a9bdd2;
+  line-height: 1.5;
+}
+
+.daily-guidance > strong {
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(37, 89, 136, 0.32);
+  color: #dff2ff;
+  line-height: 1.45;
+}
+
+.daily-flow-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.65fr) minmax(0, 1.35fr);
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 20px;
+}
+
+.daily-step-card p {
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.daily-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.daily-session-form textarea,
+.daily-session-form input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .daily-status-strip,
+  .daily-guidance,
+  .daily-flow-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .daily-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-status-strip {
+    gap: 10px;
+  }
+
+  .daily-status-strip article,
+  .daily-guidance {
+    padding: 15px;
+  }
+
+  .daily-session-form .master-button,
+  .daily-step-card .master-button {
+    width: 100%;
+  }
+}

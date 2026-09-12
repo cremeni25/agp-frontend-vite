@@ -98,10 +98,14 @@ export default function MasterAthleteProfile() {
   const latestScore = data?.jornada?.aplicacao?.score_atual || null;
   const pending = eligibility?.pendencias || [];
   const coverage = individual?.cobertura || {};
-  const readiness = individual?.prontidao_individual || {};
-  const practical = individual?.devolucao_pratica || {};
+  const readiness = individual?.prontidao_individual || individual?.prontidao || {};
+  const practical = individual?.devolucao_pratica || individual?.devolucao || {};
   const signals = readiness?.sinais || [];
-  const missing = individual?.dados_ausentes_relevantes || [];
+  const missing = individual?.dados_ausentes_relevantes || [
+    ...((readiness?.amostras || 0) === 0 ? ["prontidão validada"] : []),
+    ...((coverage?.sessoes_treino_disponiveis || 0) === 0 ? ["sessões de treino"] : []),
+    ...(!coverage?.resultado_profissional_validado ? ["resultado profissional validado"] : [])
+  ];
 
   return <main className="dashboard-master"><div className="dashboard-overlay master-page athlete-cockpit-page">
     <header className="dashboard-header master-header athlete-cockpit-header">
@@ -111,6 +115,7 @@ export default function MasterAthleteProfile() {
         <p>O atleta no centro: contexto, evidência, inteligência e próxima decisão operacional.</p>
       </div>
       <div className="master-header-actions">
+        <button className="master-button" onClick={() => navigate(`/master/atletas/${participantId}/dia`)}>Operação do dia</button>
         <button className="master-button secondary" onClick={() => navigate("/master/atletas")}>Atletas</button>
         <button className="master-button secondary" onClick={load}>Atualizar</button>
       </div>
@@ -140,7 +145,7 @@ export default function MasterAthleteProfile() {
 
       <section className="master-panel">
         <div className="master-section-heading">
-          <div><span className="master-eyebrow">AGP Individual Intelligence v3</span><h2>Leitura longitudinal individual</h2></div>
+          <div><span className="master-eyebrow">AGP Individual Intelligence v4</span><h2>Leitura longitudinal individual</h2></div>
           <strong>{coverage.confianca_geral ?? 0}%</strong>
         </div>
         <div className="athlete-360-grid">
@@ -165,7 +170,7 @@ export default function MasterAthleteProfile() {
           <article className="athlete-360-card">
             <span className="master-eyebrow">O que ainda falta</span>
             <h3>{missing.length ? `${missing.length} fonte(s)` : "Cobertura suficiente"}</h3>
-            <p>{missing.length ? missing.map((item) => item.replaceAll("_", " ")).join(" · ") : "Nenhuma lacuna crítica identificada."}</p>
+            <p>{missing.length ? missing.join(" · ") : "Nenhuma lacuna crítica identificada."}</p>
             <small>Sem preenchimento por dados simulados</small>
           </article>
         </div>
@@ -195,7 +200,7 @@ export default function MasterAthleteProfile() {
           <span className="master-eyebrow">Evidência real</span>
           <h3>{data.jornada?.coleta?.total || 0} coleta(s)</h3>
           <p>{data.jornada?.coleta?.validadas || 0} validada(s) para uso analítico</p>
-          <p>{data.jornada?.coleta?.ultima?.instrumento_nome || "Nenhuma evidência coletada ainda"}</p>
+          <p>{coverage.sessoes_treino_disponiveis || 0} sessão(ões) de treino integrada(s)</p>
           <small>{data.jornada?.coleta?.elegivel ? "Elegível para coleta" : "Coleta bloqueada no momento"}</small>
         </article>
 
@@ -209,9 +214,7 @@ export default function MasterAthleteProfile() {
       </section>
 
       <section className="master-panel athlete-decision-panel">
-        <div className="master-section-heading">
-          <div><span className="master-eyebrow">Devolução aplicada</span><h2>O que o AGP devolve ao atleta</h2></div>
-        </div>
+        <div className="master-section-heading"><div><span className="master-eyebrow">Devolução aplicada</span><h2>O que o AGP devolve ao atleta</h2></div></div>
         {latestResult?.status === "validado" ? <div className="athlete-decision-content">
           <strong>{latestResult.parecer_tecnico || latestResult.explicacao || "Resultado validado disponível."}</strong>
           <p>{latestResult.limitacoes || "Sem limitações adicionais registradas."}</p>

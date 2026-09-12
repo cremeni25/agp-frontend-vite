@@ -6,22 +6,24 @@ import "../styles/athlete-readiness.css";
 
 const INITIAL_FORM = {
   sono_horas: "",
-  sono_qualidade: "",
+  qualidade_sono: "",
   fadiga: "",
   dor: "",
   estresse: "",
   humor: "",
-  esforco_percebido: "",
-  observacoes: ""
+  rpe_ultima_sessao: "",
+  observacao: ""
 };
 
-const REQUIRED_FIELDS = ["sono_horas", "sono_qualidade", "fadiga", "dor", "estresse", "humor", "esforco_percebido"];
+const REQUIRED_FIELDS = ["sono_horas", "qualidade_sono", "fadiga", "dor", "estresse", "humor", "rpe_ultima_sessao"];
 
 export default function AthleteDailyReadiness() {
   const navigate = useNavigate();
   const { session, perfil } = useAuth();
   const [form, setForm] = useState(INITIAL_FORM);
   const [instrument, setInstrument] = useState(null);
+  const [activation, setActivation] = useState(null);
+  const [participant, setParticipant] = useState(null);
   const [projectId, setProjectId] = useState(null);
   const [consent, setConsent] = useState(null);
   const [history, setHistory] = useState([]);
@@ -40,7 +42,7 @@ export default function AthleteDailyReadiness() {
 
   const adherence = useMemo(() => {
     const uniqueDays = new Set(history.map((item) => new Date(item.data_hora_coleta).toISOString().slice(0, 10)));
-    return Math.round((uniqueDays.size / 7) * 100);
+    return Math.min(100, Math.round((uniqueDays.size / 7) * 100));
   }, [history]);
 
   useEffect(() => {
@@ -50,44 +52,64 @@ export default function AthleteDailyReadiness() {
 
       const { data: instrumentData, error: instrumentError } = await supabase
         .from("agp_instrumentos")
-        .select("id,nome,versao,protocolo_id")
+        .select("id,nome,versao,protocolo_id,schema_campos,regra_completude,status_catalogo")
         .eq("nome", "Questionário Diário de Prontidão AGP")
         .eq("ativo", true)
+        .eq("status_catalogo", "aprovado")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (instrumentError) {
-        setError("Núcleo de evidências ainda não está disponível no banco do AGP.");
+      if (instrumentError || !instrumentData) {
+        setError("Instrumento de prontidão diária ainda não está disponível no núcleo científico do AGP.");
         setLoading(false);
         return;
       }
       setInstrument(instrumentData);
 
-      const { data: linkData, error: linkError } = await supabase
-        .from("agp_atletas_projeto")
-        .select("projeto_id")
-        .eq("atleta_id", athleteId)
-        .eq("status", "ativo")
+      const { data: participantData, error: participantError } = await supabase
+        .from("agp_participantes_projeto")
+        .select("id,pessoa_id,projeto_id,legacy_perfil_atleta_id,status_onboarding,ativo")
+        .eq("legacy_perfil_atleta_id", athleteId)
+        .eq("funcao_no_projeto", "atleta")
+        .eq("ativo", true)
         .limit(1)
         .maybeSingle();
 
-      if (linkError || !linkData?.projeto_id) {
+      if (participantError || !participantData?.projeto_id) {
+        setParticipant(null);
         setProjectId(null);
-        setConsent(null);
-        setError("Atleta ainda não está vinculado a um projeto ativo de monitoramento.");
+        setError("Atleta ainda não possui vínculo canônico ativo em um projeto do AGP.");
         setLoading(false);
         return;
       }
 
-      const currentProjectId = linkData.projeto_id;
-      setProjectId(currentProjectId);
+      setParticipant(participantData);
+      setProjectId(participantData.projeto_id);
+
+      const { data: activationData, error: activationError } = await supabase
+        .from("agp_ativacoes_instrumentos")
+        .select("id,instrumento_id,projeto_id,versao_configuracao,data_inicio,data_fim,ativo,aprovado_em")
+        .eq("instrumento_id", instrumentData.id)
+        .eq("projeto_id", participantData.projeto_id)
+        .eq("ativo", true)
+        .not("aprovado_em", "is", null)
+        .limit(1)
+        .maybeSingle();
+
+      if (activationError || !activationData) {
+        setActivation(null);
+        setError("O instrumento existe, mas não está ativado para o projeto atual deste atleta.");
+        setLoading(false);
+        return;
+      }
+      setActivation(activationData);
 
       const { data: consentData, error: consentError } = await supabase
         .from("agp_consentimentos")
         .select("id,finalidade,versao_termo,concedido_em,revogado_em")
         .eq("atleta_id", athleteId)
-        .eq("projeto_id", currentProjectId)
+        .eq("projeto_id", participantData.projeto_id)
         .eq("finalidade", "monitoramento_esportivo")
         .is("revogado_em", null)
         .order("concedido_em", { ascending: false })
@@ -109,8 +131,8 @@ export default function AthleteDailyReadiness() {
       const { data: historyData, error: historyError } = await supabase
         .from("agp_coletas")
         .select("id,data_hora_coleta,status,completude,confiabilidade,dados")
-        .eq("atleta_id", athleteId)
-        .eq("instrumento_id", instrumentData?.id)
+        .eq("participante_id", participantData.id)
+        .eq("instrumento_id", instrumentData.id)
         .gte("data_hora_coleta", from.toISOString())
         .order("data_hora_coleta", { ascending: false });
 
@@ -133,8 +155,8 @@ export default function AthleteDailyReadiness() {
       setError("Coleta bloqueada: não existe consentimento vigente para monitoramento esportivo.");
       return;
     }
-    if (!athleteId || !instrument || !projectId) {
-      setError("Perfil, projeto ou instrumento de coleta indisponível.");
+    if (!athleteId || !instrument || !activation || !participant || !projectId) {
+      setError("Perfil, participante, projeto ou instrumento de coleta indisponível.");
       return;
     }
     if (completion < 100) {
@@ -146,41 +168,51 @@ export default function AthleteDailyReadiness() {
     const now = new Date().toISOString();
     const payload = {
       sono_horas: Number(form.sono_horas),
-      sono_qualidade: Number(form.sono_qualidade),
+      qualidade_sono: Number(form.qualidade_sono),
       fadiga: Number(form.fadiga),
       dor: Number(form.dor),
       estresse: Number(form.estresse),
       humor: Number(form.humor),
-      esforco_percebido: Number(form.esforco_percebido),
-      observacoes: form.observacoes.trim() || null
+      rpe_ultima_sessao: Number(form.rpe_ultima_sessao),
+      observacao: form.observacao.trim() || null
     };
 
     const { data, error: insertError } = await supabase
       .from("agp_coletas")
       .insert({
+        participante_id: participant.id,
         atleta_id: athleteId,
         projeto_id: projectId,
         instrumento_id: instrument.id,
         protocolo_id: instrument.protocolo_id,
+        ativacao_instrumento_id: activation.id,
+        versao_instrumento: instrument.versao,
+        versao_schema: activation.versao_configuracao || instrument.versao || "1.0.0",
         coletado_por_auth_id: session?.user?.id,
         papel_coletor: "atleta",
         data_hora_coleta: now,
+        iniciado_em: now,
+        submetido_em: now,
         origem: "autodeclarado",
         status: "completa",
-        completude: 100,
-        confiabilidade: null,
         dados: payload
       })
       .select("id,data_hora_coleta,status,completude,confiabilidade,dados")
       .single();
 
     if (insertError) {
-      const blocked = String(insertError.message || "").includes("CONSENTIMENTO_OBRIGATORIO");
-      setError(blocked ? "Coleta bloqueada pelo banco: o consentimento não está vigente." : `Não foi possível registrar a resposta: ${insertError.message}`);
+      const text = String(insertError.message || "");
+      const consentBlocked = text.includes("CONSENTIMENTO") || text.includes("consentimento");
+      const eligibilityBlocked = text.includes("ELEGIBILIDADE_COLETA_NEGADA");
+      setError(consentBlocked
+        ? "Coleta bloqueada pelo AGP: o consentimento não está vigente."
+        : eligibilityBlocked
+          ? "Coleta bloqueada pelo AGP: existe uma pendência operacional na elegibilidade deste atleta."
+          : `Não foi possível registrar a resposta: ${text}`);
     } else {
       setHistory((current) => [data, ...current]);
       setForm(INITIAL_FORM);
-      setMessage("Resposta diária registrada com origem, horário, instrumento, versão e consentimento vigente.");
+      setMessage("Resposta diária registrada. Ela entra como evidência completa e aguarda validação antes de alimentar resultados finais do motor.");
     }
     setSaving(false);
   }
@@ -190,7 +222,7 @@ export default function AthleteDailyReadiness() {
   return (
     <main className="readiness-page"><div className="readiness-shell">
       <header className="readiness-header">
-        <div><span>Coleta longitudinal</span><h1>Prontidão diária</h1><p>{perfil?.nome || "Atleta"} · resposta autodeclarada e auditável</p></div>
+        <div><span>Inteligência longitudinal individual</span><h1>Como você está hoje?</h1><p>{perfil?.nome || "Atleta"} · menos de dois minutos para alimentar sua própria linha de evolução</p></div>
         <button type="button" onClick={() => navigate("/dashboard-atleta")}>Voltar</button>
       </header>
 
@@ -204,36 +236,32 @@ export default function AthleteDailyReadiness() {
       </section>
 
       {!consentActive ? (
-        <section className="readiness-form">
-          <div className="readiness-error">
-            <strong>Questionário indisponível.</strong><br />
-            O consentimento para tratamento de dados esportivos e monitoramento longitudinal ainda não está vigente ou foi revogado. Procure a instituição responsável para regularização.
-          </div>
-        </section>
+        <section className="readiness-form"><div className="readiness-error"><strong>Questionário indisponível.</strong><br />O consentimento para monitoramento longitudinal ainda não está vigente ou foi revogado.</div></section>
       ) : (
         <form className="readiness-form" onSubmit={submit}>
-          <section><h2>Recuperação e percepção</h2><div className="readiness-grid">
+          <section><h2>Recuperação, corpo e contexto</h2><div className="readiness-grid">
             <label>Horas de sono<input type="number" min="0" max="16" step="0.1" value={form.sono_horas} onChange={(e) => updateField("sono_horas", e.target.value)} required /></label>
-            <ScaleField label="Qualidade do sono" value={form.sono_qualidade} onChange={(value) => updateField("sono_qualidade", value)} />
-            <ScaleField label="Fadiga" value={form.fadiga} onChange={(value) => updateField("fadiga", value)} />
-            <ScaleField label="Dor" value={form.dor} onChange={(value) => updateField("dor", value)} />
-            <ScaleField label="Estresse" value={form.estresse} onChange={(value) => updateField("estresse", value)} />
-            <ScaleField label="Humor" value={form.humor} onChange={(value) => updateField("humor", value)} />
-            <ScaleField label="Esforço percebido" value={form.esforco_percebido} onChange={(value) => updateField("esforco_percebido", value)} />
-            <label className="readiness-notes">Observações<textarea rows="4" value={form.observacoes} onChange={(e) => updateField("observacoes", e.target.value)} placeholder="Dor localizada, mudança de rotina, competição, medicação informada à equipe ou outro contexto relevante." /></label>
+            <ScaleField label="Qualidade do sono" min={1} max={5} value={form.qualidade_sono} onChange={(value) => updateField("qualidade_sono", value)} />
+            <ScaleField label="Fadiga" min={1} max={5} value={form.fadiga} onChange={(value) => updateField("fadiga", value)} />
+            <ScaleField label="Dor" min={0} max={10} value={form.dor} onChange={(value) => updateField("dor", value)} />
+            <ScaleField label="Estresse" min={1} max={5} value={form.estresse} onChange={(value) => updateField("estresse", value)} />
+            <ScaleField label="Humor" min={1} max={5} value={form.humor} onChange={(value) => updateField("humor", value)} />
+            <ScaleField label="Esforço da última sessão" min={0} max={10} value={form.rpe_ultima_sessao} onChange={(value) => updateField("rpe_ultima_sessao", value)} />
+            <label className="readiness-notes">Algo relevante hoje?<textarea rows="4" value={form.observacao} onChange={(e) => updateField("observacao", e.target.value)} placeholder="Dor localizada, mudança de rotina, competição, viagem ou outro contexto que sua equipe deveria considerar." /></label>
           </div></section>
-          <button className="readiness-submit" disabled={saving || completion < 100 || !instrument || !consentActive}>{saving ? "Registrando..." : "Registrar resposta diária"}</button>
+          <button className="readiness-submit" disabled={saving || completion < 100 || !instrument || !activation || !consentActive}>{saving ? "Registrando..." : "Registrar como estou hoje"}</button>
         </form>
       )}
 
       <section className="readiness-history">
-        <div><span>Rastreabilidade</span><h2>Últimos sete dias</h2></div>
-        {history.length === 0 ? <p>Nenhuma resposta real registrada. O sistema permanece em dados insuficientes.</p> : <ul>{history.map((item) => <li key={item.id}><div><strong>{new Date(item.data_hora_coleta).toLocaleString("pt-BR")}</strong><span>{item.status} · completude {item.completude}%</span></div><b>{item.confiabilidade == null ? "Aguardando validação" : `Confiança ${item.confiabilidade}%`}</b></li>)}</ul>}
+        <div><span>Sua linha individual</span><h2>Últimos sete dias</h2></div>
+        {history.length === 0 ? <p>Nenhuma resposta real registrada. O AGP ainda não fará inferências sobre você.</p> : <ul>{history.map((item) => <li key={item.id}><div><strong>{new Date(item.data_hora_coleta).toLocaleString("pt-BR")}</strong><span>{item.status} · completude {item.completude}%</span></div><b>{item.confiabilidade == null ? "Aguardando validação" : `Confiança ${item.confiabilidade}%`}</b></li>)}</ul>}
       </section>
     </div></main>
   );
 }
 
-function ScaleField({ label, value, onChange }) {
-  return <label>{label}<select value={value} onChange={(event) => onChange(event.target.value)} required><option value="">Selecionar</option>{Array.from({ length: 10 }, (_, index) => index + 1).map((number) => <option key={number} value={number}>{number}</option>)}</select><small>Escala de 1 a 10</small></label>;
+function ScaleField({ label, min, max, value, onChange }) {
+  const options = Array.from({ length: max - min + 1 }, (_, index) => min + index);
+  return <label>{label}<select value={value} onChange={(event) => onChange(event.target.value)} required><option value="">Selecionar</option>{options.map((number) => <option key={number} value={number}>{number}</option>)}</select><small>Escala de {min} a {max}</small></label>;
 }

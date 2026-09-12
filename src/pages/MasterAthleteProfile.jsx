@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getAthleteIntelligence } from "../services/athleteIntelligence";
 import "../styles/dashboard-master.css";
+import "../styles/athlete-cockpit.css";
 
 const STAGE_LABELS = [
   ["preparacao", "Preparação"],

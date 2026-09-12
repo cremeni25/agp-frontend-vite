@@ -1,0 +1,166 @@
+.athlete-home {
+  min-height: 100vh;
+  background: radial-gradient(circle at top right, #14234d 0, #071225 42%, #020713 100%);
+  color: #eef6ff;
+}
+
+.athlete-home-shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.athlete-home-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+
+.athlete-home-header span,
+.athlete-today-card span,
+.athlete-home-grid span,
+.athlete-home-panel > div > span,
+.athlete-home-privacy > span {
+  color: #7fd3ff;
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.athlete-home-header h1,
+.athlete-today-card h2,
+.athlete-home-panel h2 {
+  margin: 6px 0 8px;
+}
+
+.athlete-home-header p,
+.athlete-today-card p,
+.athlete-home-grid p,
+.athlete-home-panel p {
+  color: #a9bdd2;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.athlete-home-header button,
+.athlete-today-card button {
+  border: 1px solid #4c89c8;
+  background: #12385f;
+  color: #f5fbff;
+  padding: 11px 16px;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.athlete-today-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: center;
+  padding: 22px;
+  border-radius: 16px;
+  border: 1px solid rgba(86, 181, 255, .38);
+  background: linear-gradient(145deg, rgba(17, 56, 94, .92), rgba(18, 25, 57, .96));
+  margin-bottom: 18px;
+}
+
+.athlete-today-card.done {
+  border-color: rgba(75, 213, 164, .42);
+}
+
+.athlete-home-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.athlete-home-grid article,
+.athlete-home-panel {
+  border-radius: 15px;
+  border: 1px solid rgba(117, 151, 196, .23);
+  background: rgba(14, 24, 50, .9);
+  padding: 20px;
+}
+
+.athlete-home-grid strong {
+  display: block;
+  font-size: 1.8rem;
+  margin: 10px 0 8px;
+}
+
+.athlete-home-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, .8fr);
+  gap: 22px;
+  margin-bottom: 18px;
+}
+
+.athlete-home-timeline {
+  display: grid;
+  gap: 10px;
+}
+
+.athlete-home-timeline > div {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(39, 73, 113, .24);
+}
+
+.athlete-home-timeline b,
+.athlete-home-timeline span,
+.athlete-home-timeline small {
+  display: block;
+}
+
+.athlete-home-timeline span {
+  color: #d9e9f7;
+  margin: 4px 0;
+}
+
+.athlete-home-timeline small {
+  color: #91a9bf;
+}
+
+.athlete-home-privacy {
+  display: block;
+}
+
+.athlete-home-notice {
+  padding: 13px 15px;
+  margin-bottom: 18px;
+  border-radius: 10px;
+  background: rgba(111, 76, 20, .35);
+  border: 1px solid rgba(226, 175, 75, .45);
+  color: #ffe2a4;
+}
+
+@media (max-width: 760px) {
+  .athlete-home-shell {
+    padding: 16px;
+  }
+
+  .athlete-home-header,
+  .athlete-today-card,
+  .athlete-home-panel,
+  .athlete-home-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .athlete-home-header {
+    flex-direction: column;
+  }
+
+  .athlete-home-header button,
+  .athlete-today-card button {
+    width: 100%;
+  }
+
+  .athlete-home-grid {
+    gap: 10px;
+  }
+}

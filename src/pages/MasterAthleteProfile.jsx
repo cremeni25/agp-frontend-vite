@@ -116,6 +116,7 @@ export default function MasterAthleteProfile() {
       </div>
       <div className="master-header-actions">
         <button className="master-button" onClick={() => navigate(`/master/atletas/${participantId}/dia`)}>Operação do dia</button>
+        <button className="master-button" onClick={() => navigate(`/master/atletas/${participantId}/decisao`)}>Decisão multidisciplinar</button>
         <button className="master-button secondary" onClick={() => navigate("/master/atletas")}>Atletas</button>
         <button className="master-button secondary" onClick={load}>Atualizar</button>
       </div>

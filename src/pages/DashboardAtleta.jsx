@@ -1,71 +1,87 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
+import "../styles/athlete-home.css";
 
 export default function DashboardAtleta() {
   const navigate = useNavigate();
-  const [perfil, setPerfil] = useState(null);
-  const [esporte, setEsporte] = useState(null);
-  const [modalidade, setModalidade] = useState(null);
-  const [score, setScore] = useState([]);
-  const [carga, setCarga] = useState([]);
-  const [sono, setSono] = useState([]);
+  const { session, perfil } = useAuth();
+  const [collections, setCollections] = useState([]);
+  const [sessions, setSessions] = useState([]);
+  const [score, setScore] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    async function carregarDashboard() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { window.location.href = "/"; return; }
-      const authId = session.user.id;
+  const athleteId = perfil?.id;
 
-      const { data: perfilData } = await supabase.from("perfis_atletas").select("*").eq("auth_id", authId).single();
-      setPerfil(perfilData);
+  async function load() {
+    if (!athleteId) { setLoading(false); return; }
+    setLoading(true);
+    setError("");
+    const [collectionResult, sessionResult, scoreResult] = await Promise.all([
+      supabase.from("agp_coletas").select("id,data_hora_coleta,status,completude,dados").eq("atleta_id", athleteId).order("data_hora_coleta", { ascending: false }).limit(14),
+      supabase.from("agp_sessoes_treinamento").select("id,data_hora_inicio,duracao_min,intensidade_percebida,carga_interna,conteudo,intercorrencias").eq("atleta_id", athleteId).order("data_hora_inicio", { ascending: false }).limit(10),
+      supabase.from("score_atleta").select("*").eq("atleta_id", athleteId).order("data_calculo", { ascending: false }).limit(1).maybeSingle()
+    ]);
+    const firstError = collectionResult.error || sessionResult.error || scoreResult.error;
+    if (firstError) setError("Alguns dados do acompanhamento ainda não estão disponíveis para este acesso.");
+    setCollections(collectionResult.data || []);
+    setSessions(sessionResult.data || []);
+    setScore(scoreResult.data || null);
+    setLoading(false);
+  }
 
-      if (perfilData?.esporte_id) {
-        const { data: esporteData } = await supabase.from("esportes").select("*").eq("id", perfilData.esporte_id).single();
-        setEsporte(esporteData);
-      }
+  useEffect(() => { load(); }, [athleteId]);
 
-      if (perfilData?.modalidade_id) {
-        const { data: modalidadeData } = await supabase.from("modalidades").select("*").eq("id", perfilData.modalidade_id).single();
-        setModalidade(modalidadeData);
-      }
+  const todayAnswered = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return collections.some((item) => String(item.data_hora_coleta || "").slice(0, 10) === today);
+  }, [collections]);
 
-      const { data: scoreData } = await supabase.from("score_atleta").select("*").limit(1);
-      setScore(scoreData || []);
-      const { data: cargaData } = await supabase.from("dados_fisiologicos_atleta").select("*").limit(5);
-      setCarga(cargaData || []);
-      const { data: sonoData } = await supabase.from("dados_biologicos_atleta").select("*").limit(5);
-      setSono(sonoData || []);
-    }
+  const lastReadiness = collections[0] || null;
+  const lastSession = sessions[0] || null;
 
-    carregarDashboard();
-  }, []);
+  async function signOut() {
+    await supabase.auth.signOut();
+    navigate("/login", { replace: true });
+  }
 
-  if (!perfil) return <div style={{ padding: 40 }}>Carregando dashboard...</div>;
+  if (loading) return <main className="athlete-home"><div className="athlete-home-shell">Carregando seu dia no AGP...</div></main>;
 
-  return (
-    <div style={{ padding: 40 }}>
-      <h1>Dashboard do Atleta</h1>
-      <section style={{ background: "#0e1536", color: "white", padding: 24, borderRadius: 16, marginBottom: 24 }}>
-        <h2>Coleta diária</h2>
-        <p>Registre sono, fadiga, dor, estresse, humor e esforço percebido. Cada resposta fica vinculada ao instrumento, versão, horário e origem.</p>
-        <button onClick={() => navigate("/atleta/prontidao-diaria")} style={{ padding: "12px 18px", borderRadius: 8, border: 0, cursor: "pointer", fontWeight: 700 }}>Responder prontidão diária</button>
-      </section>
+  return <main className="athlete-home"><div className="athlete-home-shell">
+    <header className="athlete-home-header">
+      <div><span>AGP Sports Intelligence</span><h1>Olá, {perfil?.nome?.split(" ")?.[0] || "atleta"}</h1><p>Seu acompanhamento acontece aqui, um dia de cada vez.</p></div>
+      <button onClick={signOut}>Sair</button>
+    </header>
 
-      <section>
-        <h2>Perfil</h2>
-        <p><strong>Nome:</strong> {perfil.nome}</p>
-        <p><strong>Clube:</strong> {perfil.clube}</p>
-        <p><strong>Sexo:</strong> {perfil.sexo}</p>
-        <p><strong>Idade:</strong> {perfil.idade}</p>
-        <p><strong>Nível:</strong> {perfil.nivel}</p>
-        <p><strong>Esporte:</strong> {esporte?.nome}</p>
-        <p><strong>Modalidade:</strong> {modalidade?.nome}</p>
-      </section>
+    {error && <div className="athlete-home-notice">{error}</div>}
 
-      <section><h2>Score Atual</h2><pre>{JSON.stringify(score, null, 2)}</pre></section>
-      <section><h2>Carga Recente</h2><pre>{JSON.stringify(carga, null, 2)}</pre></section>
-      <section><h2>Sono Recente</h2><pre>{JSON.stringify(sono, null, 2)}</pre></section>
-    </div>
-  );
+    <section className={`athlete-today-card ${todayAnswered ? "done" : ""}`}>
+      <div><span>Hoje</span><h2>{todayAnswered ? "Prontidão registrada" : "Como você está hoje?"}</h2><p>{todayAnswered ? "Seu registro já faz parte da sua linha longitudinal. Continue usando o AGP após os treinos e nos próximos dias." : "Sono, fadiga, dor, estresse, humor e percepção de esforço ajudam o AGP a entender você — não apenas o treino."}</p></div>
+      <button onClick={() => navigate("/atleta/prontidao-diaria")}>{todayAnswered ? "Ver / registrar novamente" : "Responder prontidão"}</button>
+    </section>
+
+    <section className="athlete-home-grid">
+      <article><span>Última evidência</span><strong>{lastReadiness ? new Date(lastReadiness.data_hora_coleta).toLocaleDateString("pt-BR") : "—"}</strong><p>{lastReadiness ? `${lastReadiness.status} · completude ${lastReadiness.completude ?? 0}%` : "Ainda não há prontidão registrada."}</p></article>
+      <article><span>Última sessão</span><strong>{lastSession ? new Date(lastSession.data_hora_inicio).toLocaleDateString("pt-BR") : "—"}</strong><p>{lastSession ? `${lastSession.duracao_min || "—"} min · RPE ${lastSession.intensidade_percebida ?? "—"}` : "Nenhuma sessão estruturada disponível."}</p></article>
+      <article><span>Leitura global validada</span><strong>{score?.score_global ?? "—"}</strong><p>{score?.nivel_classificacao || "O AGP ainda não possui resultado suficiente para uma classificação."}</p></article>
+    </section>
+
+    <section className="athlete-home-panel">
+      <div><span>Seu histórico</span><h2>O AGP aprende com continuidade</h2><p>Uma resposta isolada não define você. O sistema acompanha mudanças ao longo do tempo e cruza recuperação, carga, contexto e evolução esportiva antes de devolver uma leitura.</p></div>
+      <div className="athlete-home-timeline">
+        {collections.length === 0 && sessions.length === 0 ? <p>Nenhuma evidência longitudinal disponível ainda.</p> : <>
+          {lastReadiness && <div><b>Prontidão</b><span>{new Date(lastReadiness.data_hora_coleta).toLocaleString("pt-BR")}</span><small>{lastReadiness.status}</small></div>}
+          {lastSession && <div><b>Treino</b><span>{new Date(lastSession.data_hora_inicio).toLocaleString("pt-BR")}</span><small>{lastSession.conteudo?.foco || "Sessão registrada"}</small></div>}
+        </>}
+      </div>
+    </section>
+
+    <section className="athlete-home-panel athlete-home-privacy">
+      <span>Inteligência responsável</span>
+      <h2>Sem respostas inventadas</h2>
+      <p>Quando faltarem dados suficientes, o AGP mostrará que ainda não pode concluir. Sinais de dor, saúde mental ou condição clínica não substituem avaliação profissional.</p>
+    </section>
+  </div></main>;
 }

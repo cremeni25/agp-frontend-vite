@@ -25,3 +25,7 @@ async function authorizedRequest(path) {
 export function getAthleteIntelligence(participantId) {
   return authorizedRequest(`/api/v1/participantes/${participantId}/inteligencia`);
 }
+
+export function getAthleteIndividualIntelligence(participantId) {
+  return authorizedRequest(`/api/v1/participantes/${participantId}/inteligencia-v3`);
+}

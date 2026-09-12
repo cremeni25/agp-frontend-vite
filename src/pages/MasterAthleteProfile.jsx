@@ -1,18 +1,35 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { supabase } from "../supabaseClient";
-import { listProjectEligibility, formatEligibilityPending } from "../services/eligibilityManagement";
-import { listProjectConsents } from "../services/consentManagement";
-import { listProjectBaselines } from "../services/baselineManagement";
+import { getAthleteIntelligence } from "../services/athleteIntelligence";
 import "../styles/dashboard-master.css";
+
+const STAGE_LABELS = [
+  ["preparacao", "Preparação"],
+  ["coleta", "Coleta"],
+  ["analise", "Análise"],
+  ["validacao", "Validação"],
+  ["aplicacao", "Aplicação"]
+];
+
+function formatDate(value) {
+  if (!value) return "—";
+  try { return new Date(value).toLocaleDateString("pt-BR"); } catch { return "—"; }
+}
+
+function statusText(data, key) {
+  const journey = data?.jornada || {};
+  if (key === "preparacao") return journey.preparacao?.concluida ? "Concluída" : "Pendente";
+  if (key === "coleta") return journey.coleta?.total > 0 ? `${journey.coleta.total} registrada(s)` : journey.coleta?.elegivel ? "Pronta para iniciar" : "Bloqueada";
+  if (key === "analise") return journey.analise?.total_execucoes > 0 ? `${journey.analise.total_execucoes} execução(ões)` : journey.analise?.elegivel ? "Pronta" : "Aguardando evidência";
+  if (key === "validacao") return journey.validacao?.resultado_validado ? "Resultado validado" : journey.validacao?.total_resultados > 0 ? "Aguardando validação" : "Sem resultado";
+  if (key === "aplicacao") return journey.aplicacao?.resultado_aplicavel ? "Aplicação disponível" : "Aguardando resultado validado";
+  return "—";
+}
 
 export default function MasterAthleteProfile() {
   const navigate = useNavigate();
   const { participantId } = useParams();
-  const [record, setRecord] = useState(null);
-  const [eligibility, setEligibility] = useState(null);
-  const [consent, setConsent] = useState(null);
-  const [baseline, setBaseline] = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -20,44 +37,10 @@ export default function MasterAthleteProfile() {
     setLoading(true);
     setError("");
     try {
-      const participantResult = await supabase
-        .from("agp_participantes_projeto")
-        .select("id,pessoa_id,projeto_id,status_onboarding,ativo,tecnico_responsavel_pessoa_id,funcao_no_projeto")
-        .eq("id", participantId)
-        .single();
-      if (participantResult.error) throw participantResult.error;
-      const participant = participantResult.data;
-      if (participant.funcao_no_projeto !== "atleta") throw new Error("O participante selecionado não é um atleta.");
-
-      await listProjectEligibility(participant.projeto_id);
-
-      const [personResult, projectResult, profileResult, consentRows, baselineRows, eligibilityRows] = await Promise.all([
-        supabase.from("agp_pessoas").select("id,nome,email_contato,telefone_contato,data_nascimento,status").eq("id", participant.pessoa_id).single(),
-        supabase.from("agp_projetos_validacao").select("id,nome,instituicao_id,status").eq("id", participant.projeto_id).single(),
-        supabase.from("agp_perfis_esportivos").select("pessoa_id,modalidade,prova_posicao,categoria,nivel,status").eq("pessoa_id", participant.pessoa_id).eq("status", "ativo").maybeSingle(),
-        listProjectConsents(participant.projeto_id),
-        listProjectBaselines(participant.projeto_id),
-        listProjectEligibility(participant.projeto_id)
-      ]);
-      const firstError = personResult.error || projectResult.error || profileResult.error;
-      if (firstError) throw firstError;
-
-      const institutionResult = await supabase.from("agp_instituicoes").select("id,nome,status").eq("id", projectResult.data.instituicao_id).single();
-      if (institutionResult.error) throw institutionResult.error;
-
-      let technician = null;
-      if (participant.tecnico_responsavel_pessoa_id) {
-        const technicianResult = await supabase.from("agp_pessoas").select("id,nome,email_contato").eq("id", participant.tecnico_responsavel_pessoa_id).maybeSingle();
-        if (!technicianResult.error) technician = technicianResult.data;
-      }
-
-      setRecord({ participant, person: personResult.data, project: projectResult.data, institution: institutionResult.data, profile: profileResult.data || {}, technician });
-      setConsent((consentRows || []).find((item) => String(item.participante_id) === String(participantId) && item.vigente) || null);
-      setBaseline((baselineRows || []).find((item) => String(item.participante_id) === String(participantId) && item.vigente) || null);
-      setEligibility((eligibilityRows || []).find((item) => String(item.participante_id) === String(participantId)) || null);
+      setData(await getAthleteIntelligence(participantId));
     } catch (requestError) {
-      setError(`Falha ao carregar a ficha do atleta: ${requestError.message}`);
-      setRecord(null);
+      setError(`Falha ao carregar a inteligência do atleta: ${requestError.message}`);
+      setData(null);
     } finally {
       setLoading(false);
     }
@@ -66,42 +49,132 @@ export default function MasterAthleteProfile() {
   useEffect(() => { load(); }, [participantId]);
 
   const contextQuery = useMemo(() => {
-    if (!record) return "";
+    if (!data) return "";
     return new URLSearchParams({
-      instituicao: record.institution.id,
-      projeto: record.project.id,
-      participante: record.participant.id
+      instituicao: data.instituicao?.id || "",
+      projeto: data.projeto?.id || "",
+      participante: data.participante?.id || participantId
     }).toString();
-  }, [record]);
+  }, [data, participantId]);
 
-  const pending = formatEligibilityPending(eligibility?.pendencias || []);
-  const eligibilityLabel = eligibility?.apto_analise ? "Apto para análise" : eligibility?.apto_coleta ? "Apto somente para coleta" : "Bloqueado";
-  const openService = (service) => navigate(`/master/participantes/operacao?${contextQuery}&servico=${service}`);
+  function openService(service) {
+    navigate(`/master/participantes/operacao?${contextQuery}&servico=${service}`);
+  }
 
-  return <main className="dashboard-master"><div className="dashboard-overlay master-page">
-    <header className="dashboard-header master-header">
-      <div><span className="master-eyebrow">Ficha individual</span><h1>{record?.person?.nome || "Atleta"}</h1><p>Identificação, contexto esportivo e operações deste atleta.</p></div>
-      <div className="master-header-actions"><button className="master-button secondary" onClick={() => navigate("/master/atletas")}>Voltar para atletas</button><button className="master-button secondary" onClick={() => navigate("/master/participantes")}>Central de Participantes</button><button className="master-button" onClick={load}>Atualizar</button></div>
+  function openDestination(destination) {
+    if (!data) return;
+    if (["tecnico", "consentimento", "linha-base", "elegibilidade"].includes(destination)) return openService(destination);
+    const query = new URLSearchParams({
+      projeto: data.projeto?.id || "",
+      participante: data.participante?.id || participantId
+    }).toString();
+    if (destination === "catalogo-cientifico") return navigate(`/master/catalogo-cientifico?${query}`);
+    if (destination === "coletas") return navigate(`/master/coletas?${query}`);
+    if (destination === "pipeline-analitico") return navigate(`/master/pipeline-analitico?${query}`);
+    if (destination === "validacao-profissional") return navigate(`/master/validacao-profissional?${query}`);
+    return openService("elegibilidade");
+  }
+
+  const person = data?.pessoa || {};
+  const profile = data?.perfil_esportivo || {};
+  const eligibility = data?.elegibilidade || {};
+  const next = data?.proxima_acao || {};
+  const latestResult = data?.jornada?.validacao?.ultimo_resultado || null;
+  const latestScore = data?.jornada?.aplicacao?.score_atual || null;
+  const pending = eligibility?.pendencias || [];
+
+  return <main className="dashboard-master"><div className="dashboard-overlay master-page athlete-cockpit-page">
+    <header className="dashboard-header master-header athlete-cockpit-header">
+      <div>
+        <span className="master-eyebrow">Cockpit de Inteligência do Atleta</span>
+        <h1>{person.nome || "Atleta"}</h1>
+        <p>O atleta no centro: contexto, evidência, inteligência e próxima decisão operacional.</p>
+      </div>
+      <div className="master-header-actions">
+        <button className="master-button secondary" onClick={() => navigate("/master/atletas")}>Atletas</button>
+        <button className="master-button secondary" onClick={load}>Atualizar</button>
+      </div>
     </header>
 
     {error && <div className="master-error" role="alert">{error}</div>}
-    {loading ? <div className="master-empty">Carregando ficha do atleta...</div> : record && <>
-      <section className="master-content-grid">
-        <article className="master-panel"><span className="master-eyebrow">Identificação</span><h2>{record.person.nome}</h2><p>{record.person.email_contato || "E-mail não informado"}</p><p>{record.person.telefone_contato || "Telefone não informado"}</p><p>{record.person.data_nascimento ? new Date(record.person.data_nascimento).toLocaleDateString("pt-BR") : "Data de nascimento não informada"}</p></article>
-        <article className="master-panel"><span className="master-eyebrow">Vínculo institucional</span><h2>{record.institution.nome}</h2><p>{record.project.nome}</p><p>{record.participant.ativo ? "Vínculo ativo" : "Vínculo inativo"}</p><p>Onboarding: {record.participant.status_onboarding || "não informado"}</p></article>
-        <article className="master-panel"><span className="master-eyebrow">Perfil esportivo</span><h2>{record.profile.modalidade || "Modalidade não informada"}</h2><p>{record.profile.prova_posicao || "Prova/posição não informada"}</p><p>{record.profile.categoria || "Categoria não informada"}</p><p>{record.profile.nivel || "Nível não informado"}</p></article>
+    {loading ? <div className="master-empty">Consolidando inteligência do atleta...</div> : data && <>
+      <section className="athlete-intelligence-hero">
+        <div className="athlete-intelligence-hero-copy">
+          <span className="master-eyebrow">Leitura AGP agora</span>
+          <h2>{next.titulo || "Jornada em acompanhamento"}</h2>
+          <p>{next.descricao || "O AGP está consolidando a próxima decisão deste atleta."}</p>
+          {pending.length > 0 && <div className="athlete-pending-line">Pendência operacional: {pending.join(" · ")}</div>}
+        </div>
+        <div className="athlete-next-action">
+          <span>Próxima ação</span>
+          <button className="master-button" onClick={() => openDestination(next.destino)}>{next.titulo || "Revisar atleta"}</button>
+        </div>
       </section>
 
-      <section className="master-panel">
-        <div className="master-section-heading"><div><span className="master-eyebrow">Operações deste atleta</span><h2>Consultar ou alterar</h2></div></div>
-        <div className="master-action-grid">
-          <button className="master-action-card" onClick={() => openService("tecnico")}><strong>Técnico responsável</strong><span>Atual: {record.technician?.nome || "não definido"}. Consultar vínculo, alterar técnico e ver histórico.</span></button>
-          <button className="master-action-card" onClick={() => openService("consentimento")}><strong>Consentimentos</strong><span>Status: {consent ? "vigente" : "pendente"}. Consultar, conceder ou revogar consentimento.</span></button>
-          <button className="master-action-card" onClick={() => openService("linha-base")}><strong>Linha de base</strong><span>Status: {baseline ? "registrada" : "pendente"}. Consultar ou atualizar os parâmetros iniciais.</span></button>
-          <button className="master-action-card" onClick={() => openService("elegibilidade")}><strong>Elegibilidade</strong><span>Status: {eligibilityLabel}. Consultar bloqueios, coleta e análise.</span></button>
-        </div>
-        {pending.length > 0 && <div className="master-feedback error" style={{ marginTop: 16 }}>Pendências atuais: {pending.join(" · ")}</div>}
+      <section className="athlete-journey">
+        {STAGE_LABELS.map(([key, label], index) => <article key={key} className={`athlete-stage ${statusText(data, key).includes("Concluída") || statusText(data, key).includes("validado") || statusText(data, key).includes("registrada") ? "done" : ""}`}>
+          <span>{String(index + 1).padStart(2, "0")}</span>
+          <div><strong>{label}</strong><small>{statusText(data, key)}</small></div>
+        </article>)}
       </section>
+
+      <section className="athlete-360-grid">
+        <article className="athlete-360-card">
+          <span className="master-eyebrow">Identidade esportiva</span>
+          <h3>{profile.modalidade || "Modalidade não informada"}</h3>
+          <p>{profile.prova_posicao || "Prova/posição não informada"}</p>
+          <p>{profile.categoria || "Categoria não informada"} · {profile.nivel || "Nível não informado"}</p>
+          <small>Nascimento: {formatDate(person.data_nascimento)}</small>
+        </article>
+
+        <article className="athlete-360-card">
+          <span className="master-eyebrow">Pessoas e ambiente</span>
+          <h3>{data.tecnico?.nome || "Técnico não definido"}</h3>
+          <p>{data.instituicao?.nome || "Instituição não identificada"}</p>
+          <p>{data.projeto?.nome || "Projeto não identificado"}</p>
+          <small>{data.participante?.ativo ? "Vínculo ativo" : "Vínculo inativo"}</small>
+        </article>
+
+        <article className="athlete-360-card">
+          <span className="master-eyebrow">Evidência real</span>
+          <h3>{data.jornada?.coleta?.total || 0} coleta(s)</h3>
+          <p>{data.jornada?.coleta?.validadas || 0} validada(s) para uso analítico</p>
+          <p>{data.jornada?.coleta?.ultima?.instrumento_nome || "Nenhuma evidência coletada ainda"}</p>
+          <small>{data.jornada?.coleta?.elegivel ? "Elegível para coleta" : "Coleta bloqueada no momento"}</small>
+        </article>
+
+        <article className="athlete-360-card">
+          <span className="master-eyebrow">Inteligência aplicada</span>
+          <h3>{latestScore?.score_global ?? latestResult?.confianca ?? "—"}</h3>
+          <p>{latestScore?.nivel_classificacao || latestResult?.status || "Sem resultado analítico produzido"}</p>
+          <p>{latestResult?.explicacao || latestScore?.diagnostico || "A inteligência será gerada quando houver evidência válida suficiente."}</p>
+          <small>{latestResult?.versao_motor ? `Motor ${latestResult.versao_motor}` : "Motor aguardando dados"}</small>
+        </article>
+      </section>
+
+      <section className="master-panel athlete-decision-panel">
+        <div className="master-section-heading">
+          <div><span className="master-eyebrow">Devolução aplicada</span><h2>O que o AGP devolve ao atleta</h2></div>
+        </div>
+        {latestResult?.status === "validado" ? <div className="athlete-decision-content">
+          <strong>{latestResult.parecer_tecnico || latestResult.explicacao || "Resultado validado disponível."}</strong>
+          <p>{latestResult.limitacoes || "Sem limitações adicionais registradas."}</p>
+        </div> : <div className="athlete-empty-intelligence">
+          <strong>Ainda não existe devolução aplicada validada.</strong>
+          <p>O AGP não preencherá esta área com simulação. Ela será alimentada somente por evidência coletada, processamento do motor e validação profissional.</p>
+        </div>}
+      </section>
+
+      <details className="master-panel athlete-admin-details">
+        <summary>Ajustes e governança deste atleta</summary>
+        <p>Use somente quando precisar alterar dados estruturais. A operação diária deve seguir a próxima ação indicada acima.</p>
+        <div className="master-row-actions athlete-admin-actions">
+          <button className="master-button secondary" onClick={() => openService("tecnico")}>Técnico</button>
+          <button className="master-button secondary" onClick={() => openService("consentimento")}>Consentimento</button>
+          <button className="master-button secondary" onClick={() => openService("linha-base")}>Linha de base</button>
+          <button className="master-button secondary" onClick={() => openService("elegibilidade")}>Elegibilidade</button>
+        </div>
+      </details>
     </>}
   </div></main>;
 }

@@ -32,7 +32,9 @@ export default function AthleteDailyReadiness() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const athleteId = perfil?.id;
+  const athleteId = perfil?.legacy_perfil_atleta_id || perfil?.id || null;
+  const canonicalPersonId = perfil?.pessoa_id || null;
+  const canonicalParticipantId = perfil?.participante_id || null;
   const consentActive = Boolean(consent?.id && !consent?.revogado_em);
 
   const completion = useMemo(() => {
@@ -47,8 +49,16 @@ export default function AthleteDailyReadiness() {
 
   useEffect(() => {
     async function load() {
-      if (!athleteId) { setLoading(false); return; }
-      setLoading(true); setError("");
+      if (!athleteId || (!canonicalParticipantId && !canonicalPersonId)) {
+        setParticipant(null);
+        setProjectId(null);
+        setLoading(false);
+        setError("A identidade canônica deste atleta ainda não está vinculada a um participante ativo do AGP.");
+        return;
+      }
+
+      setLoading(true);
+      setError("");
 
       const { data: instrumentData, error: instrumentError } = await supabase
         .from("agp_instrumentos")
@@ -67,12 +77,17 @@ export default function AthleteDailyReadiness() {
       }
       setInstrument(instrumentData);
 
-      const { data: participantData, error: participantError } = await supabase
+      let participantQuery = supabase
         .from("agp_participantes_projeto")
-        .select("id,pessoa_id,projeto_id,legacy_perfil_atleta_id,status_onboarding,ativo")
-        .eq("legacy_perfil_atleta_id", athleteId)
+        .select("id,pessoa_id,projeto_id,status_onboarding,ativo")
         .eq("funcao_no_projeto", "atleta")
-        .eq("ativo", true)
+        .eq("ativo", true);
+
+      participantQuery = canonicalParticipantId
+        ? participantQuery.eq("id", canonicalParticipantId)
+        : participantQuery.eq("pessoa_id", canonicalPersonId);
+
+      const { data: participantData, error: participantError } = await participantQuery
         .limit(1)
         .maybeSingle();
 
@@ -80,6 +95,14 @@ export default function AthleteDailyReadiness() {
         setParticipant(null);
         setProjectId(null);
         setError("Atleta ainda não possui vínculo canônico ativo em um projeto do AGP.");
+        setLoading(false);
+        return;
+      }
+
+      if (canonicalPersonId && participantData.pessoa_id !== canonicalPersonId) {
+        setParticipant(null);
+        setProjectId(null);
+        setError("A identidade autenticada não corresponde ao participante esportivo vinculado ao projeto.");
         setLoading(false);
         return;
       }
@@ -108,6 +131,7 @@ export default function AthleteDailyReadiness() {
       const { data: consentData, error: consentError } = await supabase
         .from("agp_consentimentos")
         .select("id,finalidade,versao_termo,concedido_em,revogado_em")
+        .eq("participante_id", participantData.id)
         .eq("atleta_id", athleteId)
         .eq("projeto_id", participantData.projeto_id)
         .eq("finalidade", "monitoramento_esportivo")
@@ -141,7 +165,7 @@ export default function AthleteDailyReadiness() {
       setLoading(false);
     }
     load();
-  }, [athleteId]);
+  }, [athleteId, canonicalPersonId, canonicalParticipantId]);
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -149,14 +173,15 @@ export default function AthleteDailyReadiness() {
 
   async function submit(event) {
     event.preventDefault();
-    setMessage(""); setError("");
+    setMessage("");
+    setError("");
 
     if (!consentActive) {
       setError("Coleta bloqueada: não existe consentimento vigente para monitoramento esportivo.");
       return;
     }
-    if (!athleteId || !instrument || !activation || !participant || !projectId) {
-      setError("Perfil, participante, projeto ou instrumento de coleta indisponível.");
+    if (!session?.user?.id || !athleteId || !instrument || !activation || !participant || !projectId) {
+      setError("Identidade, participante, projeto ou instrumento de coleta indisponível.");
       return;
     }
     if (completion < 100) {
@@ -188,7 +213,7 @@ export default function AthleteDailyReadiness() {
         ativacao_instrumento_id: activation.id,
         versao_instrumento: instrument.versao,
         versao_schema: activation.versao_configuracao || instrument.versao || "1.0.0",
-        coletado_por_auth_id: session?.user?.id,
+        coletado_por_auth_id: session.user.id,
         papel_coletor: "atleta",
         data_hora_coleta: now,
         iniciado_em: now,

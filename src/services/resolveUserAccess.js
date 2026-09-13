@@ -49,21 +49,46 @@ async function claimPendingCanonicalAccount(user) {
   return claimed || null;
 }
 
+async function activateInvitedCanonicalAccount(user, account) {
+  if (!account?.id || account.status !== "acesso_pendente" || !user.email_confirmed_at) return account;
+
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("agp_contas_acesso")
+    .update({
+      status: "ativo",
+      primeiro_acesso_em: now,
+      ultimo_acesso_em: now,
+      updated_at: now
+    })
+    .eq("id", account.id)
+    .eq("auth_id", user.id)
+    .eq("status", "acesso_pendente")
+    .select("id,pessoa_id,auth_id,status")
+    .maybeSingle();
+
+  if (error) throw error;
+  return data || account;
+}
+
 async function resolveCanonicalProfile(user) {
   let { data: conta, error: contaError } = await supabase
     .from("agp_contas_acesso")
     .select("id,pessoa_id,auth_id,status")
     .eq("auth_id", user.id)
-    .eq("status", "ativo")
     .maybeSingle();
 
   if (contaError) throw contaError;
+
+  if (conta?.status === "acesso_pendente") {
+    conta = await activateInvitedCanonicalAccount(user, conta);
+  }
 
   if (!conta?.pessoa_id) {
     conta = await claimPendingCanonicalAccount(user);
   }
 
-  if (!conta?.pessoa_id) return null;
+  if (!conta?.pessoa_id || conta.status !== "ativo") return null;
 
   const { data: pessoa, error: pessoaError } = await supabase
     .from("agp_pessoas")
@@ -98,14 +123,6 @@ async function resolveCanonicalProfile(user) {
     perfilEsportivo = data;
   }
 
-  if (participante?.id && participante.status_onboarding === "acesso_pendente") {
-    await supabase
-      .from("agp_participantes_projeto")
-      .update({ status_onboarding: "apto_para_coleta", updated_at: new Date().toISOString() })
-      .eq("id", participante.id)
-      .eq("status_onboarding", "acesso_pendente");
-  }
-
   const now = new Date().toISOString();
   await supabase
     .from("agp_contas_acesso")
@@ -126,7 +143,7 @@ async function resolveCanonicalProfile(user) {
     email: user.email || null,
     funcao: participante?.funcao_no_projeto || null,
     tipo_usuario: participante?.funcao_no_projeto || null,
-    status_onboarding: participante?.status_onboarding === "acesso_pendente" ? "apto_para_coleta" : participante?.status_onboarding || null,
+    status_onboarding: participante?.status_onboarding || null,
     identidade_canonica: true
   };
 }

@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route, useLocation } from "react-router-dom";
 
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -37,12 +37,20 @@ import HomologationEnvironment from "./pages/HomologationEnvironment";
 import CommissionProfessionalValidation from "./pages/CommissionProfessionalValidation";
 import Unauthorized from "./pages/Unauthorized";
 
+function EntryRoute() {
+  const location = useLocation();
+  const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
+  const type = hash.get("type");
+  if (type === "invite" || type === "recovery") return <Navigate to={`/alterar-senha${location.hash}`} replace />;
+  return <Home />;
+}
+
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<EntryRoute />} />
           <Route path="/login" element={<Login />} />
           <Route path="/acesso-administrativo" element={<Navigate to="/login?administrativo=1" replace />} />
           <Route path="/ativar-proprietario" element={<OwnerActivation />} />
@@ -50,7 +58,7 @@ function App() {
           <Route path="/login/:tipo" element={<Navigate to="/login" replace />} />
           <Route path="/register" element={<Navigate to="/login" replace />} />
           <Route path="/recuperar-senha" element={<ForgotPassword />} />
-          <Route path="/redefinir-senha" element={<Navigate to="/login?administrativo=1&link-antigo=1" replace />} />
+          <Route path="/redefinir-senha" element={<Navigate to="/alterar-senha" replace />} />
           <Route path="/alterar-senha" element={<ChangePassword />} />
 
           <Route path="/dashboard-atleta" element={<ProtectedRoute tipoPermitido="atleta"><DashboardAtleta /></ProtectedRoute>} />

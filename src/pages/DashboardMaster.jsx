@@ -51,6 +51,50 @@ export default function DashboardMaster() {
     ).length
   }), [participants, technicalMembers, institutions]);
 
+  const nextAction = useMemo(() => {
+    if (loading) {
+      return {
+        eyebrow: "Agora",
+        title: "Carregando sua próxima ação",
+        description: "O AGP está verificando a situação operacional da base.",
+        label: "Aguarde",
+        disabled: true,
+        path: null
+      };
+    }
+
+    if (summary.attention > 0) {
+      return {
+        eyebrow: "Agora",
+        title: `${summary.attention} atleta${summary.attention > 1 ? "s" : ""} exige${summary.attention > 1 ? "m" : ""} atenção`,
+        description: "Resolva primeiro as pendências que impedem ou fragilizam a operação do atleta.",
+        label: "Resolver agora",
+        disabled: false,
+        path: "/master/atletas"
+      };
+    }
+
+    if (summary.athletes === 0) {
+      return {
+        eyebrow: "Agora",
+        title: "Cadastre o primeiro atleta",
+        description: "A operação do AGP começa pela pessoa e pelo vínculo correto ao projeto.",
+        label: "Cadastrar atleta",
+        disabled: false,
+        path: "/master/participantes"
+      };
+    }
+
+    return {
+      eyebrow: "Agora",
+      title: "Continuar a operação dos atletas",
+      description: "A base está preparada. Entre pelo atleta e siga somente a próxima ação indicada pelo sistema.",
+      label: "Abrir atletas",
+      disabled: false,
+      path: "/master/atletas"
+    };
+  }, [loading, summary]);
+
   async function signOut() {
     await supabase.auth.signOut();
     navigate("/login", { replace: true });
@@ -63,7 +107,7 @@ export default function DashboardMaster() {
           <div>
             <span className="master-eyebrow">AGP Sports Intelligence</span>
             <h1>Centro operacional</h1>
-            <p>Execute o trabalho do atleta do início ao resultado. Administração e governança ficam separadas da rotina operacional.</p>
+            <p>O sistema mostra primeiro o que precisa da sua atenção. As demais funções ficam disponíveis sem competir com a operação principal.</p>
           </div>
           <div className="master-header-actions">
             <button className="master-button secondary" onClick={loadDashboard}>Atualizar</button>
@@ -73,35 +117,17 @@ export default function DashboardMaster() {
 
         {error && <div className="master-error" role="alert">{error}</div>}
 
-        <section className="dashboard-section">
-          <div className="master-section-heading">
-            <div>
-              <span className="master-eyebrow">Fluxo principal</span>
-              <h2>Jornada operacional do atleta</h2>
-            </div>
-          </div>
-
-          <div className="master-action-grid">
-            <button className="master-action-card" onClick={() => navigate("/master/atletas")}>
-              <strong>1. Preparar atleta</strong>
-              <span>Abra a ficha, confira técnico, consentimento, linha de base e elegibilidade. Continue sempre a partir do atleta.</span>
-            </button>
-
-            <button className="master-action-card" onClick={() => navigate("/master/coletas")}>
-              <strong>2. Coletar</strong>
-              <span>Aplique os instrumentos liberados para o atleta e registre as evidências da coleta.</span>
-            </button>
-
-            <button className="master-action-card" onClick={() => navigate("/master/pipeline-analitico")}>
-              <strong>3. Analisar</strong>
-              <span>Execute o processamento analítico somente sobre coletas completas e rastreáveis.</span>
-            </button>
-
-            <button className="master-action-card" onClick={() => navigate("/master/validacao-profissional")}>
-              <strong>4. Validar resultado</strong>
-              <span>Revise, aprove ou rejeite resultados antes de disponibilizá-los para uso esportivo.</span>
-            </button>
-          </div>
+        <section className="master-now-card">
+          <span className="master-eyebrow">{nextAction.eyebrow}</span>
+          <h2>{nextAction.title}</h2>
+          <p>{nextAction.description}</p>
+          <button
+            className="master-button master-primary-action"
+            disabled={nextAction.disabled}
+            onClick={() => nextAction.path && navigate(nextAction.path)}
+          >
+            {nextAction.label}
+          </button>
         </section>
 
         <section className="dashboard-section">
@@ -113,56 +139,67 @@ export default function DashboardMaster() {
           </div>
 
           <div className="dashboard-section grid master-summary-grid">
-            <button type="button" className="card master-metric" onClick={() => navigate("/master/atletas")}>
+            <div className="card master-metric">
               <span>Atletas ativos</span>
               <strong>{loading ? "…" : summary.athletes}</strong>
-              <small>Abrir atletas e continuar operações</small>
-            </button>
-            <button type="button" className="card master-metric" onClick={() => navigate("/master/comissoes-tecnicas")}>
+            </div>
+            <div className="card master-metric">
               <span>Profissionais técnicos</span>
               <strong>{loading ? "…" : summary.technicians}</strong>
-              <small>Consultar técnicos e seus atletas</small>
-            </button>
-            <button type="button" className="card master-metric" onClick={() => navigate("/master/instituicoes")}>
+            </div>
+            <div className="card master-metric">
               <span>Instituições ativas</span>
               <strong>{loading ? "…" : summary.institutions}</strong>
-              <small>Consultar clubes e organizações</small>
-            </button>
-            <button type="button" className="card master-metric" onClick={() => navigate("/master/atletas")}>
-              <span>Atletas com atenção</span>
+            </div>
+            <div className="card master-metric">
+              <span>Exigem atenção</span>
               <strong>{loading ? "…" : summary.attention}</strong>
-              <small>Revisar pendências antes da coleta</small>
-            </button>
-          </div>
-        </section>
-
-        <section className="dashboard-section">
-          <div className="master-section-heading">
-            <div>
-              <span className="master-eyebrow">Apoio operacional</span>
-              <h2>Ciência e gestão da base</h2>
             </div>
           </div>
-
-          <div className="master-action-grid">
-            <button className="master-action-card" onClick={() => navigate("/master/catalogo-cientifico")}>
-              <strong>Instrumentos e protocolos</strong>
-              <span>Gerencie o catálogo científico que libera as coletas dos atletas.</span>
-            </button>
-            <button className="master-action-card" onClick={() => navigate("/master/participantes")}>
-              <strong>Participantes</strong>
-              <span>Cadastre novos participantes ou faça manutenção da base quando necessário.</span>
-            </button>
-            <button className="master-action-card" onClick={() => navigate("/dashboard-master/administracao")}>
-              <strong>Administração</strong>
-              <span>Instituições, projetos, equipe técnica, usuários, perfis e configurações.</span>
-            </button>
-            <button className="master-action-card" onClick={() => navigate("/master/homologacao")}>
-              <strong>Governança e homologação</strong>
-              <span>Acompanhe testes, pilotos e rastreabilidade sem misturar isso com a rotina diária.</span>
-            </button>
-          </div>
         </section>
+
+        <details className="master-secondary-area">
+          <summary>Outras funções</summary>
+
+          <section className="dashboard-section">
+            <div className="master-action-grid">
+              <button className="master-action-card" onClick={() => navigate("/master/coletas")}>
+                <strong>Coletas</strong>
+                <span>Consultar e operar evidências já liberadas.</span>
+              </button>
+
+              <button className="master-action-card" onClick={() => navigate("/master/pipeline-analitico")}>
+                <strong>Análise</strong>
+                <span>Processar somente coletas completas e rastreáveis.</span>
+              </button>
+
+              <button className="master-action-card" onClick={() => navigate("/master/validacao-profissional")}>
+                <strong>Validação profissional</strong>
+                <span>Revisar resultados antes de qualquer uso esportivo.</span>
+              </button>
+
+              <button className="master-action-card" onClick={() => navigate("/master/catalogo-cientifico")}>
+                <strong>Instrumentos e protocolos</strong>
+                <span>Gerenciar o catálogo científico do AGP.</span>
+              </button>
+
+              <button className="master-action-card" onClick={() => navigate("/master/participantes")}>
+                <strong>Participantes</strong>
+                <span>Cadastrar e manter participantes da base.</span>
+              </button>
+
+              <button className="master-action-card" onClick={() => navigate("/dashboard-master/administracao")}>
+                <strong>Administração</strong>
+                <span>Instituições, projetos, equipe, usuários e perfis.</span>
+              </button>
+
+              <button className="master-action-card" onClick={() => navigate("/master/homologacao")}>
+                <strong>Governança e homologação</strong>
+                <span>Testes, pilotos, rastreabilidade e controle operacional.</span>
+              </button>
+            </div>
+          </section>
+        </details>
       </div>
     </main>
   );

@@ -12,8 +12,7 @@ import OwnerActivation from "./pages/OwnerActivation";
 import DashboardAtleta from "./pages/DashboardAtleta";
 import AthleteDailyReadiness from "./pages/AthleteDailyReadiness";
 import DashboardComissao from "./pages/DashboardComissao";
-import ProfessionalValidation from "./pages/ProfessionalValidation";
-import DashboardClube from "./pages/DashboardClube";
+import DashboardClube from "./pages/DashboardClubeExceptions";
 import DashboardMaster from "./pages/DashboardMaster";
 import MasterAdministration from "./pages/MasterAdministration";
 import MasterInstitutions from "./pages/MasterInstitutions";
@@ -35,6 +34,7 @@ import MasterAnalyticPipeline from "./pages/MasterAnalyticPipeline";
 import MasterProfessionalValidation from "./pages/MasterProfessionalValidation";
 import MasterHomologation from "./pages/MasterHomologationAuto";
 import HomologationEnvironment from "./pages/HomologationEnvironment";
+import CommissionProfessionalValidation from "./pages/CommissionProfessionalValidation";
 import Unauthorized from "./pages/Unauthorized";
 
 function App() {
@@ -56,7 +56,7 @@ function App() {
           <Route path="/dashboard-atleta" element={<ProtectedRoute tipoPermitido="atleta"><DashboardAtleta /></ProtectedRoute>} />
           <Route path="/atleta/prontidao-diaria" element={<ProtectedRoute tipoPermitido="atleta"><AthleteDailyReadiness /></ProtectedRoute>} />
           <Route path="/dashboard-comissao" element={<ProtectedRoute tipoPermitido="comissao"><DashboardComissao /></ProtectedRoute>} />
-          <Route path="/comissao/validacao" element={<ProtectedRoute tipoPermitido="comissao"><ProfessionalValidation /></ProtectedRoute>} />
+          <Route path="/comissao/validacao" element={<ProtectedRoute tipoPermitido="comissao"><CommissionProfessionalValidation /></ProtectedRoute>} />
           <Route path="/dashboard-clube" element={<ProtectedRoute tipoPermitido="clube"><DashboardClube /></ProtectedRoute>} />
           <Route path="/dashboard-master" element={<ProtectedRoute tipoPermitido="master"><DashboardMaster /></ProtectedRoute>} />
           <Route path="/dashboard-master/administracao" element={<ProtectedRoute tipoPermitido="master"><MasterAdministration /></ProtectedRoute>} />

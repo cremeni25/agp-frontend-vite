@@ -24,7 +24,9 @@ export const ACCESS_PROFILES = {
       "psicologo",
       "psicólogo",
       "nutricionista",
-      "analista"
+      "analista",
+      "assistente",
+      "observador"
     ],
     label: "Equipe Profissional",
     dashboardPath: "/dashboard-comissao"
@@ -39,7 +41,10 @@ export const ACCESS_PROFILES = {
       "instituicao",
       "instituição",
       "gestor",
-      "gestora"
+      "gestora",
+      "admin_institucional",
+      "administrador_institucional",
+      "administradora_institucional"
     ],
     label: "Instituições",
     dashboardPath: "/dashboard-clube"

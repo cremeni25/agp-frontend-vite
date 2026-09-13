@@ -1,126 +1,28 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect,useMemo,useState } from "react";
+import { useNavigate,useParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { listProjectParticipants } from "../services/participantOnboarding";
-import { formatEligibilityPending, listProjectEligibility } from "../services/eligibilityManagement";
+import { formatEligibilityPending,listProjectEligibility } from "../services/eligibilityManagement";
 import AgpEvidenceReadiness from "../components/AgpEvidenceReadiness";
 import "../styles/dashboard-master.css";
-
-export default function HomologationEnvironment() {
-  const { slug } = useParams();
-  const navigate = useNavigate();
-  const [institution, setInstitution] = useState(null);
-  const [project, setProject] = useState(null);
-  const [legacyProfiles, setLegacyProfiles] = useState([]);
-  const [legacyLinks, setLegacyLinks] = useState([]);
-  const [participants, setParticipants] = useState([]);
-  const [eligibility, setEligibility] = useState([]);
-  const [form, setForm] = useState({ metodologia: "", diretrizes: "", localidade: "", data_inicio: "", data_fim: "", status: "preparacao" });
-  const [loading, setLoading] = useState(true);
-  const [working, setWorking] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-
-  async function load() {
-    setLoading(true);
-    setError("");
-    const { data: institutionData, error: institutionError } = await supabase.from("agp_instituicoes").select("*").eq("slug", slug).maybeSingle();
-    if (institutionError || !institutionData) { setError("Ambiente de homologação não encontrado."); setLoading(false); return; }
-    setInstitution(institutionData);
-
-    const [projectResult, profileResult] = await Promise.all([
-      supabase.from("agp_projetos_validacao").select("*").eq("instituicao_id", institutionData.id).maybeSingle(),
-      supabase.from("perfis_atletas").select("*").order("nome")
-    ]);
-    const firstError = projectResult.error || profileResult.error;
-    if (firstError) setError(`Falha ao carregar ambiente: ${firstError.message}`);
-    setLegacyProfiles(profileResult.data || []);
-
-    const projectData = projectResult.data || null;
-    setProject(projectData);
-    if (projectData) {
-      setForm({ metodologia: projectData.metodologia || "", diretrizes: projectData.diretrizes || "", localidade: projectData.localidade || institutionData.localidade || "", data_inicio: projectData.data_inicio || "", data_fim: projectData.data_fim || "", status: projectData.status || "preparacao" });
-      const { data: links, error: linkError } = await supabase.from("agp_atletas_projeto").select("*").eq("projeto_id", projectData.id).order("created_at");
-      if (linkError) setError(`Falha ao carregar vínculos históricos: ${linkError.message}`);
-      setLegacyLinks(links || []);
-      try {
-        const [participantRows, eligibilityRows] = await Promise.all([
-          listProjectParticipants(projectData.id),
-          listProjectEligibility(projectData.id)
-        ]);
-        setParticipants(participantRows || []);
-        setEligibility(eligibilityRows || []);
-      } catch (requestError) {
-        setParticipants([]);
-        setEligibility([]);
-        setError(`Núcleo operacional indisponível: ${requestError.message}`);
-      }
-    } else {
-      setLegacyLinks([]);
-      setParticipants([]);
-      setEligibility([]);
-    }
-    setLoading(false);
-  }
-
-  useEffect(() => { load(); }, [slug]);
-
-  const profileById = useMemo(() => Object.fromEntries(legacyProfiles.map((item) => [item.id, item])), [legacyProfiles]);
-  const eligibilityByParticipant = useMemo(() => Object.fromEntries(eligibility.map((item) => [item.participante_id, item])), [eligibility]);
-  const technicians = participants.filter((item) => ["tecnico", "treinador"].includes(item.funcao_no_projeto));
-  const athletes = participants.filter((item) => item.funcao_no_projeto === "atleta");
-  const eligibleForCollection = eligibility.filter((item) => item.apto_coleta).length;
-  const eligibleForAnalysis = eligibility.filter((item) => item.apto_analise).length;
-
-  async function saveProject() {
-    if (!project) return;
-    setWorking(true); setMessage(""); setError("");
-    const { error: updateError } = await supabase.from("agp_projetos_validacao").update(form).eq("id", project.id);
-    if (updateError) setError(`Falha ao salvar projeto: ${updateError.message}`);
-    else { setMessage("Configuração do projeto salva."); await load(); }
-    setWorking(false);
-  }
-
-  if (loading) return <main className="dashboard-master"><div className="dashboard-loading">Carregando ambiente...</div></main>;
-
-  return (
-    <main className="dashboard-master"><div className="dashboard-overlay master-page">
-      <header className="dashboard-header master-header">
-        <div><span className="master-eyebrow">Projeto de validação</span><h1>{institution?.nome || "Homologação"}</h1><p>{project?.objetivo}</p></div>
-        <div className="master-header-actions"><button className="master-button secondary" onClick={() => navigate("/master/participantes")}>Central de Participantes</button><button className="master-button secondary" onClick={() => navigate("/master/homologacao")}>Voltar</button></div>
-      </header>
-      {message && <div className="master-success">{message}</div>}{error && <div className="master-error" role="alert">{error}</div>}
-
-      <section className="master-content-grid">
-        <article className="master-panel"><span className="master-eyebrow">Elegibilidade oficial</span><h2>Coleta</h2><strong>{eligibleForCollection}/{athletes.length}</strong><p>Atletas liberados pela regra unificada do backend.</p></article>
-        <article className="master-panel"><span className="master-eyebrow">Elegibilidade oficial</span><h2>Análise</h2><strong>{eligibleForAnalysis}/{athletes.length}</strong><p>Atletas com coleta liberada e linha de base vigente.</p></article>
-      </section>
-
-      {project && <AgpEvidenceReadiness projectId={project.id} athleteLinks={legacyLinks} profileById={profileById} />}
-
-      <section className="master-content-grid">
-        <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Configuração</span><h2>Diretrizes do piloto</h2></div><strong>{project?.status}</strong></div>
-          <input className="master-input" placeholder="Localidade" value={form.localidade} onChange={(e) => setForm({ ...form, localidade: e.target.value })}/>
-          <textarea className="master-input" rows="4" placeholder="Metodologia aplicada" value={form.metodologia} onChange={(e) => setForm({ ...form, metodologia: e.target.value })}/>
-          <textarea className="master-input" rows="4" placeholder="Diretrizes e propósito da avaliação" value={form.diretrizes} onChange={(e) => setForm({ ...form, diretrizes: e.target.value })}/>
-          <div className="master-toolbar"><input className="master-input" type="date" value={form.data_inicio} onChange={(e) => setForm({ ...form, data_inicio: e.target.value })}/><input className="master-input" type="date" value={form.data_fim} onChange={(e) => setForm({ ...form, data_fim: e.target.value })}/><select className="master-select" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}><option value="preparacao">Preparação</option><option value="homologacao">Homologação</option><option value="em_campo">Em campo</option><option value="concluido">Concluído</option><option value="suspenso">Suspenso</option></select></div>
-          <button className="master-button" disabled={working || !project} onClick={saveProject}>Salvar configuração</button>
-        </article>
-
-        <article className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Equipe canônica</span><h2>Técnicos vinculados</h2></div><strong>{technicians.length}</strong></div>
-          {technicians.length === 0 ? <div className="master-empty"><strong>Nenhum técnico cadastrado neste projeto.</strong><span>O vínculo deve ser criado pela Central de Participantes.</span><button className="master-button" onClick={() => navigate("/master/participantes")}>Cadastrar técnico</button></div> : <ul className="master-activity-list">{technicians.map((item) => <li key={item.participante_id}><div><strong>{item.nome}</strong><span>{item.funcao_no_projeto} · {item.status_calculado}</span></div><b>{item.ativo ? "Ativo" : "Inativo"}</b></li>)}</ul>}
-        </article>
-      </section>
-
-      <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Participantes canônicos</span><h2>Atletas e pendências oficiais</h2></div><strong>{athletes.length}</strong></div>
-        {athletes.length === 0 ? <div className="master-empty"><strong>Nenhum atleta cadastrado neste projeto.</strong><span>Cadastre identidade, perfil esportivo e vínculos pela Central de Participantes.</span><button className="master-button" onClick={() => navigate("/master/participantes")}>Cadastrar atleta</button></div> : <ul className="master-activity-list">{athletes.map((item) => {
-          const state = eligibilityByParticipant[item.participante_id] || { apto_coleta: false, apto_analise: false, pendencias: ["elegibilidade_indisponivel"] };
-          const pending = formatEligibilityPending(state.pendencias || []);
-          return <li key={item.participante_id}><div><strong>{item.nome}</strong><span>Coleta: {state.apto_coleta ? "liberada" : "bloqueada"} · Análise: {state.apto_analise ? "liberada" : "bloqueada"}</span>{pending.length > 0 && <small>Pendências: {pending.join(" · ")}</small>}</div><b>{state.apto_analise ? "Apto" : state.apto_coleta ? "Só coleta" : "Bloqueado"}</b></li>;
-        })}</ul>}
-      </section>
-
-      {legacyLinks.length > 0 && <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Compatibilidade temporária</span><h2>Vínculos históricos</h2></div><strong>{legacyLinks.length}</strong></div><p>Estes vínculos permanecem somente para leitura do núcleo de evidências durante a migração. Novos cadastros não são mais realizados nesta tela.</p></section>}
-    </div></main>
-  );
+export default function HomologationEnvironment(){
+ const {slug}=useParams(),navigate=useNavigate();
+ const [institution,setInstitution]=useState(null),[project,setProject]=useState(null),[profiles,setProfiles]=useState([]),[links,setLinks]=useState([]),[participants,setParticipants]=useState([]),[eligibility,setEligibility]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState("");
+ async function load(){setLoading(true);setError("");const i=await supabase.from("agp_instituicoes").select("*").eq("slug",slug).maybeSingle();if(i.error||!i.data){setError("Ambiente de homologação não encontrado.");setLoading(false);return;}setInstitution(i.data);const [p,l]=await Promise.all([supabase.from("agp_projetos_validacao").select("*").eq("instituicao_id",i.data.id).maybeSingle(),supabase.from("perfis_atletas").select("*").order("nome")]);if(p.error||l.error)setError((p.error||l.error).message);setProject(p.data||null);setProfiles(l.data||[]);if(p.data){const h=await supabase.from("agp_atletas_projeto").select("*").eq("projeto_id",p.data.id).order("created_at");setLinks(h.data||[]);try{const [a,e]=await Promise.all([listProjectParticipants(p.data.id),listProjectEligibility(p.data.id)]);setParticipants(a||[]);setEligibility(e||[]);}catch(x){setError(x.message);}}setLoading(false);}
+ useEffect(()=>{load();},[slug]);
+ const profileById=useMemo(()=>Object.fromEntries(profiles.map(x=>[x.id,x])),[profiles]);
+ const byParticipant=useMemo(()=>Object.fromEntries(eligibility.map(x=>[x.participante_id,x])),[eligibility]);
+ const technicians=participants.filter(x=>["tecnico","treinador"].includes(x.funcao_no_projeto)),athletes=participants.filter(x=>x.funcao_no_projeto==="atleta");
+ const collect=eligibility.filter(x=>x.apto_coleta).length,analyse=eligibility.filter(x=>x.apto_analise).length;
+ const next=technicians.length===0?{title:"Vincular técnico",text:"A homologação precisa de responsabilidade profissional antes da coleta.",action:"Abrir Central de Participantes",go:()=>navigate("/master/participantes")} : athletes.length===0?{title:"Cadastrar atleta de homologação",text:"Crie o participante controlado que percorrerá o ciclo completo.",action:"Abrir Central de Participantes",go:()=>navigate("/master/participantes")} : collect<athletes.length?{title:"Resolver elegibilidade para coleta",text:"Há atleta com pendência de consentimento, linha de base, técnico ou instrumento.",action:"Ver participantes",go:()=>navigate("/master/participantes")} : {title:"Executar coleta controlada",text:"Identidade e elegibilidade estão prontas. Avance para a evidência sem simular conclusão científica.",action:"Abrir coleta",go:()=>navigate(`/master/coletas?projeto=${project?.id}`)};
+ if(loading)return <main className="dashboard-master"><div className="dashboard-loading">Carregando homologação...</div></main>;
+ return <main className="dashboard-master"><div className="dashboard-overlay master-page">
+ <header className="dashboard-header master-header"><div><span className="master-eyebrow">Homologação integral</span><h1>{institution?.nome||"Homologação"}</h1><p>{project?.objetivo}</p></div><button className="master-button secondary" onClick={()=>navigate("/master/homologacao")}>Voltar</button></header>
+ {error&&<div className="master-error" role="alert">{error}</div>}
+ <section className="decision-hero"><div><span className="master-eyebrow">Próxima ação</span><h2>{next.title}</h2><p>{next.text}</p><button className="master-button" onClick={next.go}>{next.action}</button></div><div className="decision-score"><strong>{analyse}/{athletes.length}</strong><span>aptos para análise</span></div></section>
+ <section className="master-content-grid"><article className="master-panel"><span className="master-eyebrow">Coleta</span><h2>{collect}/{athletes.length}</h2><p>Atletas liberados pela elegibilidade oficial.</p></article><article className="master-panel"><span className="master-eyebrow">Equipe</span><h2>{technicians.length}</h2><p>Técnicos responsáveis vinculados ao projeto.</p></article></section>
+ {project&&<AgpEvidenceReadiness projectId={project.id} athleteLinks={links} profileById={profileById}/>} 
+ <details className="master-panel"><summary>Ver participantes e pendências</summary>{athletes.length===0?<div className="master-empty">Nenhum atleta controlado vinculado.</div>:<ul className="master-activity-list">{athletes.map(x=>{const s=byParticipant[x.participante_id]||{apto_coleta:false,apto_analise:false,pendencias:["elegibilidade_indisponivel"]};const pending=formatEligibilityPending(s.pendencias||[]);return <li key={x.participante_id}><div><strong>{x.nome}</strong><span>Coleta: {s.apto_coleta?"liberada":"bloqueada"} · Análise: {s.apto_analise?"liberada":"bloqueada"}</span>{pending.length>0&&<small>{pending.join(" · ")}</small>}</div><b>{s.apto_analise?"Apto":s.apto_coleta?"Só coleta":"Bloqueado"}</b></li>})}</ul>}</details>
+ <details className="master-panel"><summary>Ver governança e compatibilidade</summary><p>Status do projeto: <strong>{project?.status||"indisponível"}</strong>. Vínculos históricos preservados somente para compatibilidade: <strong>{links.length}</strong>.</p></details>
+ </div></main>;
 }

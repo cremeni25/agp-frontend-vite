@@ -14,8 +14,43 @@ function emptyAccess() {
   };
 }
 
+async function claimPendingCanonicalAccount(user) {
+  const email = user.email?.trim().toLowerCase();
+  if (!email || !user.email_confirmed_at) return null;
+
+  const { data: pending, error: pendingError } = await supabase
+    .from("agp_contas_acesso")
+    .select("id,pessoa_id,email_acesso,status")
+    .is("auth_id", null)
+    .eq("status", "acesso_pendente")
+    .ilike("email_acesso", email)
+    .maybeSingle();
+
+  if (pendingError) throw pendingError;
+  if (!pending?.id) return null;
+
+  const now = new Date().toISOString();
+  const { data: claimed, error: claimError } = await supabase
+    .from("agp_contas_acesso")
+    .update({
+      auth_id: user.id,
+      status: "ativo",
+      primeiro_acesso_em: now,
+      ultimo_acesso_em: now,
+      updated_at: now
+    })
+    .eq("id", pending.id)
+    .is("auth_id", null)
+    .eq("status", "acesso_pendente")
+    .select("id,pessoa_id,auth_id,status")
+    .maybeSingle();
+
+  if (claimError) throw claimError;
+  return claimed || null;
+}
+
 async function resolveCanonicalProfile(user) {
-  const { data: conta, error: contaError } = await supabase
+  let { data: conta, error: contaError } = await supabase
     .from("agp_contas_acesso")
     .select("id,pessoa_id,auth_id,status")
     .eq("auth_id", user.id)
@@ -23,6 +58,11 @@ async function resolveCanonicalProfile(user) {
     .maybeSingle();
 
   if (contaError) throw contaError;
+
+  if (!conta?.pessoa_id) {
+    conta = await claimPendingCanonicalAccount(user);
+  }
+
   if (!conta?.pessoa_id) return null;
 
   const { data: pessoa, error: pessoaError } = await supabase
@@ -58,6 +98,21 @@ async function resolveCanonicalProfile(user) {
     perfilEsportivo = data;
   }
 
+  if (participante?.id && participante.status_onboarding === "acesso_pendente") {
+    await supabase
+      .from("agp_participantes_projeto")
+      .update({ status_onboarding: "apto_para_coleta", updated_at: new Date().toISOString() })
+      .eq("id", participante.id)
+      .eq("status_onboarding", "acesso_pendente");
+  }
+
+  const now = new Date().toISOString();
+  await supabase
+    .from("agp_contas_acesso")
+    .update({ ultimo_acesso_em: now, updated_at: now })
+    .eq("id", conta.id)
+    .eq("auth_id", user.id);
+
   return {
     id: perfilEsportivo?.legacy_perfil_atleta_id || perfilEsportivo?.id || conta.pessoa_id,
     pessoa_id: conta.pessoa_id,
@@ -71,7 +126,7 @@ async function resolveCanonicalProfile(user) {
     email: user.email || null,
     funcao: participante?.funcao_no_projeto || null,
     tipo_usuario: participante?.funcao_no_projeto || null,
-    status_onboarding: participante?.status_onboarding || null,
+    status_onboarding: participante?.status_onboarding === "acesso_pendente" ? "apto_para_coleta" : participante?.status_onboarding || null,
     identidade_canonica: true
   };
 }
@@ -104,9 +159,6 @@ export async function resolveUserAccess(sessionOrUser) {
 
   try {
     perfil = await resolveCanonicalProfile(user);
-
-    // Compatibilidade temporária: perfis ainda não migrados continuam acessíveis,
-    // mas a identidade canônica AGP sempre tem precedência.
     if (!perfil) perfil = await resolveLegacyProfile(user);
   } catch (error) {
     console.error("Erro ao resolver identidade AGP:", error);

@@ -36,3 +36,9 @@ export function createInstitutionParticipant(institutionId, payload) {
 export function listProjectParticipants(projectId) {
   return authorizedRequest(`/api/v1/projetos/${projectId}/participantes`);
 }
+
+export function inviteParticipantAccess(participantId) {
+  return authorizedRequest(`/api/v1/participantes/${participantId}/convidar-acesso`, {
+    method: "POST"
+  });
+}

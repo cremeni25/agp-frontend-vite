@@ -32,7 +32,7 @@ import MasterProtocolCatalog from "./pages/MasterProtocolCatalog";
 import MasterCollections from "./pages/MasterCollections";
 import MasterAnalyticPipeline from "./pages/MasterAnalyticPipeline";
 import MasterProfessionalValidation from "./pages/MasterProfessionalValidation";
-import MasterHomologation from "./pages/MasterHomologationOperational";
+import MasterHomologation from "./pages/MasterHomologationAuto";
 import HomologationEnvironment from "./pages/HomologationEnvironment";
 import Unauthorized from "./pages/Unauthorized";
 

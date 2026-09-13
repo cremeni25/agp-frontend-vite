@@ -7,14 +7,41 @@ export const ACCESS_PROFILES = {
   },
   comissao: {
     routeParam: "comissao",
-    aliases: ["comissao", "comissão", "comissao_tecnica", "comissão técnica", "tecnico", "técnico", "coach"],
-    label: "Comissão Técnica",
+    aliases: [
+      "comissao",
+      "comissão",
+      "comissao_tecnica",
+      "comissão técnica",
+      "tecnico",
+      "técnico",
+      "treinador",
+      "coach",
+      "preparador_fisico",
+      "preparador físico",
+      "medico",
+      "médico",
+      "fisioterapeuta",
+      "psicologo",
+      "psicólogo",
+      "nutricionista",
+      "analista"
+    ],
+    label: "Equipe Profissional",
     dashboardPath: "/dashboard-comissao"
   },
   clube: {
     routeParam: "clubes",
-    aliases: ["clube", "clubes", "associacao", "associação", "instituicao", "instituição"],
-    label: "Clubes & Associações",
+    aliases: [
+      "clube",
+      "clubes",
+      "associacao",
+      "associação",
+      "instituicao",
+      "instituição",
+      "gestor",
+      "gestora"
+    ],
+    label: "Instituições",
     dashboardPath: "/dashboard-clube"
   },
   master: {

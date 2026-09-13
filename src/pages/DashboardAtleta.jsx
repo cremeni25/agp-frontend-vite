@@ -6,24 +6,37 @@ import "../styles/athlete-home.css";
 
 export default function DashboardAtleta() {
   const navigate = useNavigate();
-  const { session, perfil } = useAuth();
+  const { perfil } = useAuth();
   const [collections, setCollections] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [score, setScore] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const athleteId = perfil?.id;
+  const athleteId = perfil?.legacy_perfil_atleta_id || perfil?.id || null;
+  const participantId = perfil?.participante_id || null;
 
   async function load() {
     if (!athleteId) { setLoading(false); return; }
     setLoading(true);
     setError("");
+
+    let collectionsQuery = supabase
+      .from("agp_coletas")
+      .select("id,data_hora_coleta,status,completude,dados")
+      .order("data_hora_coleta", { ascending: false })
+      .limit(14);
+
+    collectionsQuery = participantId
+      ? collectionsQuery.eq("participante_id", participantId)
+      : collectionsQuery.eq("atleta_id", athleteId);
+
     const [collectionResult, sessionResult, scoreResult] = await Promise.all([
-      supabase.from("agp_coletas").select("id,data_hora_coleta,status,completude,dados").eq("atleta_id", athleteId).order("data_hora_coleta", { ascending: false }).limit(14),
+      collectionsQuery,
       supabase.from("agp_sessoes_treinamento").select("id,data_hora_inicio,duracao_min,intensidade_percebida,carga_interna,conteudo,intercorrencias").eq("atleta_id", athleteId).order("data_hora_inicio", { ascending: false }).limit(10),
       supabase.from("score_atleta").select("*").eq("atleta_id", athleteId).order("data_calculo", { ascending: false }).limit(1).maybeSingle()
     ]);
+
     const firstError = collectionResult.error || sessionResult.error || scoreResult.error;
     if (firstError) setError("Alguns dados do acompanhamento ainda não estão disponíveis para este acesso.");
     setCollections(collectionResult.data || []);
@@ -32,7 +45,7 @@ export default function DashboardAtleta() {
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, [athleteId]);
+  useEffect(() => { load(); }, [athleteId, participantId]);
 
   const todayAnswered = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);

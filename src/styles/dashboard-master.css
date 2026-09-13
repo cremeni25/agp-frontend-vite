@@ -28,7 +28,8 @@
 }
 
 .master-header p,
-.master-panel p {
+.master-panel p,
+.master-now-card p {
   margin: 0;
   color: #9fb4ca;
 }
@@ -62,7 +63,9 @@
 
 .card,
 .master-panel,
-.master-table-card {
+.master-table-card,
+.master-now-card,
+.master-secondary-area {
   background: rgba(20, 20, 53, 0.82);
   border: 1px solid rgba(121, 104, 255, 0.28);
   border-radius: 14px;
@@ -71,6 +74,31 @@
 
 .card {
   padding: 22px;
+}
+
+.master-now-card {
+  margin-bottom: 32px;
+  padding: 30px;
+  border-color: rgba(66, 186, 255, 0.58);
+  background: linear-gradient(145deg, rgba(12, 47, 82, 0.96), rgba(25, 20, 66, 0.94));
+}
+
+.master-now-card h2 {
+  margin: 8px 0 10px;
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+}
+
+.master-now-card p {
+  max-width: 760px;
+  line-height: 1.55;
+  font-size: 1rem;
+}
+
+.master-primary-action {
+  margin-top: 22px;
+  min-height: 50px;
+  min-width: 220px;
+  font-size: 1rem;
 }
 
 .master-metric {
@@ -117,6 +145,11 @@
   box-shadow: 0 10px 28px rgba(73, 155, 255, 0.16);
 }
 
+.master-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .master-action-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -148,6 +181,28 @@
 .master-action-card span {
   color: #a9bdd2;
   line-height: 1.45;
+}
+
+.master-secondary-area {
+  margin-bottom: 32px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.master-secondary-area > summary {
+  padding: 20px 24px;
+  cursor: pointer;
+  font-weight: 700;
+  color: #dceeff;
+}
+
+.master-secondary-area[open] > summary {
+  border-bottom: 1px solid rgba(121, 104, 255, 0.2);
+}
+
+.master-secondary-area .dashboard-section {
+  padding: 22px;
+  margin: 0;
 }
 
 .master-content-grid {
@@ -463,5 +518,13 @@
 
   .master-row-actions .master-button {
     flex: 1;
+  }
+
+  .master-now-card {
+    padding: 24px;
+  }
+
+  .master-primary-action {
+    width: 100%;
   }
 }

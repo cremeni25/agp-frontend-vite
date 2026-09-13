@@ -9,6 +9,7 @@ export default function DashboardAtleta() {
   const { perfil } = useAuth();
   const [collections, setCollections] = useState([]);
   const [sessions, setSessions] = useState([]);
+  const [responses, setResponses] = useState([]);
   const [score, setScore] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -31,10 +32,11 @@ export default function DashboardAtleta() {
       ? collectionsQuery.eq("participante_id", participantId)
       : collectionsQuery.eq("atleta_id", athleteId);
 
-    const [collectionResult, sessionResult, scoreResult] = await Promise.all([
+    const [collectionResult, sessionResult, scoreResult, responseResult] = await Promise.all([
       collectionsQuery,
       supabase.from("agp_sessoes_treinamento").select("id,data_hora_inicio,duracao_min,intensidade_percebida,carga_interna,conteudo,intercorrencias").eq("atleta_id", athleteId).order("data_hora_inicio", { ascending: false }).limit(10),
-      supabase.from("score_atleta").select("*").eq("atleta_id", athleteId).order("data_calculo", { ascending: false }).limit(1).maybeSingle()
+      supabase.from("score_atleta").select("*").eq("atleta_id", athleteId).order("data_calculo", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("agp_respostas_intervencao").select("id,data_avaliacao,classificacao_resposta,confianca,conclusao,recomendacao_proximo_ciclo").eq("atleta_id", athleteId).order("data_avaliacao", { ascending: false }).limit(5)
     ]);
 
     const firstError = collectionResult.error || sessionResult.error || scoreResult.error;
@@ -42,6 +44,7 @@ export default function DashboardAtleta() {
     setCollections(collectionResult.data || []);
     setSessions(sessionResult.data || []);
     setScore(scoreResult.data || null);
+    setResponses(responseResult.error ? [] : responseResult.data || []);
     setLoading(false);
   }
 
@@ -54,6 +57,7 @@ export default function DashboardAtleta() {
 
   const lastReadiness = collections[0] || null;
   const lastSession = sessions[0] || null;
+  const lastResponse = responses[0] || null;
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -81,12 +85,18 @@ export default function DashboardAtleta() {
       <article><span>Leitura global validada</span><strong>{score?.score_global ?? "—"}</strong><p>{score?.nivel_classificacao || "O AGP ainda não possui resultado suficiente para uma classificação."}</p></article>
     </section>
 
+    {lastResponse && <section className="athlete-home-panel">
+      <div><span>Retorno da equipe</span><h2>{lastResponse.classificacao_resposta ? `Resposta: ${lastResponse.classificacao_resposta}` : "Resposta acompanhada"}</h2><p>{lastResponse.conclusao || "A equipe registrou a resposta da intervenção no seu histórico."}</p></div>
+      <div className="athlete-home-timeline"><div><b>Resposta à intervenção</b><span>{lastResponse.data_avaliacao ? new Date(lastResponse.data_avaliacao).toLocaleString("pt-BR") : "Data não informada"}</span><small>{lastResponse.recomendacao_proximo_ciclo || "O próximo ciclo será definido pela equipe responsável."}</small></div></div>
+    </section>}
+
     <section className="athlete-home-panel">
-      <div><span>Seu histórico</span><h2>O AGP aprende com continuidade</h2><p>Uma resposta isolada não define você. O sistema acompanha mudanças ao longo do tempo e cruza recuperação, carga, contexto e evolução esportiva antes de devolver uma leitura.</p></div>
+      <div><span>Seu histórico</span><h2>O AGP aprende com continuidade</h2><p>Uma resposta isolada não define você. O sistema acompanha mudanças ao longo do tempo e cruza recuperação, carga, contexto, intervenção e evolução esportiva antes de devolver uma leitura.</p></div>
       <div className="athlete-home-timeline">
-        {collections.length === 0 && sessions.length === 0 ? <p>Nenhuma evidência longitudinal disponível ainda.</p> : <>
+        {collections.length === 0 && sessions.length === 0 && responses.length === 0 ? <p>Nenhuma evidência longitudinal disponível ainda.</p> : <>
           {lastReadiness && <div><b>Prontidão</b><span>{new Date(lastReadiness.data_hora_coleta).toLocaleString("pt-BR")}</span><small>{lastReadiness.status}</small></div>}
           {lastSession && <div><b>Treino</b><span>{new Date(lastSession.data_hora_inicio).toLocaleString("pt-BR")}</span><small>{lastSession.conteudo?.foco || "Sessão registrada"}</small></div>}
+          {lastResponse && <div><b>Resposta à intervenção</b><span>{lastResponse.data_avaliacao ? new Date(lastResponse.data_avaliacao).toLocaleString("pt-BR") : "—"}</span><small>{lastResponse.classificacao_resposta || "Resposta registrada"}</small></div>}
         </>}
       </div>
     </section>

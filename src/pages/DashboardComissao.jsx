@@ -1,1 +1,1 @@
-export { default } from "./DashboardComissaoCanonical";
+export { default } from "./DashboardComissaoLongitudinal";

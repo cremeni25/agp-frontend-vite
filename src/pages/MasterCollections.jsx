@@ -17,6 +17,11 @@ function fieldsFrom(schema = {}) {
   }));
 }
 
+function professionalInstrument(item) {
+  const respondent = String(item?.respondente || item?.instrumento_respondente || "").toLowerCase();
+  return respondent !== "atleta" && respondent !== "athlete";
+}
+
 export default function MasterCollections() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -44,7 +49,17 @@ export default function MasterCollections() {
         listProjectCollections(id)
       ]);
       const athletes = (participantRows || []).filter((item) => item.funcao_no_projeto === "atleta" && item.ativo);
-      const activeCatalog = catalogRows || [];
+      const rawCatalog = catalogRows || [];
+      const ids = rawCatalog.map((item) => item.instrumento_id).filter(Boolean);
+      let enrichedCatalog = rawCatalog;
+      if (ids.length) {
+        const { data: semantics } = await supabase.from("agp_instrumentos").select("id,respondente").in("id", ids);
+        if (semantics?.length) {
+          const byId = Object.fromEntries(semantics.map((item) => [String(item.id), item.respondente]));
+          enrichedCatalog = rawCatalog.map((item) => ({ ...item, respondente: item.respondente || byId[String(item.instrumento_id)] || null }));
+        }
+      }
+      const activeCatalog = enrichedCatalog.filter(professionalInstrument);
       const chosenParticipant = preferredParticipantId && athletes.some((item) => String(item.participante_id) === String(preferredParticipantId)) ? preferredParticipantId : "";
       const onlyInstrument = activeCatalog.length === 1 ? activeCatalog[0] : null;
       setParticipants(athletes);
@@ -53,12 +68,13 @@ export default function MasterCollections() {
       setForm((current) => ({
         ...current,
         participante_id: chosenParticipant || current.participante_id,
-        ativacao_instrumento_id: onlyInstrument?.ativacao_id || current.ativacao_instrumento_id,
-        instrumento_id: onlyInstrument?.instrumento_id || current.instrumento_id,
-        protocolo_id: onlyInstrument?.protocolo_id || current.protocolo_id,
-        versao_schema: onlyInstrument?.instrumento_versao || current.versao_schema,
-        dados: onlyInstrument ? {} : current.dados
+        ativacao_instrumento_id: onlyInstrument?.ativacao_id || "",
+        instrumento_id: onlyInstrument?.instrumento_id || "",
+        protocolo_id: onlyInstrument?.protocolo_id || "",
+        versao_schema: onlyInstrument?.instrumento_versao || "1.0.0",
+        dados: {}
       }));
+      if (rawCatalog.length > 0 && activeCatalog.length === 0) setError("Não há instrumento profissional ativo para esta operação. O questionário do atleta deve ser respondido pelo próprio atleta.");
     } catch (e) { setError(`Falha ao carregar a operação: ${e.message}`); }
   }
 
@@ -82,12 +98,13 @@ export default function MasterCollections() {
   }
 
   async function register() {
-    if (!form.participante_id || !form.instrumento_id || !form.ativacao_instrumento_id) return setError("O AGP ainda não conseguiu determinar o contexto desta evidência.");
+    if (!form.participante_id || !form.instrumento_id || !form.ativacao_instrumento_id) return setError("O AGP ainda não conseguiu determinar um instrumento profissional válido para esta evidência.");
+    if (!professionalInstrument(instrument)) return setError("Este instrumento pertence ao atleta e não pode ser preenchido como observação profissional.");
     setWorking(true); setError(""); setMessage("");
     try {
-      const created = await createCollection({ ...form, protocolo_id: form.protocolo_id || null });
+      const created = await createCollection({ ...form, protocolo_id: form.protocolo_id || null, origem: "observacao_profissional", papel_coletor: "tecnico" });
       await updateCollection(created.id, { dados: form.dados, status: "completa", justificativa_correcao: null });
-      setMessage("Evidência registrada com sucesso.");
+      setMessage("Evidência profissional registrada com sucesso.");
       await loadProject(projectId, form.participante_id);
     } catch (e) { setError(`Falha ao registrar evidência: ${e.message}`); }
     finally { setWorking(false); }
@@ -95,7 +112,7 @@ export default function MasterCollections() {
 
   return <main className="dashboard-master"><div className="dashboard-overlay master-page">
     <header className="dashboard-header master-header">
-      <div><span className="master-eyebrow">Agora</span><h1>{contextual && athleteName ? athleteName : "Registrar evidência"}</h1><p>{instrument?.instrumento_nome || "O AGP mostra apenas o que precisa ser preenchido."}</p></div>
+      <div><span className="master-eyebrow">Agora</span><h1>{contextual && athleteName ? athleteName : "Registrar evidência"}</h1><p>{instrument?.instrumento_nome || "O AGP mostra apenas instrumentos compatíveis com coleta profissional."}</p></div>
       <button className="master-button secondary" onClick={() => navigate(contextual ? `/master/atletas/${initialParticipantId}` : "/dashboard-master")}>Voltar</button>
     </header>
 
@@ -110,9 +127,9 @@ export default function MasterCollections() {
     </section>}
 
     <section className="master-panel">
-      <div className="master-section-heading"><div><span className="master-eyebrow">Preenchimento</span><h2>{instrument?.instrumento_nome || "Evidência"}</h2></div></div>
-      {fields.length === 0 ? <div className="master-empty">Nenhum campo disponível.</div> : fields.map((field) => <label key={field.name}>{field.label}{field.required ? " *" : ""}{field.options.length ? <select className="master-select" value={form.dados[field.name] ?? ""} onChange={(e) => setForm({ ...form, dados: { ...form.dados, [field.name]: e.target.value } })}><option value="">Selecionar</option>{field.options.map((option) => <option key={String(option)} value={option}>{String(option)}</option>)}</select> : <input className="master-input" type={field.type === "number" || field.type === "integer" ? "number" : "text"} value={form.dados[field.name] ?? ""} onChange={(e) => setForm({ ...form, dados: { ...form.dados, [field.name]: field.type === "number" || field.type === "integer" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value } })}/>}</label>)}
-      <button className="master-button" disabled={working} onClick={register}>{working ? "Registrando..." : "Registrar evidência"}</button>
+      <div className="master-section-heading"><div><span className="master-eyebrow">Preenchimento</span><h2>{instrument?.instrumento_nome || "Evidência profissional"}</h2></div></div>
+      {!instrument ? <div className="master-empty">Nenhum instrumento profissional disponível para este contexto.</div> : fields.length === 0 ? <div className="master-empty">Nenhum campo disponível.</div> : fields.map((field) => <label key={field.name}>{field.label}{field.required ? " *" : ""}{field.options.length ? <select className="master-select" value={form.dados[field.name] ?? ""} onChange={(e) => setForm({ ...form, dados: { ...form.dados, [field.name]: e.target.value } })}><option value="">Selecionar</option>{field.options.map((option) => <option key={String(option)} value={option}>{String(option)}</option>)}</select> : <input className="master-input" type={field.type === "number" || field.type === "integer" ? "number" : "text"} value={form.dados[field.name] ?? ""} onChange={(e) => setForm({ ...form, dados: { ...form.dados, [field.name]: field.type === "number" || field.type === "integer" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value } })}/>}</label>)}
+      {instrument && <button className="master-button" disabled={working} onClick={register}>{working ? "Registrando..." : "Registrar evidência"}</button>}
     </section>
 
     {collections.length > 0 && <details className="master-panel"><summary>Histórico</summary><ul className="master-activity-list">{collections.slice(0,10).map((item) => <li key={item.coleta_id || item.id}><div><strong>{item.instrumento_nome}</strong><span>{item.participante_nome || item.nome} · {item.status}</span></div></li>)}</ul></details>}

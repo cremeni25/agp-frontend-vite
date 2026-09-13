@@ -21,7 +21,7 @@ import MasterTechnicalTeam from "./pages/MasterTechnicalTeam";
 import MasterUsers from "./pages/MasterUsers";
 import MasterProfiles from "./pages/MasterProfiles";
 import MasterParticipantsHub from "./pages/MasterParticipantsHub";
-import MasterParticipantService from "./pages/MasterParticipantService";
+import MasterParticipantServiceRoute from "./pages/MasterParticipantServiceRoute";
 import MasterAthletes from "./pages/MasterAthletes";
 import MasterAthleteProfile from "./pages/MasterAthleteProfile";
 import MasterAthleteDailyOperation from "./pages/MasterAthleteDailyOperation";
@@ -64,7 +64,7 @@ function App() {
           <Route path="/master/usuarios" element={<ProtectedRoute tipoPermitido="master"><MasterUsers /></ProtectedRoute>} />
           <Route path="/master/perfis" element={<ProtectedRoute tipoPermitido="master"><MasterProfiles /></ProtectedRoute>} />
           <Route path="/master/participantes" element={<ProtectedRoute tipoPermitido="master"><MasterParticipantsHub /></ProtectedRoute>} />
-          <Route path="/master/participantes/operacao" element={<ProtectedRoute tipoPermitido="master"><MasterParticipantService /></ProtectedRoute>} />
+          <Route path="/master/participantes/operacao" element={<ProtectedRoute tipoPermitido="master"><MasterParticipantServiceRoute /></ProtectedRoute>} />
           <Route path="/master/atletas" element={<ProtectedRoute tipoPermitido="master"><MasterAthletes /></ProtectedRoute>} />
           <Route path="/master/atletas/:participantId" element={<ProtectedRoute tipoPermitido="master"><MasterAthleteProfile /></ProtectedRoute>} />
           <Route path="/master/atletas/:participantId/dia" element={<ProtectedRoute tipoPermitido="master"><MasterAthleteDailyOperation /></ProtectedRoute>} />

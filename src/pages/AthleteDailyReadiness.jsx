@@ -53,4 +53,8 @@ export default function AthleteDailyReadiness() {
     {history.length > 0 && <details className="readiness-history"><summary>Ver meus últimos registros</summary><ul>{history.map((item) => <li key={item.id}><div><strong>{new Date(item.data_hora_coleta).toLocaleString("pt-BR")}</strong><span>Registro concluído</span></div></li>)}</ul></details>}
   </div></main>;
 }
-function EmojiScale({ label, options, value, onChange }) { return <fieldset className="emoji-scale"><legend>{label}</legend><div className="emoji-options">{options.map((option)=><button key={option.value} type="button" className={String(value)===String(option.value)?"emoji-option selected":"emoji-option"} aria-pressed={String(value)===String(option.value)} onClick={()=>onChange(String(option.value))}><span className="emoji-face" aria-hidden="true">{option.emoji}</span><span className="emoji-text">{option.text}</span></button>)}</div></fieldset>; }
+function EmojiScale({ label, options, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const selected = options.find((option) => String(option.value) === String(value));
+  return <fieldset className="emoji-scale"><legend>{label}</legend><button type="button" className={selected ? "emoji-select selected" : "emoji-select"} onClick={() => setOpen((current) => !current)} aria-expanded={open}>{selected ? <><span className="emoji-face" aria-hidden="true">{selected.emoji}</span><span>{selected.text}</span></> : <span>Responder</span>}<span className="emoji-chevron" aria-hidden="true">⌄</span></button>{open && <div className="emoji-menu">{options.map((option)=><button key={option.value} type="button" className="emoji-menu-option" onClick={()=>{onChange(String(option.value));setOpen(false);}}><span className="emoji-face" aria-hidden="true">{option.emoji}</span><span>{option.text}</span></button>)}</div>}</fieldset>;
+}

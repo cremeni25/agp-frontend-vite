@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { resolveUserAccess } from "../services/resolveUserAccess";
@@ -16,6 +16,7 @@ function validatePassword(value) {
 
 export default function ChangePassword() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { session, loading } = useAuth();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -26,9 +27,14 @@ export default function ChangePassword() {
   const email = session?.user?.email || "";
   const metadata = session?.user?.user_metadata || {};
   const invitedAccess = useMemo(() => {
-    if (!session?.user) return false;
-    return metadata.agp_initial_password_issued !== true && !session.user.last_sign_in_at;
-  }, [session, metadata.agp_initial_password_issued]);
+    const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
+    const type = hash.get("type");
+    return (
+      type === "invite" ||
+      Boolean(metadata.agp_participante_id) ||
+      Boolean(metadata.agp_pessoa_id)
+    );
+  }, [location.hash, metadata.agp_participante_id, metadata.agp_pessoa_id]);
   const required = useMemo(() => {
     return metadata.agp_initial_password_issued === true && metadata.agp_password_changed !== true;
   }, [metadata.agp_initial_password_issued, metadata.agp_password_changed]);
@@ -81,7 +87,7 @@ export default function ChangePassword() {
       await supabase.auth.signOut({ scope: "global" });
       navigate("/login?senha-alterada=1", { replace: true });
     } catch {
-      setError("Não foi possível concluir a alteração de senha.");
+      setError("Não foi possível concluir a ativação do acesso.");
     } finally {
       setSaving(false);
     }

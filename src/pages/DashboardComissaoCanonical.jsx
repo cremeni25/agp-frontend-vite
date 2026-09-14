@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
 import "../styles/dashboard-comissao.css";
 
 function state(row) {
+  if (row.lastStatus === "completa") return { label: "Evidência aguardando validação", level: 3 };
   if (!row.last) return { label: "Sem evidência recente", level: 2 };
   const hours = (Date.now() - new Date(row.last).getTime()) / 36e5;
   if (hours > 48) return { label: "Precisa de atenção", level: 2 };
@@ -13,7 +13,6 @@ function state(row) {
 }
 
 export default function DashboardComissaoCanonical() {
-  const navigate = useNavigate();
   const { perfil } = useAuth();
   const [rows, setRows] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -83,10 +82,6 @@ export default function DashboardComissaoCanonical() {
     else setHistory(result.data || []);
   }
 
-  function openValidation(row) {
-    navigate(`/comissao/validacao?projeto=${encodeURIComponent(row.projeto_id)}&participante=${encodeURIComponent(row.id)}`);
-  }
-
   useEffect(() => { load(); }, [perfil?.pessoa_id]);
 
   const ordered = useMemo(() => [...rows].sort((a, b) => state(b).level - state(a).level), [rows]);
@@ -98,10 +93,10 @@ export default function DashboardComissaoCanonical() {
     <header className="dashboard-header"><div><span>AGP · Comissão técnica</span><h1>Quem precisa da sua atenção agora?</h1><p>Pessoas, evidências e decisão profissional no mesmo fluxo.</p></div><button onClick={load}>Atualizar</button></header>
     {error && <div className="master-error" role="alert">{error}</div>}
 
-    <section className="dashboard-section"><h2>{next ? state(next).label : "Nenhum atleta vinculado"}</h2>{next ? <article className="athlete-card"><h3>{next.person.nome || "Atleta"}</h3><p>{next.profile.modalidade || next.profile.categoria || next.profile.nivel || "Acompanhamento ativo"}</p><strong>{next.last ? `Última evidência: ${new Date(next.last).toLocaleString("pt-BR")}` : "Ainda sem evidência recente"}</strong><button onClick={() => open(next)}>Abrir acompanhamento</button><button onClick={() => openValidation(next)}>Validar resultado</button></article> : <p>Nenhum atleta está vinculado a este profissional.</p>}</section>
+    <section className="dashboard-section"><h2>{next ? state(next).label : "Nenhum atleta vinculado"}</h2>{next ? <article className="athlete-card"><h3>{next.person.nome || "Atleta"}</h3><p>{next.profile.modalidade || next.profile.categoria || next.profile.nivel || "Acompanhamento ativo"}</p><strong>{next.last ? `Última evidência: ${new Date(next.last).toLocaleString("pt-BR")}` : "Ainda sem evidência recente"}</strong><button onClick={() => open(next)}>Abrir acompanhamento</button></article> : <p>Nenhum atleta está vinculado a este profissional.</p>}</section>
 
-    {selected && <section className="dashboard-section"><h2>{selected.person.nome || "Atleta"}</h2><p>Histórico recente para decisão profissional.</p><button onClick={() => openValidation(selected)}>Abrir fila de validação</button>{history.length === 0 ? <p>Ainda não há evidências disponíveis.</p> : <div className="alert-list">{history.map((item) => <article key={item.id} className="athlete-card"><strong>{new Date(item.data_hora_coleta).toLocaleString("pt-BR")}</strong><span>{item.status || "registro"}{item.completude != null ? ` · completude ${item.completude}%` : ""}</span><details><summary>Ver evidência</summary><pre>{JSON.stringify(item.dados, null, 2)}</pre></details></article>)}</div>}</section>}
+    {selected && <section className="dashboard-section"><h2>{selected.person.nome || "Atleta"}</h2><p>Histórico recente para decisão profissional. Evidências completas que aguardam validação aparecem na fila operacional logo abaixo.</p>{history.length === 0 ? <p>Ainda não há evidências disponíveis.</p> : <div className="alert-list">{history.map((item) => <article key={item.id} className="athlete-card"><strong>{new Date(item.data_hora_coleta).toLocaleString("pt-BR")}</strong><span>{item.status || "registro"}{item.completude != null ? ` · completude ${item.completude}%` : ""}</span><details><summary>Ver evidência</summary><pre>{JSON.stringify(item.dados, null, 2)}</pre></details></article>)}</div>}</section>}
 
-    <details className="dashboard-section"><summary>Ver todos os atletas</summary><div className="athlete-grid">{ordered.map((item) => { const current = state(item); return <article key={item.id} className={`athlete-card ${current.level === 2 ? "critical" : current.level === 1 ? "warning" : "ok"}`}><h3>{item.person.nome || "Atleta"}</h3><p>{item.profile.modalidade || item.profile.categoria || item.profile.nivel || ""}</p><strong>{current.label}</strong><button onClick={() => open(item)}>Abrir acompanhamento</button><button onClick={() => openValidation(item)}>Validar resultado</button></article>; })}</div></details>
+    <details className="dashboard-section"><summary>Ver todos os atletas</summary><div className="athlete-grid">{ordered.map((item) => { const current = state(item); return <article key={item.id} className={`athlete-card ${current.level >= 2 ? "critical" : current.level === 1 ? "warning" : "ok"}`}><h3>{item.person.nome || "Atleta"}</h3><p>{item.profile.modalidade || item.profile.categoria || item.profile.nivel || ""}</p><strong>{current.label}</strong><button onClick={() => open(item)}>Abrir acompanhamento</button></article>; })}</div></details>
   </div></main>;
 }

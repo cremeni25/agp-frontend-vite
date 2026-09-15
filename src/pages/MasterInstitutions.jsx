@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import InstitutionBrand from "../components/InstitutionBrand";
 import { createInstitution, deleteInstitution, listInstitutions, updateInstitution } from "../services/institutionManagement";
 import "../styles/dashboard-master.css";
@@ -19,6 +19,10 @@ const EMPTY_FORM = {
 
 export default function MasterInstitutions() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const context = new URLSearchParams(location.search).get("context");
+  const backPath = context === "homologacao" ? "/master/homologacao" : "/dashboard-master/administracao";
+
   const [institutions, setInstitutions] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState("");
@@ -91,7 +95,7 @@ export default function MasterInstitutions() {
   const preview = { ...form, nome: form.nome || "Instituição", nome_exibicao: form.nome_exibicao || form.nome || "Instituição", localidade: form.localidade };
 
   return <main className="dashboard-master"><div className="dashboard-overlay master-page">
-    <header className="dashboard-header master-header"><div><span className="master-eyebrow">Administração</span><h1>Instituições</h1><p>Cadastro institucional, identidade visual e base de governança de cada clube.</p></div><button className="master-button secondary" onClick={() => navigate("/dashboard-master/administracao")}>Voltar</button></header>
+    <header className="dashboard-header master-header"><div><span className="master-eyebrow">Administração</span><h1>Instituições</h1><p>Cadastro institucional, identidade visual e base de governança de cada clube.</p></div><button className="master-button secondary" onClick={() => navigate(backPath)}>Voltar</button></header>
     {message && <div className="master-feedback success">{message}</div>}{error && <div className="master-error" role="alert">{error}</div>}
 
     <section className="master-content-grid">

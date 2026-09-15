@@ -1,0 +1,85 @@
+.institution-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--institution-secondary) 45%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--institution-primary) 88%, #050817), rgba(5, 8, 23, 0.9));
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
+}
+
+.institution-brand.compact {
+  padding: 9px 12px;
+  border-radius: 12px;
+}
+
+.institution-brand-logo,
+.institution-brand-monogram {
+  width: 58px;
+  height: 58px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: #ffffff;
+  flex: 0 0 auto;
+}
+
+.institution-brand.compact .institution-brand-logo,
+.institution-brand.compact .institution-brand-monogram {
+  width: 44px;
+  height: 44px;
+}
+
+.institution-brand-monogram {
+  display: grid;
+  place-items: center;
+  color: var(--institution-primary);
+  font-weight: 800;
+  border: 3px solid var(--institution-secondary);
+}
+
+.institution-brand-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.institution-brand-copy span {
+  color: var(--institution-secondary);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.institution-brand-copy strong {
+  color: #ffffff;
+  font-size: 1.05rem;
+}
+
+.institution-brand-copy small {
+  color: #b8c8d8;
+}
+
+.institution-brand-preview {
+  margin: 0 0 22px;
+}
+
+.institution-brand-swatches {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.institution-brand-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.35);
+}
+
+@media (max-width: 760px) {
+  .institution-brand {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}

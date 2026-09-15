@@ -19,7 +19,7 @@ export default function MasterProjects(){
   if(contextualHomologacao)return items.find(x=>x.nome==="N1 Academia")||items.find(x=>x.status==="ativo")||items[0];
   return items[0];
  }
- async function load(){setLoading(true);setError("");try{const[i,p]=await Promise.all([listInstitutions(),listProjects()]);const inst=i||[];setInstitutions(inst);setProjects(p||[]);const preferred=preferredInstitution(inst);setForm(current=>({...current,instituicao_id:current.instituicao_id||preferred?.id||"",status:contextualHomologacao?"homologacao":current.status}));}catch(e){setError(e.message)}finally{setLoading(false)}}
+ async function load(){setLoading(true);setError("");try{const[i,p]=await Promise.all([listInstitutions(),listProjects()]);const inst=i||[];setInstitutions(inst);setProjects(p||[]);const preferred=preferredInstitution(inst);setForm(current=>({...current,instituicao_id:preferred?.id||current.instituicao_id||"",status:contextualHomologacao?"homologacao":current.status}));}catch(e){setError(e.message)}finally{setLoading(false)}}
  useEffect(()=>{load()},[]);
  const n1=useMemo(()=>institutions.find(x=>x.nome==="N1 Academia")||institutions.find(x=>x.status==="ativo")||null,[institutions]);
  const swimming=useMemo(()=>projects.find(x=>x.instituicao_id===n1?.id&&/nata[cç][aã]o/i.test(x.nome||""))||null,[projects,n1]);
@@ -28,8 +28,9 @@ export default function MasterProjects(){
  function reset(){setEditingId(null);const preferred=preferredInstitution(institutions);setForm({...EMPTY,instituicao_id:preferred?.id||"",status:contextualHomologacao?"homologacao":"preparacao"})}
  async function submit(e){
   e.preventDefault();setSaving(true);setError("");setMessage("");
+  const effectiveInstitutionId=contextualHomologacao?n1?.id:form.instituicao_id;
   const payload={
-   instituicao_id:form.instituicao_id,
+   instituicao_id:effectiveInstitutionId||"",
    nome:form.nome.trim(),
    objetivo:form.objetivo.trim(),
    metodologia:form.metodologia.trim()||null,
@@ -40,7 +41,7 @@ export default function MasterProjects(){
    status:contextualHomologacao?"homologacao":form.status,
    versao_motor:form.versao_motor||"agp-core-v2.1-traceable"
   };
-  if(!payload.instituicao_id){setError("A instituição da homologação não foi vinculada. Atualize a tela e tente novamente.");setSaving(false);return;}
+  if(!payload.instituicao_id){setError("A instituição N1 não foi vinculada. Atualize a tela e tente novamente.");setSaving(false);return;}
   try{if(editingId){await updateProject(editingId,payload);setMessage("Projeto atualizado.")}else{await createProject(payload);setMessage("Projeto criado.")}reset();await load();if(contextualHomologacao)navigate("/master/homologacao")}catch(x){setError(x.message)}finally{setSaving(false)}
  }
  function edit(p){setEditingId(p.id);setForm({instituicao_id:p.instituicao_id||"",nome:p.nome||"",objetivo:p.objetivo||"",metodologia:p.metodologia||"",diretrizes:p.diretrizes||"",localidade:p.localidade||"",data_inicio:p.data_inicio||"",data_fim:p.data_fim||"",status:p.status||"preparacao",versao_motor:p.versao_motor||"agp-core-v2.1-traceable"});window.scrollTo({top:0,behavior:"smooth"})}
@@ -50,7 +51,7 @@ export default function MasterProjects(){
   <header className="dashboard-header master-header"><div><span className="master-eyebrow">{contextualHomologacao?"Homologação Master":"Núcleo Administrativo"}</span><h1>{contextualHomologacao?"Criar projeto de homologação":"Projetos"}</h1><p>{contextualHomologacao?"Preencha você mesmo o contexto esportivo que será usado para conhecer e testar o AGP.":"Projetos operacionais vinculados às instituições."}</p></div><button className="master-button secondary" onClick={()=>navigate(contextualHomologacao?"/master/homologacao":"/dashboard-master/administracao")}>Voltar</button></header>
   {message&&<div className="master-feedback success">{message}</div>}{error&&<div className="master-feedback error">{error}</div>}
   <section className="dashboard-section master-split"><form className="master-panel" onSubmit={submit}><span className="master-eyebrow">Dados do Master</span><h2>{editingId?"Editar projeto":"Novo projeto"}</h2>
-   <label>Instituição<select name="instituicao_id" value={form.instituicao_id} onChange={change} required>{institutions.map(i=><option key={i.id} value={i.id}>{i.nome}</option>)}</select></label>
+   <label>Instituição<select name="instituicao_id" value={contextualHomologacao?(n1?.id||""):form.instituicao_id} onChange={change} required disabled={contextualHomologacao}>{institutions.map(i=><option key={i.id} value={i.id}>{i.nome}</option>)}</select></label>
    <label>Nome do projeto / modalidade<input name="nome" value={form.nome} onChange={change} required placeholder="Ex.: Homologação Natação"/></label>
    <label>Objetivo<textarea name="objetivo" value={form.objetivo} onChange={change} required rows="3" placeholder="O que você pretende validar neste ciclo?"/></label>
    <label>Metodologia<textarea name="metodologia" value={form.metodologia} onChange={change} rows="2" placeholder="Opcional"/></label>

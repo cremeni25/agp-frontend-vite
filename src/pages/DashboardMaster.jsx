@@ -7,32 +7,30 @@ import "../styles/institution-brand.css";
 
 export default function DashboardMaster(){
  const navigate=useNavigate();
- const [participants,setParticipants]=useState([]),[technicalMembers,setTechnicalMembers]=useState([]),[institutions,setInstitutions]=useState([]),[projects,setProjects]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState("");
+ const [participants,setParticipants]=useState([]),[institutions,setInstitutions]=useState([]),[projects,setProjects]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState("");
  async function loadDashboard(){
   setLoading(true);setError("");
-  const [p,t,i,j]=await Promise.all([
+  const [p,i,j]=await Promise.all([
    supabase.from("agp_participantes_projeto").select("id,pessoa_id,projeto_id,funcao_no_projeto,status_onboarding,ativo"),
-   supabase.from("agp_membros_instituicao").select("id,auth_id,instituicao_id,ativo,papel"),
    supabase.from("agp_instituicoes").select("id,nome,nome_exibicao,slug,tipo,localidade,status,logo_url,cor_primaria,cor_secundaria").order("created_at",{ascending:true}),
    supabase.from("agp_projetos_validacao").select("id,instituicao_id,nome,status").order("created_at",{ascending:true})
   ]);
-  const e=p.error||t.error||i.error||j.error;
+  const e=p.error||i.error||j.error;
   if(e)setError(`Falha ao carregar o centro operacional: ${e.message}`);
-  setParticipants(p.data||[]);setTechnicalMembers(t.data||[]);setInstitutions(i.data||[]);setProjects(j.data||[]);setLoading(false);
+  setParticipants(p.data||[]);setInstitutions(i.data||[]);setProjects(j.data||[]);setLoading(false);
  }
  useEffect(()=>{loadDashboard()},[]);
- const n1=useMemo(()=>institutions.find(x=>x.slug==="n1-academia")||null,[institutions]);
- const homologationInstitution=useMemo(()=>institutions.find(x=>x.tipo==="homologacao")||null,[institutions]);
- const homologationProject=useMemo(()=>projects.find(x=>x.instituicao_id===homologationInstitution?.id)||null,[projects,homologationInstitution]);
- const homologationCompleted=homologationProject?.status==="concluido";
- const realProjects=useMemo(()=>projects.filter(x=>x.instituicao_id!==homologationInstitution?.id&&!["concluido","suspenso"].includes(x.status)),[projects,homologationInstitution]);
+ const n1=useMemo(()=>institutions.find(x=>x.slug==="n1-academia")||institutions.find(x=>String(x.nome||"").toLowerCase().includes("n1 academia"))||null,[institutions]);
+ const homologationProject=useMemo(()=>projects.find(x=>x.instituicao_id===n1?.id&&x.status==="homologacao")||null,[projects,n1]);
+ const homologationCompleted=useMemo(()=>projects.some(x=>x.instituicao_id===n1?.id&&x.status==="concluido"),[projects,n1]);
+ const realProjects=useMemo(()=>projects.filter(x=>x.instituicao_id===n1?.id&&!["homologacao","concluido","suspenso"].includes(x.status)),[projects,n1]);
  const summary=useMemo(()=>({
   athletes:new Set(participants.filter(x=>x.ativo&&x.funcao_no_projeto==="atleta").map(x=>x.pessoa_id).filter(Boolean)).size,
-  professionals:new Set(technicalMembers.filter(x=>x.ativo).map(x=>x.auth_id||x.id).filter(Boolean)).size,
+  professionals:new Set(participants.filter(x=>x.ativo&&x.funcao_no_projeto!=="atleta").map(x=>x.pessoa_id).filter(Boolean)).size,
   institutions:institutions.filter(x=>x.status==="ativo"&&x.tipo!=="homologacao").length,
   projects:realProjects.length,
   participantAttention:participants.filter(x=>x.ativo&&!["ativo","apto_para_coleta"].includes(x.status_onboarding)).length
- }),[participants,technicalMembers,institutions,realProjects]);
+ }),[participants,institutions,realProjects]);
  const nextAction=useMemo(()=>{
   if(loading)return{title:"Consolidando a operação",description:"O AGP está verificando homologação, instituição, modalidade, equipe, participantes e pendências.",label:"Aguarde",disabled:true};
   if(!homologationCompleted)return{title:"Homologar integralmente o AGP como Master",description:"Antes de liberar a N1, percorra o sistema real de ponta a ponta, inserindo dados controlados, conhecendo cada responsabilidade e validando todas as devolutivas.",label:homologationProject?"Continuar homologação":"Iniciar homologação Master",path:"/master/homologacao"};

@@ -20,17 +20,30 @@ export default function MasterParticipantsHub() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const { data, error: requestError } = await supabase.from("agp_participantes_projeto").select("id,status_onboarding,ativo").eq("ativo", true);
-      if (requestError) setError(`Não foi possível carregar os participantes: ${requestError.message}`);
-      else {
-        const rows = data || [];
-        const pendentes = rows.filter((item) => !["apto", "concluido", "ativo", "apto_para_coleta"].includes(String(item.status_onboarding || "").toLowerCase())).length;
-        setCounts({ participantes: rows.length, pendentes });
+      const [participantResult, homologationResult] = await Promise.all([
+        supabase.from("agp_participantes_projeto").select("id,status_onboarding,ativo").eq("ativo", true),
+        supabase.from("agp_projetos_validacao").select("id").eq("status", "homologacao").limit(1)
+      ]);
+
+      const requestError = participantResult.error || homologationResult.error;
+      if (requestError) {
+        setError(`Não foi possível carregar os participantes: ${requestError.message}`);
+        setLoading(false);
+        return;
       }
+
+      if (!context && (homologationResult.data || []).length > 0) {
+        navigate("/master/homologacao", { replace: true });
+        return;
+      }
+
+      const rows = participantResult.data || [];
+      const pendentes = rows.filter((item) => !["apto", "concluido", "ativo", "apto_para_coleta"].includes(String(item.status_onboarding || "").toLowerCase())).length;
+      setCounts({ participantes: rows.length, pendentes });
       setLoading(false);
     }
     load();
-  }, []);
+  }, [context, navigate]);
 
   function operation(servico) {
     const query = new URLSearchParams();

@@ -12,7 +12,7 @@ export default function MasterParticipantServiceRoute() {
 
   return (
     <div className={contextual ? "agp-contextual-participant-service" : ""}>
-      {contextual && <style>{`.agp-contextual-participant-service .dashboard-overlay.master-page > .master-panel:first-of-type{display:none}`}</style>}
+      {contextual && <style>{`.agp-contextual-participant-service .dashboard-overlay.master-page > section.master-panel:first-of-type{display:none}`}</style>}
       <MasterParticipantService />
     </div>
   );

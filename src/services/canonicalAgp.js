@@ -32,6 +32,12 @@ async function request(path, options = {}) {
 export const getDailySelfReport = (participantId) =>
   request(`/api/v1/participantes/${participantId}/autorreporte-diario`);
 
+export const submitDailySelfReport = (participantId, payload) =>
+  request(`/api/v1/participantes/${participantId}/autorreporte-diario`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
 export const getCanonicalBaseline = (participantId) =>
   request(`/api/v1/participantes/${participantId}/linha-base-canonica`);
 
@@ -44,11 +50,41 @@ export const getCanonicalAnalysis = (participantId) =>
 export const getCanonicalDecisionCycle = (participantId) =>
   request(`/api/v1/participantes/${participantId}/ciclo-decisao-canonico`);
 
+export const createCanonicalDecision = (participantId, payload) =>
+  request(`/api/v1/participantes/${participantId}/decisoes-canonicas`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
+export const createCanonicalIntervention = (decisionId, payload) =>
+  request(`/api/v1/decisoes-canonicas/${decisionId}/intervencoes`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
+export const createCanonicalResponse = (interventionId, payload) =>
+  request(`/api/v1/intervencoes/${interventionId}/respostas-canonicas`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
+export const createCanonicalLearning = (responseId, payload) =>
+  request(`/api/v1/respostas-intervencao/${responseId}/aprendizados`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
 export const getTrainingCompetition = (participantId) =>
   request(`/api/v1/participantes/${participantId}/treino-competicao`);
 
 export const getProfessionalAssessments = (participantId) =>
   request(`/api/v1/participantes/${participantId}/avaliacoes-profissionais-canonicas`);
+
+export const createProfessionalAssessment = (participantId, payload) =>
+  request(`/api/v1/participantes/${participantId}/avaliacoes-profissionais-canonicas`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
 
 export const getIntegrativeAIContext = (participantId) =>
   request(`/api/v1/participantes/${participantId}/ia-integrativa/contexto`);

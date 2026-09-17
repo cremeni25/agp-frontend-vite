@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
 import SwimmingShell from "../components/SwimmingShell";
@@ -8,6 +9,7 @@ function formatDate(value){if(!value)return"—";try{return new Date(value).toLo
 function arr(value, keys){for(const key of keys)if(Array.isArray(value?.[key]))return value[key];return[]}
 
 export default function SwimmingProfessionalHome(){
+  const navigate = useNavigate();
   const { perfil } = useAuth();
   const [athletes,setAthletes]=useState([]);
   const [selected,setSelected]=useState(null);
@@ -50,7 +52,7 @@ export default function SwimmingProfessionalHome(){
   const sessions=useMemo(()=>arr(bundle?.training,["sessoes"]),[bundle]);
   const competitions=useMemo(()=>arr(bundle?.training,["participacoes_prova"]),[bundle]);
   const assessments=useMemo(()=>arr(bundle?.assessments,["avaliacoes","items","registros"]),[bundle]);
-  const decisions=useMemo(()=>arr(bundle?.decision,["decisoes","items"]),[bundle]);
+  const decisions=useMemo(()=>arr(bundle?.decision,["ciclos","decisoes","items"]),[bundle]);
   const series=useMemo(()=>arr(bundle?.longitudinal,["series","series_longitudinais","metricas"]),[bundle]);
   const analysisState=bundle?.analysis?.estado||bundle?.analysis?.estado_analitico||bundle?.analysis?.status||"dados_insuficientes";
 
@@ -85,6 +87,7 @@ export default function SwimmingProfessionalHome(){
           <div className="swim-row"><div><strong>Competições</strong><span>{competitions.length} participação(ões)</span></div></div>
           <div className="swim-row"><div><strong>Avaliações profissionais</strong><span>{assessments.length} registro(s)</span></div></div>
           <div className="swim-row"><div><strong>Decisões</strong><span>{decisions.length} registro(s)</span></div></div>
+          <div className="workflow-actions"><button className="swim-primary" onClick={()=>navigate(`/profissional/atletas/${selected.id}`)}>Abrir operação profissional</button></div>
         </div>}
       </section>
     </div>

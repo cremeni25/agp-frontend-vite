@@ -9,11 +9,11 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ChangePassword from "./pages/ChangePassword";
 import OwnerActivation from "./pages/OwnerActivation";
 
-import DashboardAtleta from "./pages/DashboardAtleta";
+import SwimmingAthleteHome from "./pages/SwimmingAthleteHome";
 import AthleteDailyReadiness from "./pages/AthleteDailyReadiness";
-import DashboardComissao from "./pages/DashboardComissao";
-import DashboardClube from "./pages/DashboardClubeExceptions";
-import DashboardMaster from "./pages/DashboardMaster";
+import SwimmingProfessionalHome from "./pages/SwimmingProfessionalHome";
+import SwimmingInstitutionHome from "./pages/SwimmingInstitutionHome";
+import SwimmingGovernanceHome from "./pages/SwimmingGovernanceHome";
 import MasterAdministration from "./pages/MasterAdministration";
 import MasterInstitutions from "./pages/MasterInstitutions";
 import MasterProjects from "./pages/MasterProjects";
@@ -62,12 +62,13 @@ function App() {
           <Route path="/redefinir-senha" element={<Navigate to="/alterar-senha" replace />} />
           <Route path="/alterar-senha" element={<ChangePassword />} />
 
-          <Route path="/dashboard-atleta" element={<ProtectedRoute tipoPermitido="atleta"><DashboardAtleta /></ProtectedRoute>} />
+          <Route path="/dashboard-atleta" element={<ProtectedRoute tipoPermitido="atleta"><SwimmingAthleteHome /></ProtectedRoute>} />
           <Route path="/atleta/prontidao-diaria" element={<ProtectedRoute tipoPermitido="atleta"><AthleteDailyReadiness /></ProtectedRoute>} />
-          <Route path="/dashboard-comissao" element={<ProtectedRoute tipoPermitido="comissao"><DashboardComissao /></ProtectedRoute>} />
+          <Route path="/dashboard-comissao" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingProfessionalHome /></ProtectedRoute>} />
           <Route path="/comissao/validacao" element={<ProtectedRoute tipoPermitido="comissao"><CommissionProfessionalValidation /></ProtectedRoute>} />
-          <Route path="/dashboard-clube" element={<ProtectedRoute tipoPermitido="clube"><DashboardClube /></ProtectedRoute>} />
-          <Route path="/dashboard-master" element={<ProtectedRoute tipoPermitido="master"><DashboardMaster /></ProtectedRoute>} />
+          <Route path="/dashboard-clube" element={<ProtectedRoute tipoPermitido="clube"><SwimmingInstitutionHome /></ProtectedRoute>} />
+          <Route path="/dashboard-master" element={<ProtectedRoute tipoPermitido="master"><SwimmingGovernanceHome /></ProtectedRoute>} />
+
           <Route path="/dashboard-master/administracao" element={<ProtectedRoute tipoPermitido="master"><MasterAdministration /></ProtectedRoute>} />
           <Route path="/dashboard-master/administracao/instituicoes" element={<ProtectedRoute tipoPermitido="master"><MasterInstitutions /></ProtectedRoute>} />
           <Route path="/dashboard-master/administracao/projetos" element={<ProtectedRoute tipoPermitido="master"><MasterProjects /></ProtectedRoute>} />

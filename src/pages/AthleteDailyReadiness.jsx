@@ -1,60 +1,91 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { supabase } from "../supabaseClient";
-import "../styles/athlete-readiness.css";
+import SwimmingShell from "../components/SwimmingShell";
+import { getDailySelfReport, submitDailySelfReport } from "../services/canonicalAgp";
 
-const INITIAL_FORM = { sono_horas: "", qualidade_sono: "", fadiga: "", dor: "", estresse: "", humor: "", rpe_ultima_sessao: "", observacao: "" };
-const REQUIRED_FIELDS = ["sono_horas", "qualidade_sono", "fadiga", "dor", "estresse", "humor", "rpe_ultima_sessao"];
-const GOOD = [
-  { value: 1, emoji: "😣", text: "Muito ruim" }, { value: 2, emoji: "🙁", text: "Ruim" }, { value: 3, emoji: "😐", text: "Regular" }, { value: 4, emoji: "🙂", text: "Bom" }, { value: 5, emoji: "😄", text: "Excelente" }
-];
-const FATIGUE = [
-  { value: 1, emoji: "😄", text: "Descansado" }, { value: 2, emoji: "🙂", text: "Pouco cansado" }, { value: 3, emoji: "😐", text: "Moderado" }, { value: 4, emoji: "🙁", text: "Muito cansado" }, { value: 5, emoji: "😣", text: "Exausto" }
-];
-const STRESS = [
-  { value: 1, emoji: "😄", text: "Muito tranquilo" }, { value: 2, emoji: "🙂", text: "Tranquilo" }, { value: 3, emoji: "😐", text: "Moderado" }, { value: 4, emoji: "🙁", text: "Alto" }, { value: 5, emoji: "😣", text: "Muito alto" }
-];
-const PAIN = [
-  { value: 0, emoji: "😄", text: "Sem dor" }, { value: 2, emoji: "🙂", text: "Leve" }, { value: 5, emoji: "😐", text: "Moderada" }, { value: 8, emoji: "🙁", text: "Forte" }, { value: 10, emoji: "😣", text: "Muito forte" }
-];
-const RPE = [
-  { value: 0, emoji: "😄", text: "Muito leve" }, { value: 3, emoji: "🙂", text: "Leve" }, { value: 5, emoji: "😐", text: "Moderado" }, { value: 8, emoji: "🙁", text: "Muito intenso" }, { value: 10, emoji: "😣", text: "Esforço máximo" }
-];
+const INITIAL={sono_horas:"",qualidade_sono:"",fadiga:"",dor:"",estresse:"",humor:"",rpe_ultima_sessao:"",observacao:""};
+const REQUIRED=["sono_horas","qualidade_sono","fadiga","dor","estresse","humor","rpe_ultima_sessao"];
+const GOOD=[["😣","Muito ruim",1],["🙁","Ruim",2],["😐","Regular",3],["🙂","Bom",4],["😄","Excelente",5]];
+const FATIGUE=[["😄","Descansado",1],["🙂","Pouco cansado",2],["😐","Moderado",3],["🙁","Muito cansado",4],["😣","Exausto",5]];
+const STRESS=[["😄","Muito tranquilo",1],["🙂","Tranquilo",2],["😐","Moderado",3],["🙁","Alto",4],["😣","Muito alto",5]];
+const PAIN=[["😄","Sem dor",0],["🙂","Leve",2],["😐","Moderada",5],["🙁","Forte",8],["😣","Muito forte",10]];
+const RPE=[["😄","Muito leve",0],["🙂","Leve",3],["😐","Moderado",5],["🙁","Muito intenso",8],["😣","Máximo",10]];
 
-export default function AthleteDailyReadiness() {
-  const navigate = useNavigate(); const { session, perfil } = useAuth();
-  const [form, setForm] = useState(INITIAL_FORM); const [instrument, setInstrument] = useState(null); const [activation, setActivation] = useState(null); const [participant, setParticipant] = useState(null); const [projectId, setProjectId] = useState(null); const [consent, setConsent] = useState(null); const [history, setHistory] = useState([]); const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false); const [message, setMessage] = useState(""); const [error, setError] = useState("");
-  const athleteId = perfil?.legacy_perfil_atleta_id || perfil?.id || null; const canonicalPersonId = perfil?.pessoa_id || null; const canonicalParticipantId = perfil?.participante_id || null; const consentActive = Boolean(consent?.id && !consent?.revogado_em);
-  const completion = useMemo(() => Math.round((REQUIRED_FIELDS.filter((field) => String(form[field]).trim() !== "").length / REQUIRED_FIELDS.length) * 100), [form]);
+function Scale({label,options,value,onChange}){
+  return <fieldset className="readiness-scale"><legend>{label}</legend><div className="readiness-options">{options.map(([emoji,text,v])=><button type="button" key={v} onClick={()=>onChange(String(v))} className={String(value)===String(v)?"selected":""}><span>{emoji}</span><small>{text}</small></button>)}</div></fieldset>
+}
 
-  useEffect(() => { async function load() {
-    if (!athleteId || (!canonicalParticipantId && !canonicalPersonId)) { setLoading(false); setError("Seu acesso esportivo ainda está sendo preparado."); return; }
-    setLoading(true); setError("");
-    const { data: instrumentData, error: instrumentError } = await supabase.from("agp_instrumentos").select("id,nome,versao,protocolo_id").eq("nome", "Questionário Diário de Prontidão AGP").eq("ativo", true).eq("status_catalogo", "aprovado").order("created_at", { ascending: false }).limit(1).maybeSingle();
-    if (instrumentError || !instrumentData) { setError("A prontidão de hoje ainda não está disponível."); setLoading(false); return; } setInstrument(instrumentData);
-    let query = supabase.from("agp_participantes_projeto").select("id,pessoa_id,projeto_id").eq("funcao_no_projeto", "atleta").eq("ativo", true); query = canonicalParticipantId ? query.eq("id", canonicalParticipantId) : query.eq("pessoa_id", canonicalPersonId);
-    const { data: participantData, error: participantError } = await query.limit(1).maybeSingle(); if (participantError || !participantData?.projeto_id || (canonicalPersonId && participantData.pessoa_id !== canonicalPersonId)) { setError("Seu vínculo esportivo ainda está sendo preparado."); setLoading(false); return; } setParticipant(participantData); setProjectId(participantData.projeto_id);
-    const { data: activationData } = await supabase.from("agp_ativacoes_instrumentos").select("id,versao_configuracao").eq("instrumento_id", instrumentData.id).eq("projeto_id", participantData.projeto_id).eq("ativo", true).not("aprovado_em", "is", null).limit(1).maybeSingle(); if (!activationData) { setError("A prontidão de hoje ainda não está disponível."); setLoading(false); return; } setActivation(activationData);
-    const { data: consentData, error: consentError } = await supabase.from("agp_consentimentos").select("id,revogado_em").eq("participante_id", participantData.id).eq("atleta_id", athleteId).eq("projeto_id", participantData.projeto_id).eq("finalidade", "monitoramento_esportivo").is("revogado_em", null).order("concedido_em", { ascending: false }).limit(1).maybeSingle(); if (consentError) { setError("Sua prontidão ainda não pode ser registrada."); setLoading(false); return; } setConsent(consentData || null);
-    const from = new Date(); from.setDate(from.getDate() - 6); from.setHours(0,0,0,0); const { data: historyData } = await supabase.from("agp_coletas").select("id,data_hora_coleta,status,completude,confiabilidade,dados").eq("participante_id", participantData.id).eq("instrumento_id", instrumentData.id).gte("data_hora_coleta", from.toISOString()).order("data_hora_coleta", { ascending: false }); setHistory(historyData || []); setLoading(false);
-  } load(); }, [athleteId, canonicalPersonId, canonicalParticipantId]);
+export default function AthleteDailyReadiness(){
+  const navigate=useNavigate();
+  const {perfil}=useAuth();
+  const participantId=perfil?.participante_id;
+  const [form,setForm]=useState(INITIAL);
+  const [history,setHistory]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [saving,setSaving]=useState(false);
+  const [error,setError]=useState("");
+  const [message,setMessage]=useState("");
 
-  function updateField(field, value) { setForm((current) => ({ ...current, [field]: value })); }
-  async function submit(event) { event.preventDefault(); setMessage(""); setError(""); if (!consentActive) { setError("Sua prontidão ainda não pode ser registrada. Procure a equipe responsável."); return; } if (!session?.user?.id || !athleteId || !instrument || !activation || !participant || !projectId) { setError("Não foi possível preparar seu registro agora."); return; } if (completion < 100) { setError("Responda todos os itens obrigatórios."); return; }
-    setSaving(true); const now = new Date().toISOString(); const payload = { sono_horas: Number(form.sono_horas), qualidade_sono: Number(form.qualidade_sono), fadiga: Number(form.fadiga), dor: Number(form.dor), estresse: Number(form.estresse), humor: Number(form.humor), rpe_ultima_sessao: Number(form.rpe_ultima_sessao), observacao: form.observacao.trim() || null };
-    const { data, error: insertError } = await supabase.from("agp_coletas").insert({ participante_id: participant.id, atleta_id: athleteId, projeto_id: projectId, instrumento_id: instrument.id, protocolo_id: instrument.protocolo_id, ativacao_instrumento_id: activation.id, versao_instrumento: instrument.versao, versao_schema: activation.versao_configuracao || instrument.versao || "1.0.0", coletado_por_auth_id: session.user.id, papel_coletor: "atleta", data_hora_coleta: now, iniciado_em: now, submetido_em: now, origem: "autodeclarado", status: "completa", dados: payload }).select("id,data_hora_coleta,status,completude,confiabilidade,dados").single();
-    if (insertError) setError("Não foi possível registrar sua prontidão agora. Procure a equipe responsável se o problema continuar."); else { setHistory((current) => [data, ...current]); setForm(INITIAL_FORM); setMessage("Prontidão registrada. Sua equipe já poderá considerar esta informação no acompanhamento."); } setSaving(false);
+  async function load(){
+    if(!participantId){setError("Seu vínculo esportivo ainda não está disponível.");setLoading(false);return}
+    setLoading(true);setError("");
+    try{
+      const data=await getDailySelfReport(participantId);
+      setHistory(data?.historico_recente||[]);
+    }catch(e){setError(e.message||"A prontidão diária ainda não está disponível.")}
+    finally{setLoading(false)}
   }
 
-  if (loading) return <main className="readiness-page"><div className="readiness-shell">Preparando sua prontidão...</div></main>;
-  return <main className="readiness-page"><div className="readiness-shell"><header className="readiness-header"><div><span>Hoje</span><h1>Como você está?</h1><p>{perfil?.nome || "Atleta"}, responda pensando em como você se sente agora.</p></div><button type="button" onClick={() => navigate("/dashboard-atleta")}>Voltar</button></header>{message && <div className="readiness-success">{message}</div>}{error && <div className="readiness-error">{error}</div>}
-    {consentActive && <form className="readiness-form" onSubmit={submit}><section><div className="readiness-grid"><label>Quantas horas você dormiu?<input type="number" min="0" max="16" step="0.1" value={form.sono_horas} onChange={(e) => updateField("sono_horas", e.target.value)} required /></label><EmojiScale label="Como foi seu sono?" options={GOOD} value={form.qualidade_sono} onChange={(v) => updateField("qualidade_sono",v)} /><EmojiScale label="Quanto cansaço você sente?" options={FATIGUE} value={form.fadiga} onChange={(v) => updateField("fadiga",v)} /><EmojiScale label="Quanto desconforto ou dor você sente?" options={PAIN} value={form.dor} onChange={(v) => updateField("dor",v)} /><EmojiScale label="Como está seu nível de estresse?" options={STRESS} value={form.estresse} onChange={(v) => updateField("estresse",v)} /><EmojiScale label="Como está seu humor?" options={GOOD.map((o)=>({...o,text:o.value===1?'Muito ruim':o.value===2?'Ruim':o.value===3?'Regular':o.value===4?'Bom':'Muito bom'}))} value={form.humor} onChange={(v) => updateField("humor",v)} /><EmojiScale label="Qual foi a intensidade do seu último treino?" options={RPE} value={form.rpe_ultima_sessao} onChange={(v) => updateField("rpe_ultima_sessao",v)} /><label className="readiness-notes">Quer contar algo importante hoje?<textarea rows="4" value={form.observacao} onChange={(e) => updateField("observacao",e.target.value)} placeholder="Opcional" /></label></div></section><button className="readiness-submit" disabled={saving || completion < 100}>{saving ? "Registrando..." : "Registrar prontidão"}</button></form>}
-    {history.length > 0 && <details className="readiness-history"><summary>Ver meus últimos registros</summary><ul>{history.map((item) => <li key={item.id}><div><strong>{new Date(item.data_hora_coleta).toLocaleString("pt-BR")}</strong><span>Registro concluído</span></div></li>)}</ul></details>}
-  </div></main>;
-}
-function EmojiScale({ label, options, value, onChange }) {
-  const [open, setOpen] = useState(false);
-  const selected = options.find((option) => String(option.value) === String(value));
-  return <fieldset className="emoji-scale"><legend>{label}</legend><button type="button" className={selected ? "emoji-select selected" : "emoji-select"} onClick={() => setOpen((current) => !current)} aria-expanded={open}>{selected ? <><span className="emoji-face" aria-hidden="true">{selected.emoji}</span><span>{selected.text}</span></> : <span>Responder</span>}<span className="emoji-chevron" aria-hidden="true">⌄</span></button>{open && <div className="emoji-menu">{options.map((option)=><button key={option.value} type="button" className="emoji-menu-option" onClick={()=>{onChange(String(option.value));setOpen(false);}}><span className="emoji-face" aria-hidden="true">{option.emoji}</span><span>{option.text}</span></button>)}</div>}</fieldset>;
+  useEffect(()=>{load()},[participantId]);
+
+  const completion=useMemo(()=>Math.round(REQUIRED.filter(k=>String(form[k]).trim()!=="").length/REQUIRED.length*100),[form]);
+  const today=new Date().toISOString().slice(0,10);
+  const answeredToday=history.some(x=>String(x.data_hora_coleta||"").slice(0,10)===today);
+
+  function setField(key,value){setForm(f=>({...f,[key]:value}))}
+
+  async function submit(e){
+    e.preventDefault();setError("");setMessage("");
+    if(completion<100){setError("Responda todos os itens obrigatórios.");return}
+    setSaving(true);
+    try{
+      await submitDailySelfReport(participantId,{
+        sono_horas:Number(form.sono_horas),
+        qualidade_sono:Number(form.qualidade_sono),
+        fadiga:Number(form.fadiga),
+        dor:Number(form.dor),
+        estresse:Number(form.estresse),
+        humor:Number(form.humor),
+        rpe_ultima_sessao:Number(form.rpe_ultima_sessao),
+        observacao:form.observacao.trim()||null
+      });
+      setForm(INITIAL);
+      setMessage("Prontidão registrada. Ela já faz parte da sua linha longitudinal.");
+      await load();
+    }catch(e){setError(e.message||"Não foi possível registrar sua prontidão agora.")}
+    finally{setSaving(false)}
+  }
+
+  return <SwimmingShell eyebrow="Atleta · Hoje" title="Como você está?" subtitle="Responda pensando no seu momento agora. Isso é evidência autodeclarada, não diagnóstico." actions={[{label:"Voltar",onClick:()=>navigate("/dashboard-atleta")}]}>
+    {loading&&<div className="swim-panel">Preparando sua prontidão...</div>}
+    {message&&<div className="swim-notice swim-success">{message}</div>}
+    {error&&<div className="swim-notice">{error}</div>}
+    {!loading&&!error&&<>
+      {answeredToday&&<section className="swim-focus"><div><span className="swim-eyebrow">Hoje</span><h2>Seu registro de hoje já está salvo</h2><p>Se houve uma mudança real no seu estado, você pode registrar novamente. O histórico preserva cada momento.</p></div></section>}
+      <form className="swim-panel readiness-canonical" onSubmit={submit}>
+        <div className="swim-panel-head"><div><span className="swim-panel-label">Prontidão diária</span><h2>Sete respostas rápidas</h2></div><span className="swim-pill">{completion}% completo</span></div>
+        <label className="readiness-hours">Quantas horas você dormiu?<input type="number" min="0" max="24" step="0.1" value={form.sono_horas} onChange={e=>setField("sono_horas",e.target.value)} required /></label>
+        <Scale label="Como foi seu sono?" options={GOOD} value={form.qualidade_sono} onChange={v=>setField("qualidade_sono",v)} />
+        <Scale label="Quanto cansaço você sente?" options={FATIGUE} value={form.fadiga} onChange={v=>setField("fadiga",v)} />
+        <Scale label="Quanto desconforto ou dor você sente?" options={PAIN} value={form.dor} onChange={v=>setField("dor",v)} />
+        <Scale label="Como está seu nível de estresse?" options={STRESS} value={form.estresse} onChange={v=>setField("estresse",v)} />
+        <Scale label="Como está seu humor?" options={GOOD} value={form.humor} onChange={v=>setField("humor",v)} />
+        <Scale label="Como foi o esforço do seu último treino?" options={RPE} value={form.rpe_ultima_sessao} onChange={v=>setField("rpe_ultima_sessao",v)} />
+        <label className="readiness-note">Quer contar algo importante hoje?<textarea rows="4" value={form.observacao} onChange={e=>setField("observacao",e.target.value)} placeholder="Opcional" /></label>
+        <button className="swim-primary readiness-submit" disabled={saving||completion<100}>{saving?"Registrando...":"Registrar prontidão"}</button>
+      </form>
+      <section className="swim-panel"><span className="swim-panel-label">Seus registros recentes</span><h2>Continuidade</h2>{history.length?<div className="swim-list">{history.map(item=><div className="swim-row" key={item.id}><div><strong>{new Date(item.data_hora_coleta).toLocaleString("pt-BR")}</strong><span>Autorreporte do atleta · {item.status||"registrado"}</span></div><span className="swim-pill">{item.completude!=null?item.completude+"%":"evidência"}</span></div>)}</div>:<div className="swim-empty">Ainda não há registros anteriores.</div>}</section>
+    </>}
+  </SwimmingShell>
 }

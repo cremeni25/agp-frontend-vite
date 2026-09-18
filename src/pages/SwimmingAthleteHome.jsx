@@ -88,6 +88,7 @@ export default function SwimmingAthleteHome() {
           <article className="swim-card"><span>Último treino</span><strong>{latestSession ? formatDate(latestSession.inicio_real || latestSession.inicio_planejado || latestSession.created_at) : "—"}</strong><p>{latestSession?.tipo_sessao || "Ainda sem sessão registrada."}</p></article>
           <article className="swim-card"><span>Última prova</span><strong>{latestCompetition ? formatDate(latestCompetition.updated_at || latestCompetition.created_at) : "—"}</strong><p>{latestCompetition?.status || "Ainda sem participação registrada."}</p></article>
           <article className="swim-card"><span>Estado longitudinal</span><strong>{String(longitudinalState).replaceAll("_"," ")}</strong><p>O AGP não transforma seu histórico em score global.</p></article>
+          <article className="swim-card"><span>Status esportivo</span><strong>{perfil?.status_federativo === "federado" ? "Federado" : perfil?.status_federativo === "vinculado" ? "Vinculado" : "Não informado"}</strong><p>{perfil?.status_federativo === "federado" ? [perfil?.federacao_nome,perfil?.registro_federativo].filter(Boolean).join(" · ") || "Contexto federativo registrado." : "Esse contexto acompanha treinos e competições sem definir sozinho elegibilidade."}</p></article>
         </section>
 
         <section className="swim-panel">

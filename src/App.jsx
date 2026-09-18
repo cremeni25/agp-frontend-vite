@@ -16,6 +16,7 @@ import SwimmingProfessionalWorkflow from "./pages/SwimmingProfessionalWorkflow";
 import SwimmingTrainingPlanning from "./pages/SwimmingTrainingPlanning";
 import SwimmingPilotAthletes from "./pages/SwimmingPilotAthletes";
 import SwimmingInstitutionHome from "./pages/SwimmingInstitutionHome";
+import SwimmingReports from "./pages/SwimmingReports";
 import SwimmingGovernanceHome from "./pages/SwimmingGovernanceHome";
 import SwimmingHomologationJourney from "./pages/SwimmingHomologationJourney";
 import MasterAdministration from "./pages/MasterAdministration";
@@ -75,9 +76,12 @@ function App() {
           <Route path="/profissional/treinos" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingTrainingPlanning /></ProtectedRoute>} />
           <Route path="/profissional/atletas-piloto" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingPilotAthletes /></ProtectedRoute>} />
           <Route path="/comissao/validacao" element={<ProtectedRoute tipoPermitido="comissao"><CommissionProfessionalValidation /></ProtectedRoute>} />
+          <Route path="/profissional/relatorios" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingReports /></ProtectedRoute>} />
           <Route path="/dashboard-clube" element={<ProtectedRoute tipoPermitido="clube"><SwimmingInstitutionHome /></ProtectedRoute>} />
+          <Route path="/instituicao/relatorios" element={<ProtectedRoute tipoPermitido="clube"><SwimmingReports /></ProtectedRoute>} />
           <Route path="/dashboard-master" element={<ProtectedRoute tipoPermitido="master"><SwimmingGovernanceHome /></ProtectedRoute>} />
           <Route path="/master/jornada-homologacao" element={<ProtectedRoute tipoPermitido="master"><SwimmingHomologationJourney /></ProtectedRoute>} />
+          <Route path="/master/relatorios" element={<ProtectedRoute tipoPermitido="master"><SwimmingReports /></ProtectedRoute>} />
           <Route path="/master/treinos-observacao" element={<ProtectedRoute tipoPermitido="master"><MasterTrainingObservability /></ProtectedRoute>} />
 
           <Route path="/dashboard-master/administracao" element={<ProtectedRoute tipoPermitido="master"><MasterAdministration /></ProtectedRoute>} />

@@ -5,30 +5,30 @@ import "../styles/agp-swimming.css";
 
 const NAV = {
   atleta: [
-    ["Início","/dashboard-atleta"],
-    ["Minha evolução","/dashboard-atleta?view=evolucao"],
-    ["Treinos e provas","/dashboard-atleta?view=treinos"],
-    ["Prontidão","/atleta/prontidao-diaria"],
-    ["Histórico","/dashboard-atleta?view=historico"]
+    ["⌂","Início","/dashboard-atleta"],
+    ["↗","Minha evolução","/dashboard-atleta?view=evolucao"],
+    ["≋","Treinos e provas","/dashboard-atleta?view=treinos"],
+    ["♥","Prontidão","/atleta/prontidao-diaria"],
+    ["◷","Histórico","/dashboard-atleta?view=historico"]
   ],
   comissao: [
-    ["Início","/dashboard-comissao"],
-    ["Atletas","/dashboard-comissao"],
-    ["Planejamento","/profissional/treinos"],
-    ["Relatórios","/profissional/relatorios"],
-    ["Piloto N1","/profissional/atletas-piloto"]
+    ["⌂","Início","/dashboard-comissao"],
+    ["♙","Atletas","/dashboard-comissao"],
+    ["≋","Treinos","/profissional/treinos"],
+    ["↗","Acompanhamento","/profissional/relatorios"],
+    ["＋","Atletas do piloto","/profissional/atletas-piloto"]
   ],
   clube: [
-    ["Instituição","/dashboard-clube"],
-    ["Relatórios","/instituicao/relatorios"]
+    ["▣","Instituição","/dashboard-clube"],
+    ["↗","Relatórios","/instituicao/relatorios"]
   ],
   master: [
-    ["Governança","/dashboard-master"],
-    ["Treinos","/master/treinos-observacao"],
-    ["Atletas","/master/atletas"],
-    ["Instituições","/master/instituicoes"],
-    ["Relatórios","/master/relatorios"],
-    ["Jornadas","/master/jornada-homologacao"]
+    ["⌂","Governança","/dashboard-master"],
+    ["≋","Treinos","/master/treinos-observacao"],
+    ["♙","Atletas","/master/atletas"],
+    ["▣","Instituições","/master/instituicoes"],
+    ["↗","Relatórios","/master/relatorios"],
+    ["◎","Jornadas","/master/jornada-homologacao"]
   ]
 };
 
@@ -75,7 +75,7 @@ export default function SwimmingShell({ eyebrow, title, subtitle, children, acti
           <aside className="swim-product-nav" aria-label="Navegação AGP Swim">
             <div className="swim-nav-title"><span>AGP Swim</span><small>{role==="comissao"?"Profissional":role==="clube"?"Instituição":role==="master"?"Governança":"Atleta"}</small></div>
             <nav>
-              {items.map(([label,path])=><button key={label} type="button" className={active(path)?"active":""} onClick={()=>navigate(path)}><span>{label}</span></button>)}
+              {items.map(([icon,label,path])=><button key={label} type="button" className={active(path)?"active":""} onClick={()=>navigate(path)}><i aria-hidden="true">{icon}</i><span>{label}</span></button>)}
             </nav>
             <div className="swim-nav-principle"><strong>Ciência em movimento</strong><span>Evidência → decisão → aprendizado</span></div>
           </aside>

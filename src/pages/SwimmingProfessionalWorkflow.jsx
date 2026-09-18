@@ -176,6 +176,26 @@ export default function SwimmingProfessionalWorkflow(){
         <article className="swim-card"><span>Evidências disponíveis</span><strong className="swim-kpi">{evidence.length}</strong><p>Referências que podem sustentar a decisão sem reentrada manual.</p></article>
       </section>
 
+      <section className="swim-panel">
+        <span className="swim-panel-label">Treinos do atleta</span>
+        <h2>Prescrições disponíveis</h2>
+        <p className="swim-muted">Aqui aparecem os treinos realmente salvos para este atleta, com o conteúdo que deverá ser executado.</p>
+        {sessions.length?<div className="swim-list">{sessions.map((s,index)=>{
+          const ctx=s.contexto_esportivo||{};
+          return <details key={s.id} open={index===0}>
+            <summary><span><strong>{s.objetivo||`Treino ${index+1}`}</strong><small>{s.inicio_planejado?new Date(s.inicio_planejado).toLocaleString("pt-BR"):"Sem data"} · {s.status||"—"}</small></span></summary>
+            <div className="training-athlete-prescription">
+              <div className="training-prescription-metrics">
+                <span><strong>{ctx.volume_planejado??"—"}</strong><small>m planejados</small></span>
+                <span><strong>{ctx.intensidade_planejada??"—"}</strong><small>intensidade</small></span>
+              </div>
+              <div className="training-prescription-content">{typeof ctx.conteudo==="string"?ctx.conteudo:JSON.stringify(ctx.conteudo||{},null,2)}</div>
+              {ctx.ajuste_individual?.observacao&&<p className="swim-muted"><strong>Ajuste individual:</strong> {ctx.ajuste_individual.observacao}</p>}
+            </div>
+          </details>
+        })}</div>:<div className="swim-empty">Nenhum treino salvo para este atleta.</div>}
+      </section>
+
       <div className="workflow-stack">
         <section className="swim-panel">
           <span className="swim-panel-label">Avaliação profissional</span><h2>Registrar sua leitura</h2>

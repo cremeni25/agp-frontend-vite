@@ -34,7 +34,7 @@ export default function SwimmingGovernanceHome(){
   const federated=data.athleteProfiles.filter(x=>swimmerIds.has(x.pessoa_id)&&x.status_federativo==="federado").length;
   const linked=data.athleteProfiles.filter(x=>swimmerIds.has(x.pessoa_id)&&x.status_federativo==="vinculado").length;
 
-  return <SwimmingShell eyebrow="Governança · AGP Swimming" title="Governar o sistema sem interferir no acompanhamento esportivo" subtitle="O Master administra estrutura, segurança, versões e implantação. O acompanhamento do atleta pertence aos profissionais autorizados." actions={[{label:"Convidar técnico N1",onClick:()=>navigate("/master/homologacao/acesso-tecnico"),primary:true},{label:"Entender as jornadas",onClick:()=>navigate("/master/jornada-homologacao")},{label:"Atualizar",onClick:load}]}>
+  return <SwimmingShell eyebrow="Governança · AGP Swimming" title="Governar o sistema sem interferir no acompanhamento esportivo" subtitle="O Master administra estrutura, segurança, versões e implantação. O acompanhamento do atleta pertence aos profissionais autorizados." actions={[{label:"Convidar técnico N1",onClick:()=>navigate("/master/homologacao/acesso-tecnico"),primary:true},{label:"Acompanhar treinos",onClick:()=>navigate("/master/treinos-observacao")},{label:"Entender as jornadas",onClick:()=>navigate("/master/jornada-homologacao")},{label:"Atualizar",onClick:load}]}>
     {error&&<div className="swim-notice">{error}</div>}
     <section className="swim-focus"><div><span className="swim-eyebrow">Marco atual</span><h2>Interface de homologação N1</h2><p>A base técnica está fechada. Esta camada existe para permitir que a N1 utilize o AGP com atletas e profissionais reais.</p></div></section>
     <section className="swim-grid">

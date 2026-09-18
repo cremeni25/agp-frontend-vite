@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import * as XLSX from "xlsx";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
@@ -25,6 +26,119 @@ const EMPTY_PLAN={
   ajustes_individuais:{}
 };
 
+function normalizeText(value){
+  return String(value??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
+}
+
+function numberFrom(value){
+  const raw=String(value??"").trim().replace(",",".");
+  const match=raw.match(/-?\d+(?:\.\d+)?/);
+  return match?Number(match[0]):null;
+}
+
+function secondsFrom(value){
+  const raw=String(value??"").trim();
+  if(!raw)return "";
+  if(/^\d+(?::\d+){1,2}$/.test(raw)){
+    const parts=raw.split(":").map(Number);
+    if(parts.length===2)return parts[0]*60+parts[1];
+    return parts[0]*3600+parts[1]*60+parts[2];
+  }
+  const num=numberFrom(raw);
+  return num==null?"":num;
+}
+
+function normalizeStroke(value){
+  const v=normalizeText(value);
+  if(v.includes("costa"))return "costas";
+  if(v.includes("peito"))return "peito";
+  if(v.includes("borbo")||v.includes("fly"))return "borboleta";
+  if(v.includes("medley"))return "medley";
+  if(v.includes("perna"))return "pernada";
+  if(v.includes("brac")||v.includes("pull"))return "bracada";
+  if(v.includes("misto"))return "misto";
+  return "livre";
+}
+
+function emptyImportedSeries(){
+  return {nome:"",repeticoes:1,distancia_m:"",estilo:"livre",saida_segundos:"",ritmo_alvo:"",equipamento:"",objetivo:"",observacao:""};
+}
+
+function buildHeaderMap(row){
+  const map={};
+  row.forEach((cell,index)=>{
+    const h=normalizeText(cell);
+    if(!h)return;
+    if(/repet|reps|qtde|quantidade/.test(h))map.repeticoes=index;
+    else if(/dist/.test(h))map.distancia_m=index;
+    else if(/estilo|nado|stroke/.test(h))map.estilo=index;
+    else if(/saida|interval|descanso|rest/.test(h))map.saida_segundos=index;
+    else if(/ritmo|pace/.test(h))map.ritmo_alvo=index;
+    else if(/equip|material/.test(h))map.equipamento=index;
+    else if(/objetivo|goal/.test(h))map.objetivo=index;
+    else if(/observ|obs|nota/.test(h))map.observacao=index;
+    else if(/nome|serie|bloco|set/.test(h))map.nome=index;
+  });
+  return map;
+}
+
+function parseSingleCell(value){
+  const raw=String(value??"").trim();
+  const match=raw.match(/(\d+)\s*[xX×]\s*(\d+(?:[.,]\d+)?)\s*m?\s*(.*)/);
+  if(!match)return null;
+  const rest=match[3]||"";
+  const timeMatch=rest.match(/(?:saida|saída|@|a cada)?\s*((?:\d+:)?\d{1,2}:\d{2}|\d{1,3})\s*s?\b/i);
+  return {
+    ...emptyImportedSeries(),
+    repeticoes:Number(match[1]),
+    distancia_m:Number(match[2].replace(",",".")),
+    estilo:normalizeStroke(rest),
+    saida_segundos:timeMatch?secondsFrom(timeMatch[1]):"",
+    observacao:rest.trim()
+  };
+}
+
+function parseRowsToSeries(rows){
+  const clean=(rows||[]).map(r=>(Array.isArray(r)?r:[r])).filter(r=>r.some(v=>String(v??"").trim()!==""));
+  if(!clean.length)return [];
+  const headerMap=buildHeaderMap(clean[0]);
+  const hasHeader=Object.keys(headerMap).length>=2;
+  const dataRows=hasHeader?clean.slice(1):clean;
+  return dataRows.map((row,index)=>{
+    if(row.length===1){
+      const parsed=parseSingleCell(row[0]);
+      if(parsed)return parsed;
+    }
+    const idx=hasHeader?headerMap:{repeticoes:0,distancia_m:1,estilo:2,saida_segundos:3,ritmo_alvo:4,equipamento:5,objetivo:6,observacao:7,nome:8};
+    const reps=numberFrom(row[idx.repeticoes]);
+    const dist=numberFrom(row[idx.distancia_m]);
+    if(!dist)return null;
+    return {
+      nome:idx.nome!=null?String(row[idx.nome]??"").trim():"",
+      repeticoes:reps&&reps>0?reps:1,
+      distancia_m:dist,
+      estilo:normalizeStroke(idx.estilo!=null?row[idx.estilo]:""),
+      saida_segundos:idx.saida_segundos!=null?secondsFrom(row[idx.saida_segundos]):"",
+      ritmo_alvo:idx.ritmo_alvo!=null?String(row[idx.ritmo_alvo]??"").trim():"",
+      equipamento:idx.equipamento!=null?String(row[idx.equipamento]??"").trim():"",
+      objetivo:idx.objetivo!=null?String(row[idx.objetivo]??"").trim():"",
+      observacao:idx.observacao!=null?String(row[idx.observacao]??"").trim():""
+    };
+  }).filter(Boolean);
+}
+
+function parseClipboardTable(text){
+  const raw=String(text||"").trim();
+  if(!raw)return [];
+  const lines=raw.split(/\r?\n/).filter(Boolean);
+  const delimiter=raw.includes("\t")?"\t":raw.includes(";")?";":",";
+  return parseRowsToSeries(lines.map(line=>line.split(delimiter)));
+}
+
+function totalSeriesVolume(series){
+  return (series||[]).reduce((sum,s)=>sum+(Number(s.repeticoes||1)*Number(s.distancia_m||0)),0);
+}
+
 function athleteLabel(a){
   const federative=a.status_federativo==="federado"?"Federado":a.status_federativo==="vinculado"?"Vinculado":"Status não informado";
   return [a.nome,a.categoria,federative].filter(Boolean).join(" · ");
@@ -43,6 +157,8 @@ export default function SwimmingTrainingPlanning(){
   const [error,setError]=useState("");
   const [message,setMessage]=useState("");
   const [executionDrafts,setExecutionDrafts]=useState({});
+  const [excelText,setExcelText]=useState("");
+  const [excelSource,setExcelSource]=useState("");
 
   async function loadProjects(){
     setLoading(true);setError("");
@@ -109,6 +225,38 @@ export default function SwimmingTrainingPlanning(){
       await loadPlanning(projectId);
     }catch(e){setError(e.message||"Não foi possível criar o grupo.")}
     finally{setWorking(false)}
+  }
+
+  function applyImportedSeries(series,source){
+    if(!series.length){setError("Não foi possível reconhecer séries válidas nessa origem.");return}
+    const volume=totalSeriesVolume(series);
+    setPlan(p=>({...p,series,volume_planejado:volume||p.volume_planejado}));
+    setExcelSource(source);
+    setMessage(`${series.length} série(s) reconhecida(s) de ${source}. Revise a prévia abaixo antes de salvar o treino.`);
+    setError("");
+  }
+
+  function interpretPastedExcel(){
+    try{applyImportedSeries(parseClipboardTable(excelText),"colagem do Excel")}
+    catch(e){setError(e.message||"Não foi possível interpretar o conteúdo colado.")}
+  }
+
+  async function importExcelFile(event){
+    const file=event.target.files?.[0];
+    if(!file)return;
+    setError("");setMessage("");
+    try{
+      const buffer=await file.arrayBuffer();
+      const workbook=XLSX.read(buffer,{type:"array"});
+      const firstSheet=workbook.SheetNames[0];
+      if(!firstSheet)throw new Error("A planilha não possui abas legíveis.");
+      const rows=XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet],{header:1,raw:false,defval:""});
+      applyImportedSeries(parseRowsToSeries(rows),`arquivo ${file.name}`);
+    }catch(e){
+      setError(e.message||"Não foi possível ler a planilha Excel.");
+    }finally{
+      event.target.value="";
+    }
   }
 
   function addSeries(){
@@ -242,6 +390,13 @@ export default function SwimmingTrainingPlanning(){
           <label className="workflow-field full">Objetivo<textarea rows="2" value={plan.objetivo} onChange={e=>setPlan(p=>({...p,objetivo:e.target.value}))} placeholder="Ex.: tolerância ao ritmo de 200 m livre" /></label>
           <label className="workflow-field full">Conteúdo geral<textarea required minLength="2" rows="5" value={plan.conteudo} onChange={e=>setPlan(p=>({...p,conteudo:e.target.value}))} placeholder={"Resumo do objetivo e organização geral da sessão."} /></label>
           <div className="workflow-field full">
+            <div className="training-import-panel">
+              <div className="training-series-head"><span>Importar treino do Excel</span><label className="swim-secondary training-file-button">Importar .xlsx<input type="file" accept=".xlsx,.xls" onChange={importExcelFile} /></label></div>
+              <p className="swim-muted">Você pode copiar células do Excel e colar abaixo. O AGP reconhece colunas como repetições, distância, estilo, saída/intervalo, ritmo, equipamento, objetivo e observação.</p>
+              <textarea rows="5" value={excelText} onChange={e=>setExcelText(e.target.value)} placeholder={"Cole aqui as células copiadas do Excel.\nEx.:\nRepetições\tDistância\tEstilo\tSaída\tRitmo\n8\t50\tLivre\t0:45\tforte"} />
+              <div className="workflow-actions"><button type="button" className="swim-secondary" onClick={interpretPastedExcel} disabled={!excelText.trim()}>Interpretar colagem</button>{excelSource&&<span className="swim-pill">Prévia: {excelSource}</span>}</div>
+              <small className="workflow-help">Nada é salvo automaticamente. A importação apenas preenche a prévia editável das séries; o técnico confirma o treino no botão final.</small>
+            </div>
             <div className="training-series-head"><span>Séries estruturadas</span><button type="button" className="swim-secondary" onClick={addSeries}>Adicionar série</button></div>
             <small className="workflow-help">Estruture o treino com linguagem própria da Natação. Ex.: 8 × 50 m livre, saída a cada 45 s, ritmo de prova.</small>
             <div className="training-series-list">

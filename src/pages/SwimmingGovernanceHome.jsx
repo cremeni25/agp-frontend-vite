@@ -3,21 +3,22 @@ import { supabase } from "../supabaseClient";
 import SwimmingShell from "../components/SwimmingShell";
 
 export default function SwimmingGovernanceHome(){
-  const [data,setData]=useState({institutions:[],projects:[],participants:[],profiles:[]});
+  const [data,setData]=useState({institutions:[],projects:[],participants:[],profiles:[],athleteProfiles:[]});
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
 
   async function load(){
     setLoading(true);setError("");
-    const [i,p,pa,sp]=await Promise.all([
+    const [i,p,pa,sp,ap]=await Promise.all([
       supabase.from("agp_instituicoes").select("id,nome,nome_exibicao,slug,status,tipo"),
       supabase.from("agp_projetos_validacao").select("id,instituicao_id,nome,status"),
       supabase.from("agp_participantes_projeto").select("id,pessoa_id,projeto_id,funcao_no_projeto,status_onboarding,ativo"),
-      supabase.from("agp_perfis_especializacao_esportiva").select("id,codigo,versao,status_catalogo")
+      supabase.from("agp_perfis_especializacao_esportiva").select("id,codigo,versao,status_catalogo"),
+      supabase.from("agp_perfis_esportivos").select("pessoa_id,status_federativo,federacao_nome,registro_federativo").eq("status","ativo")
     ]);
-    const e=i.error||p.error||pa.error||sp.error;
+    const e=i.error||p.error||pa.error||sp.error||ap.error;
     if(e)setError("Não foi possível consolidar a governança agora.");
-    setData({institutions:i.data||[],projects:p.data||[],participants:pa.data||[],profiles:sp.data||[]});
+    setData({institutions:i.data||[],projects:p.data||[],participants:pa.data||[],profiles:sp.data||[],athleteProfiles:ap.data||[]});
     setLoading(false);
   }
 
@@ -27,6 +28,9 @@ export default function SwimmingGovernanceHome(){
   const n1Projects=data.projects.filter(x=>x.instituicao_id===n1?.id);
   const swimmers=data.participants.filter(x=>x.ativo&&x.funcao_no_projeto==="atleta"&&n1Projects.some(p=>p.id===x.projeto_id));
   const swimmingProfile=data.profiles.find(x=>x.codigo==="AGP-SWIMMING-POOL");
+  const swimmerIds=new Set(swimmers.map(x=>x.pessoa_id));
+  const federated=data.athleteProfiles.filter(x=>swimmerIds.has(x.pessoa_id)&&x.status_federativo==="federado").length;
+  const linked=data.athleteProfiles.filter(x=>swimmerIds.has(x.pessoa_id)&&x.status_federativo==="vinculado").length;
 
   return <SwimmingShell eyebrow="Governança · AGP Swimming" title="Preparar a homologação sem operar o atleta" subtitle="O Master governa estrutura, segurança, versões e implantação. A operação esportiva pertence aos usuários legítimos." actions={[{label:"Atualizar",onClick:load}]}>
     {error&&<div className="swim-notice">{error}</div>}
@@ -35,6 +39,7 @@ export default function SwimmingGovernanceHome(){
       <article className="swim-card"><span>Instituição N1</span><strong>{loading?"…":n1?"Vinculada":"Pendente"}</strong><p>{n1?.nome_exibicao||n1?.nome||"Aguardando vínculo institucional."}</p></article>
       <article className="swim-card"><span>Perfil Natação</span><strong>{loading?"…":swimmingProfile?.versao||"—"}</strong><p>{swimmingProfile?.codigo||"Perfil não encontrado"} · {swimmingProfile?.status_catalogo||"—"}</p></article>
       <article className="swim-card"><span>Atletas N1</span><strong className="swim-kpi">{loading?"…":swimmers.length}</strong><p>Somente vínculos reais serão usados na homologação.</p></article>
+      <article className="swim-card"><span>Status esportivo</span><strong>{loading?"…":federated+" federado(s)"}</strong><p>{linked} vinculado(s) · contexto visível em toda a homologação.</p></article>
     </section>
     <section className="swim-panel">
       <span className="swim-panel-label">Regra de governança</span><h2>O Master não é operador esportivo</h2>

@@ -165,6 +165,7 @@ export default function SwimmingTrainingPlanning(){
   const [draftProject,setDraftProject]=useState("");
   const [remoteDraftReady,setRemoteDraftReady]=useState(false);
   const [draftStatus,setDraftStatus]=useState("");
+  const [planFilter,setPlanFilter]=useState("todos");
 
   async function loadProjects(){
     setLoading(true);setError("");
@@ -316,6 +317,15 @@ export default function SwimmingTrainingPlanning(){
 
   const athleteMap=useMemo(()=>Object.fromEntries(athletes.map(a=>[a.participante_id,a])),[athletes]);
   const sessionMap=useMemo(()=>Object.fromEntries(sessions.map(s=>[s.id,s])),[sessions]);
+  function effectivePlanStatus(p){
+    const planRecipients=recipients.filter(r=>r.plano_id===p.id);
+    const states=planRecipients.map(r=>sessionMap[r.sessao_id]?.status).filter(Boolean);
+    if(states.length&&states.every(x=>x==="concluida"))return "concluida";
+    if(states.some(x=>x==="em_execucao"))return "em_execucao";
+    if(states.length&&states.every(x=>x==="cancelada"))return "cancelada";
+    return p.status||"planejada";
+  }
+  const filteredPlans=useMemo(()=>plans.filter(p=>planFilter==="todos"||effectivePlanStatus(p)===planFilter),[plans,planFilter,recipients,sessionMap]);
 
   function toggleGroupAthlete(id){
     setGroup(g=>({...g,participante_ids:g.participante_ids.includes(id)?g.participante_ids.filter(x=>x!==id):[...g.participante_ids,id]}));
@@ -538,12 +548,15 @@ export default function SwimmingTrainingPlanning(){
       <section className="swim-panel">
         <span className="swim-panel-label">Execução</span><h2>Treinos planejados por atleta</h2>
         <p className="swim-muted">Mesmo quando a prescrição nasce no grupo, cada atleta mantém sua própria execução, intercorrências e resposta longitudinal.</p>
-        {plans.length?plans.map(p=>{
+        <div className="swim-tabs training-status-tabs">
+          {[["todos","Todos"],["planejada","Planejados"],["em_execucao","Em execução"],["concluida","Concluídos"]].map(([value,label])=><button type="button" key={value} className={planFilter===value?"swim-tab active":"swim-tab"} onClick={()=>setPlanFilter(value)}>{label}</button>)}
+        </div>
+        {filteredPlans.length?filteredPlans.map(p=>{
           const planRecipients=recipients.filter(r=>r.plano_id===p.id);
           return <div className="training-plan-card" key={p.id}>
             <div className="training-plan-head">
               <div><strong>{p.objetivo||"Treino planejado"}</strong><span>{new Date(p.inicio_planejado).toLocaleString("pt-BR")} · {planRecipients.length} atleta(s)</span></div>
-              <span className="swim-pill">{p.status}</span>
+              <span className="swim-pill">{effectivePlanStatus(p)}</span>
             </div>
 
             <section className="training-prescription">
@@ -597,7 +610,7 @@ export default function SwimmingTrainingPlanning(){
               </details>
             })}</div>
           </div>
-        }):<div className="swim-empty">Nenhum treino planejado ainda.</div>}
+        }):<div className="swim-empty">Nenhum treino encontrado neste filtro.</div>}
       </section>
     </>}
   </SwimmingShell>

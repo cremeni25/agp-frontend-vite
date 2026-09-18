@@ -23,9 +23,15 @@ export default function SwimmingProfessionalHome(){
     try{
       const personId=perfil?.pessoa_id;
       if(!personId){setAthletes([]);return}
+      const ownLinks=await supabase.from("agp_participantes_projeto")
+        .select("projeto_id,funcao_no_projeto,ativo")
+        .eq("pessoa_id",personId).eq("ativo",true);
+      if(ownLinks.error)throw ownLinks.error;
+      const projectIds=[...new Set((ownLinks.data||[]).map(x=>x.projeto_id).filter(Boolean))];
+      if(!projectIds.length){setAthletes([]);return}
       const p=await supabase.from("agp_participantes_projeto")
         .select("id,pessoa_id,projeto_id,status_onboarding,funcao_canonica_codigo,tecnico_responsavel_pessoa_id")
-        .eq("funcao_no_projeto","atleta").eq("ativo",true).eq("tecnico_responsavel_pessoa_id",personId);
+        .in("projeto_id",projectIds).eq("funcao_no_projeto","atleta").eq("ativo",true);
       if(p.error)throw p.error;
       const rows=p.data||[];
       const personIds=[...new Set(rows.map(x=>x.pessoa_id).filter(Boolean))];
@@ -71,7 +77,7 @@ export default function SwimmingProfessionalHome(){
   return <SwimmingShell
     eyebrow="Profissional · Natação"
     title="Atenção ao atleta, não ao sistema"
-    subtitle="O AGP organiza o contexto que você já tem autorização para usar e mantém a decisão sob responsabilidade profissional."
+    subtitle="O AGP mostra os atletas dos projetos aos quais você está legitimamente vinculado; cada ação continua limitada por papel, competência e credencial."
     actions={[{label:"Atualizar",onClick:loadAthletes}]}
   >
     {error&&<div className="swim-notice">{error}</div>}

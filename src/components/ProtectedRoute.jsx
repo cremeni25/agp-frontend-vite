@@ -7,7 +7,7 @@ export default function ProtectedRoute({ children, tipoPermitido }) {
   const location = useLocation();
 
   if (loading) {
-    return null;
+    return <main className="agp-shell" style={{minHeight:"100vh",display:"grid",placeItems:"center"}}><div className="agp-panel"><strong>Carregando AGP...</strong></div></main>;
   }
 
   if (!session) {

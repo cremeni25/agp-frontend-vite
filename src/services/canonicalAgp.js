@@ -86,6 +86,34 @@ export const createProfessionalAssessment = (participantId, payload) =>
     body: JSON.stringify(payload)
   });
 
+
+export const getTrainingPlanning = (projectId) =>
+  request(`/api/v1/projetos/${projectId}/planejamento-treinos`);
+
+export const createTrainingGroup = (projectId, payload) =>
+  request(`/api/v1/projetos/${projectId}/grupos-treinamento`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
+export const replaceTrainingGroupMembers = (groupId, participante_ids) =>
+  request(`/api/v1/grupos-treinamento/${groupId}/participantes`, {
+    method: "PUT",
+    body: JSON.stringify({ participante_ids })
+  });
+
+export const createTrainingPlan = (projectId, payload) =>
+  request(`/api/v1/projetos/${projectId}/planos-treino`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
+export const updateCanonicalSessionExecution = (sessionId, payload) =>
+  request(`/api/v1/sessoes-canonicas/${sessionId}/execucao`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  });
+
 export const getIntegrativeAIContext = (participantId) =>
   request(`/api/v1/participantes/${participantId}/ia-integrativa/contexto`);
 

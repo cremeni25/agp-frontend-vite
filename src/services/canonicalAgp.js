@@ -88,6 +88,9 @@ export const createProfessionalAssessment = (participantId, payload) =>
 
 
 
+export const getMasterTrainingOverview = (projectId) =>
+  request(`/api/v1/master/treinos${projectId ? `?projeto_id=${projectId}` : ""}`);
+
 export const getPilotAthletes = (projectId) =>
   request(`/api/v1/projetos/${projectId}/atletas-piloto`);
 

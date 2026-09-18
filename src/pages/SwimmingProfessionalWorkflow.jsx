@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import SwimmingShell from "../components/SwimmingShell";
+import { supabase } from "../supabaseClient";
 import {
   getParticipantCanonicalBundle,
   createProfessionalAssessment,
@@ -29,6 +30,7 @@ export default function SwimmingProfessionalWorkflow(){
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
   const [success,setSuccess]=useState("");
+  const [sportProfile,setSportProfile]=useState(null);
   const [assessment,setAssessment]=useState({dominio:"tecnico",instrumento_referencia:"",achados:"",restricoes:"",recomendacoes:"",confianca:""});
   const [decision,setDecision]=useState({dominio:"tecnico",tipo:"tecnica",decisao:"",justificativa:""});
   const [selectedEvidence,setSelectedEvidence]=useState([]);
@@ -39,7 +41,17 @@ export default function SwimmingProfessionalWorkflow(){
 
   async function load(){
     setLoading(true);setError("");
-    try{setBundle(await getParticipantCanonicalBundle(participantId))}
+    try{
+      const nextBundle=await getParticipantCanonicalBundle(participantId);
+      setBundle(nextBundle);
+      const personId=nextBundle?.analysis?.pessoa_id;
+      if(personId){
+        const profile=await supabase.from("agp_perfis_esportivos")
+          .select("modalidade,categoria,nivel,status_federativo,federacao_nome,registro_federativo")
+          .eq("pessoa_id",personId).eq("status","ativo").limit(1).maybeSingle();
+        setSportProfile(profile.error?null:profile.data||null);
+      }else setSportProfile(null);
+    }
     catch(e){setError(e.message||"Não foi possível carregar o contexto profissional.")}
     finally{setLoading(false)}
   }
@@ -158,6 +170,7 @@ export default function SwimmingProfessionalWorkflow(){
     {success&&<div className="workflow-success">{success}</div>}
     {!loading&&<>
       <section className="swim-grid">
+        <article className="swim-card"><span>Status esportivo</span><strong>{sportProfile?.status_federativo === "federado" ? "Federado" : sportProfile?.status_federativo === "vinculado" ? "Vinculado" : "Não informado"}</strong><p>{sportProfile?.status_federativo === "federado" ? [sportProfile?.federacao_nome,sportProfile?.registro_federativo].filter(Boolean).join(" · ") || "Contexto federativo registrado." : "Considere este contexto ao planejar treino e competição; a elegibilidade específica continua dependente da regra do evento."}</p></article>
         <article className="swim-card"><span>Avaliações</span><strong className="swim-kpi">{assessments.length}</strong><p>Registros profissionais no contexto atual.</p></article>
         <article className="swim-card"><span>Ciclos de decisão</span><strong className="swim-kpi">{cycles.length}</strong><p>Decisão → intervenção → resposta → aprendizado.</p></article>
         <article className="swim-card"><span>Evidências disponíveis</span><strong className="swim-kpi">{evidence.length}</strong><p>Referências que podem sustentar a decisão sem reentrada manual.</p></article>

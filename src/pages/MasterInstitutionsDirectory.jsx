@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { listInstitutions } from "../services/institutionManagement";
-import "../styles/dashboard-master.css";
+import SwimmingShell from "../components/SwimmingShell";
 
 export default function MasterInstitutionsDirectory() {
   const navigate = useNavigate();
@@ -13,8 +13,10 @@ export default function MasterInstitutionsDirectory() {
   async function load() {
     setLoading(true); setError("");
     try { setInstitutions(await listInstitutions()); }
-    catch (requestError) { setError(`Falha ao consultar instituições: ${requestError.message}`); setInstitutions([]); }
-    finally { setLoading(false); }
+    catch (requestError) {
+      setError(`Falha ao consultar instituições: ${requestError.message}`);
+      setInstitutions([]);
+    } finally { setLoading(false); }
   }
 
   useEffect(() => { load(); }, []);
@@ -22,15 +24,41 @@ export default function MasterInstitutionsDirectory() {
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return institutions;
-    return institutions.filter((item) => [item.nome, item.tipo, item.localidade, item.status].some((value) => String(value || "").toLowerCase().includes(term)));
+    return institutions.filter((item) => [item.nome, item.tipo, item.localidade, item.status]
+      .some((value) => String(value || "").toLowerCase().includes(term)));
   }, [institutions, search]);
 
-  return <main className="dashboard-master"><div className="dashboard-overlay master-page">
-    <header className="dashboard-header master-header"><div><span className="master-eyebrow">Administração</span><h1>Clubes e associações</h1><p>Consulta global das instituições cadastradas no AGP.</p></div><div className="master-header-actions"><button className="master-button secondary" onClick={() => navigate("/dashboard-master")}>Voltar</button><button className="master-button" onClick={load}>Atualizar</button></div></header>
-    {error && <div className="master-error" role="alert">{error}</div>}
-    <section className="master-panel"><input className="master-input" placeholder="Buscar por nome, tipo, localidade ou status" value={search} onChange={(event) => setSearch(event.target.value)} /></section>
-    <section className="master-panel"><div className="master-section-heading"><div><span className="master-eyebrow">Base institucional</span><h2>Instituições cadastradas</h2></div><strong>{filtered.length}</strong></div>
-      {loading ? <div className="master-empty">Carregando instituições...</div> : filtered.length === 0 ? <div className="master-empty">Nenhuma instituição encontrada.</div> : <ul className="master-activity-list">{filtered.map((item) => <li key={item.id}><div><strong>{item.nome}</strong><span>{item.tipo || "Tipo não informado"} · {item.localidade || "Localidade não informada"}</span><small>{item.status || "Status não informado"}</small></div></li>)}</ul>}
+  return <SwimmingShell
+    eyebrow="Governança · Instituições"
+    title="Clubes e associações"
+    subtitle="Consulta institucional do AGP Swim em uma única experiência visual, com contexto, vínculo e continuidade operacional."
+    actions={[
+      {label:"Voltar",onClick:()=>navigate("/dashboard-master")},
+      {label:"Atualizar",onClick:load}
+    ]}
+  >
+    {error&&<div className="swim-notice">{error}</div>}
+
+    <section className="swim-panel">
+      <div className="swim-panel-head">
+        <div><span className="swim-panel-label">Busca</span><h2>Encontrar instituição</h2></div>
+        <span className="swim-pill">{filtered.length} instituição(ões)</span>
+      </div>
+      <input className="training-select" style={{width:"100%"}} placeholder="Buscar por nome, tipo, localidade ou status" value={search} onChange={(event)=>setSearch(event.target.value)} />
     </section>
-  </div></main>;
+
+    <section className="swim-panel">
+      <span className="swim-panel-label">Base institucional</span>
+      <h2>Instituições cadastradas</h2>
+      {loading?<div className="swim-empty">Carregando instituições...</div>:filtered.length===0?<div className="swim-empty">Nenhuma instituição encontrada.</div>:
+        <div className="swim-list">{filtered.map((item)=><article className="swim-row" key={item.id}>
+          <div>
+            <strong>{item.nome}</strong>
+            <span>{[item.tipo||"Tipo não informado",item.localidade||"Localidade não informada"].join(" · ")}</span>
+            <small>{item.status||"Status não informado"}</small>
+          </div>
+          <span className="swim-pill">{item.status||"instituição"}</span>
+        </article>)}</div>}
+    </section>
+  </SwimmingShell>;
 }

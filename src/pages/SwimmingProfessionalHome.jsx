@@ -98,7 +98,7 @@ export default function SwimmingProfessionalHome(){
           <div className="swim-row"><div><strong>Competições</strong><span>{competitions.length} participação(ões)</span></div></div>
           <div className="swim-row"><div><strong>Avaliações profissionais</strong><span>{assessments.length} registro(s)</span></div></div>
           <div className="swim-row"><div><strong>Decisões</strong><span>{decisions.length} registro(s)</span></div></div>
-          <div className="workflow-actions"><button className="swim-primary" onClick={()=>navigate(`/profissional/atletas/${selected.id}`)}>Abrir operação profissional</button></div>
+          <div className="workflow-actions"><button className="swim-primary" onClick={()=>navigate(`/profissional/atletas/${selected.id}`)}>Abrir atleta e ver treinos</button><button className="swim-secondary" onClick={()=>navigate("/profissional/treinos")}>Planejamento geral</button></div>
         </div>}
       </section>
     </div>

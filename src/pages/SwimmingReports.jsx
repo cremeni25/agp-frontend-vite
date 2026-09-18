@@ -105,7 +105,7 @@ export default function SwimmingReports(){
       <section className="swim-grid">
         <article className="swim-card"><span>Projetos</span><strong className="swim-kpi">{institutionalProjects.length}</strong><p>Contextos esportivos autorizados.</p></article>
         <article className="swim-card"><span>Sessões</span><strong className="swim-kpi">{institutionalProjects.reduce((s,p)=>s+Number(p.sessoes_total||0),0)}</strong><p>Treinos registrados no contexto institucional.</p></article>
-        <article className="swim-card"><span>Atletas com longitudinalidade</span><strong className="swim-kpi">{institutionalProjects.reduce((s,p)=>s+Number(p.atletas_com_evidencia_longitudinal||0),0)}</strong><p>Evidência longitudinal observável.</p></article>
+        <article className="swim-card"><span>Atletas com longitudinalidade</span><strong className="swim-kpi">{institutionalProjects.reduce((s,p)=>s+Number(p.atletas_longitudinalidade_observavel||0),0)}</strong><p>Evidência longitudinal observável.</p></article>
       </section>
       <section className="swim-panel"><span className="swim-panel-label">Projetos</span><h2>Continuidade operacional</h2>
         <div className="swim-list">{institutionalProjects.map(p=><div className="swim-row" key={p.projeto_id}><div><strong>{p.projeto_nome||"Projeto"}</strong><span>{p.atletas_ativos||0} atleta(s) · {p.sessoes_total||0} sessão(ões) · {p.sessoes_concluidas||0} concluída(s)</span></div><span className="swim-pill">{String(p.estado_operacional||"em formação").replaceAll("_"," ")}</span></div>)}</div>

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { resolveUserAccess } from "../services/resolveUserAccess";
+import { getDashboardPath } from "../config/accessProfiles";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -42,7 +43,17 @@ export default function Login() {
         return;
       }
 
-      const access = await resolveUserAccess(data.session);
+      // O proprietário tem rota conhecida e não precisa aguardar uma segunda
+      // leitura de perfil para sair da tela de login.
+      if ((data.user.email || "").trim().toLowerCase() === "anderson@cremeni.com.br") {
+        navigate(getDashboardPath("master"), { replace: true });
+        return;
+      }
+
+      const access = await Promise.race([
+        resolveUserAccess(data.session),
+        new Promise((_, reject) => window.setTimeout(() => reject(new Error("timeout_acesso")), 12000))
+      ]);
 
       if (!access.authorized || !access.dashboardPath) {
         await supabase.auth.signOut();
@@ -51,9 +62,9 @@ export default function Login() {
       }
 
       navigate(access.dashboardPath, { replace: true });
-    } catch {
+    } catch (error) {
       await supabase.auth.signOut();
-      setErro("Não foi possível concluir o acesso. Tente novamente.");
+      setErro(error?.message === "timeout_acesso" ? "O acesso demorou mais que o esperado. Tente novamente." : "Não foi possível concluir o acesso. Tente novamente.");
     } finally {
       setLoading(false);
     }

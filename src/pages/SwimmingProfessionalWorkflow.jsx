@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import SwimmingShell from "../components/SwimmingShell";
+import AthleteEvolutionDashboard from "../components/AthleteEvolutionDashboard";
 import { supabase } from "../supabaseClient";
 import {
   getParticipantCanonicalBundle,
@@ -175,6 +176,8 @@ export default function SwimmingProfessionalWorkflow(){
         <article className="swim-card"><span>Ciclos de decisão</span><strong className="swim-kpi">{cycles.length}</strong><p>Decisão → intervenção → resposta → aprendizado.</p></article>
         <article className="swim-card"><span>Evidências disponíveis</span><strong className="swim-kpi">{evidence.length}</strong><p>Referências que podem sustentar a decisão sem reentrada manual.</p></article>
       </section>
+
+      <AthleteEvolutionDashboard participantId={participantId} role="professional" embedded />
 
       <section className="swim-panel">
         <span className="swim-panel-label">Treinos do atleta</span>

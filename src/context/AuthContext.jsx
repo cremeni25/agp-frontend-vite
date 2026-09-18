@@ -55,7 +55,15 @@ export function AuthProvider({ children }) {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, nextSession) => {
         setLoading(true);
-        synchronizeSession(nextSession);
+        // Supabase recomenda não iniciar novas operações do cliente dentro
+        // do callback de auth. Adiamos a resolução canônica para o próximo tick
+        // para evitar concorrência/deadlock durante signIn/signOut.
+        window.setTimeout(() => {
+          synchronizeSession(nextSession).catch((error) => {
+            console.error("Erro ao sincronizar sessão AGP:", error);
+            if (active) setLoading(false);
+          });
+        }, 0);
       }
     );
 

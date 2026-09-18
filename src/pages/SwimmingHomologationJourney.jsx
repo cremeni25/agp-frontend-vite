@@ -22,7 +22,10 @@ const JOURNEYS = [
     steps: [
       "Ver atletas do projeto",
       "Identificar contexto esportivo e status vinculado/federado",
-      "Consultar prontidão, treino, competição e histórico",
+      "Planejar treino para grupo ou atleta específico",
+      "Aplicar ajustes individuais quando necessário",
+      "Registrar a execução real de cada atleta",
+      "Consultar prontidão, competição e histórico",
       "Selecionar evidências relevantes",
       "Registrar decisão e justificativa",
       "Criar intervenção",

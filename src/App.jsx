@@ -39,6 +39,7 @@ import MasterProfessionalValidation from "./pages/MasterProfessionalValidation";
 import MasterHomologation from "./pages/MasterHomologationN1";
 import MasterTechnicalAccess from "./pages/MasterTechnicalAccess";
 import MasterInviteN1Coach from "./pages/MasterInviteN1Coach";
+import MasterTrainingObservability from "./pages/MasterTrainingObservability";
 import HomologationEnvironment from "./pages/HomologationEnvironment";
 import CommissionProfessionalValidation from "./pages/CommissionProfessionalValidation";
 import Unauthorized from "./pages/Unauthorized";
@@ -77,6 +78,7 @@ function App() {
           <Route path="/dashboard-clube" element={<ProtectedRoute tipoPermitido="clube"><SwimmingInstitutionHome /></ProtectedRoute>} />
           <Route path="/dashboard-master" element={<ProtectedRoute tipoPermitido="master"><SwimmingGovernanceHome /></ProtectedRoute>} />
           <Route path="/master/jornada-homologacao" element={<ProtectedRoute tipoPermitido="master"><SwimmingHomologationJourney /></ProtectedRoute>} />
+          <Route path="/master/treinos-observacao" element={<ProtectedRoute tipoPermitido="master"><MasterTrainingObservability /></ProtectedRoute>} />
 
           <Route path="/dashboard-master/administracao" element={<ProtectedRoute tipoPermitido="master"><MasterAdministration /></ProtectedRoute>} />
           <Route path="/dashboard-master/administracao/instituicoes" element={<ProtectedRoute tipoPermitido="master"><MasterInstitutions /></ProtectedRoute>} />

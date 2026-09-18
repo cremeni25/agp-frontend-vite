@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
 import SwimmingShell from "../components/SwimmingShell";
+import AthleteEvolutionDashboard from "../components/AthleteEvolutionDashboard";
 import { getParticipantCanonicalBundle } from "../services/canonicalAgp";
 
 function formatDate(value){if(!value)return"—";try{return new Date(value).toLocaleString("pt-BR")}catch{return"—"}}
@@ -102,6 +103,8 @@ export default function SwimmingProfessionalHome(){
         </div>}
       </section>
     </div>
+
+    {selected&&bundle&&<AthleteEvolutionDashboard participantId={selected.id} role="professional" embedded />}
 
     {selected&&bundle&&<section className="swim-panel">
       <div className="swim-panel-head"><div><span className="swim-panel-label">Linha longitudinal</span><h2>O que o histórico permite observar</h2></div></div>

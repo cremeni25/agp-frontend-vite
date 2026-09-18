@@ -1,5 +1,6 @@
 import { useEffect,useMemo,useState } from "react";
 import { getSwimmingEvolution } from "../services/canonicalAgp";
+import "../styles/agp-swimming.css";
 
 function km(value){
   const n=Number(value||0)/1000;

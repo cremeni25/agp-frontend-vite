@@ -59,7 +59,7 @@ export default function SwimmingInstitutionHome(){
   const sessionsTotal=canonicalProjects.reduce((s,p)=>s+Number(p.sessoes_total||0),0);
   const sessionsCompleted=canonicalProjects.reduce((s,p)=>s+Number(p.sessoes_concluidas||0),0);
   const sessionsOpen=canonicalProjects.reduce((s,p)=>s+Number(p.sessoes_abertas||0),0);
-  const longitudinalAthletes=canonicalProjects.reduce((s,p)=>s+Number(p.atletas_com_evidencia_longitudinal||0),0);
+  const longitudinalAthletes=canonicalProjects.reduce((s,p)=>s+Number(p.atletas_longitudinalidade_observavel||0),0);
 
   const focus=loading?["Organizando a instituição","O AGP está reunindo somente o contexto institucional autorizado."]:
     pending.length?[String(pending.length)+" atleta(s) com pendência","A instituição deve tratar vínculos e condições operacionais; a decisão esportiva continua com os profissionais responsáveis."]:

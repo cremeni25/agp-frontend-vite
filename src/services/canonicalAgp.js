@@ -87,6 +87,16 @@ export const createProfessionalAssessment = (participantId, payload) =>
   });
 
 
+
+export const getPilotAthletes = (projectId) =>
+  request(`/api/v1/projetos/${projectId}/atletas-piloto`);
+
+export const createPilotAthlete = (projectId, payload) =>
+  request(`/api/v1/projetos/${projectId}/atletas-piloto`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
 export const getTrainingPlanning = (projectId) =>
   request(`/api/v1/projetos/${projectId}/planejamento-treinos`);
 

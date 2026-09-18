@@ -78,7 +78,7 @@ export default function SwimmingProfessionalHome(){
     eyebrow="Profissional · Natação"
     title="Atenção ao atleta, não ao sistema"
     subtitle="O AGP mostra os atletas dos projetos aos quais você está legitimamente vinculado; cada ação continua limitada por papel, competência e credencial."
-    actions={[{label:"Planejar treinos",onClick:()=>navigate("/profissional/treinos"),primary:true},{label:"Atualizar",onClick:loadAthletes}]}
+    actions={[{label:"Indicar atletas do piloto",onClick:()=>navigate("/profissional/atletas-piloto"),primary:true},{label:"Planejar treinos",onClick:()=>navigate("/profissional/treinos")},{label:"Atualizar",onClick:loadAthletes}]}
   >
     {error&&<div className="swim-notice">{error}</div>}
     <section className="swim-focus"><div><span className="swim-eyebrow">Próxima leitura</span><h2>{nextAction[0]}</h2><p>{nextAction[1]}</p></div></section>

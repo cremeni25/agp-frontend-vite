@@ -37,6 +37,7 @@ import MasterAnalyticPipeline from "./pages/MasterAnalyticPipeline";
 import MasterProfessionalValidation from "./pages/MasterProfessionalValidation";
 import MasterHomologation from "./pages/MasterHomologationN1";
 import MasterTechnicalAccess from "./pages/MasterTechnicalAccess";
+import MasterInviteN1Coach from "./pages/MasterInviteN1Coach";
 import HomologationEnvironment from "./pages/HomologationEnvironment";
 import CommissionProfessionalValidation from "./pages/CommissionProfessionalValidation";
 import Unauthorized from "./pages/Unauthorized";
@@ -94,7 +95,7 @@ function App() {
           <Route path="/master/pipeline-analitico" element={<ProtectedRoute tipoPermitido="master"><MasterAnalyticPipeline /></ProtectedRoute>} />
           <Route path="/master/validacao-profissional" element={<ProtectedRoute tipoPermitido="master"><MasterProfessionalValidation /></ProtectedRoute>} />
           <Route path="/master/homologacao" element={<ProtectedRoute tipoPermitido="master"><MasterHomologation /></ProtectedRoute>} />
-          <Route path="/master/homologacao/acesso-tecnico" element={<ProtectedRoute tipoPermitido="master"><MasterTechnicalAccess /></ProtectedRoute>} />
+          <Route path="/master/homologacao/acesso-tecnico" element={<ProtectedRoute tipoPermitido="master"><MasterInviteN1Coach /></ProtectedRoute>} />
           <Route path="/master/homologacao/:slug" element={<ProtectedRoute tipoPermitido="master"><HomologationEnvironment /></ProtectedRoute>} />
 
           <Route path="/unauthorized" element={<Unauthorized />} />

@@ -29,6 +29,9 @@ async function request(path, options = {}) {
   return body;
 }
 
+export const getSwimmingEvolution = (participantId) =>
+  request(`/api/v1/participantes/${participantId}/evolucao-swimming`);
+
 export const getDailySelfReport = (participantId) =>
   request(`/api/v1/participantes/${participantId}/autorreporte-diario`);
 

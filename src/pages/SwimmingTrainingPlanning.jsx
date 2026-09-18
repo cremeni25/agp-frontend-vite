@@ -159,6 +159,7 @@ export default function SwimmingTrainingPlanning(){
   const [executionDrafts,setExecutionDrafts]=useState({});
   const [excelText,setExcelText]=useState("");
   const [excelSource,setExcelSource]=useState("");
+  const [draftProject,setDraftProject]=useState("");
 
   async function loadProjects(){
     setLoading(true);setError("");
@@ -192,6 +193,50 @@ export default function SwimmingTrainingPlanning(){
   }
 
   useEffect(()=>{loadProjects()},[perfil?.pessoa_id]);
+
+  useEffect(()=>{
+    if(!projectId)return;
+    const key=`agp:training-draft:${perfil?.pessoa_id||"unknown"}:${projectId}`;
+    try{
+      const raw=window.localStorage.getItem(key);
+      if(raw){
+        const saved=JSON.parse(raw);
+        if(saved?.plan)setPlan({...EMPTY_PLAN,...saved.plan});
+        setExcelText(saved?.excelText||"");
+        setExcelSource(saved?.excelSource||"");
+        if(saved?.savedAt)setMessage("Rascunho de treino restaurado automaticamente.");
+      }else{
+        setPlan(EMPTY_PLAN);
+        setExcelText("");
+        setExcelSource("");
+      }
+    }catch{
+      setPlan(EMPTY_PLAN);
+      setExcelText("");
+      setExcelSource("");
+    }finally{
+      setDraftProject(projectId);
+    }
+  },[projectId,perfil?.pessoa_id]);
+
+  useEffect(()=>{
+    if(!projectId||draftProject!==projectId)return;
+    const key=`agp:training-draft:${perfil?.pessoa_id||"unknown"}:${projectId}`;
+    const hasDraft=
+      Boolean(plan.grupo_id||plan.participante_ids.length||plan.inicio_planejado||plan.duracao_min||plan.objetivo||plan.volume_planejado||plan.intensidade_planejada||plan.conteudo||plan.series.length||Object.keys(plan.ajustes_individuais||{}).length||excelText.trim());
+    try{
+      if(!hasDraft){
+        window.localStorage.removeItem(key);
+        return;
+      }
+      window.localStorage.setItem(key,JSON.stringify({
+        plan,
+        excelText,
+        excelSource,
+        savedAt:new Date().toISOString()
+      }));
+    }catch{}
+  },[plan,excelText,excelSource,projectId,draftProject,perfil?.pessoa_id]);
 
   const athletes=data?.atletas||[];
   const groups=data?.grupos||[];
@@ -316,7 +361,10 @@ export default function SwimmingTrainingPlanning(){
         ajustes_individuais:adjustments
       });
       setMessage(`Treino criado para ${result.atletas_total} atleta(s). Cada atleta recebeu uma sessão canônica individual.`);
+      try{window.localStorage.removeItem(`agp:training-draft:${perfil?.pessoa_id||"unknown"}:${projectId}`)}catch{}
       setPlan(EMPTY_PLAN);
+      setExcelText("");
+      setExcelSource("");
       await loadPlanning(projectId);
     }catch(e){setError(e.message||"Não foi possível criar o treino.")}
     finally{setWorking(false)}
@@ -348,7 +396,7 @@ export default function SwimmingTrainingPlanning(){
   return <SwimmingShell
     eyebrow="Técnico · Planejamento"
     title="Treino da equipe com individualização por atleta"
-    subtitle="Prescreva uma sessão para um grupo, para atletas específicos ou combine ambos. O AGP mantém uma sessão individual para cada atleta no histórico longitudinal."
+    subtitle="Prescreva uma sessão para um grupo, para atletas específicos ou combine ambos. O rascunho é preservado automaticamente mesmo ao trocar de aba ou abrir o Excel."
     actions={[{label:"Voltar aos atletas",onClick:()=>navigate("/dashboard-comissao")},{label:"Atualizar",onClick:()=>loadPlanning(projectId)}]}
   >
     {error&&<div className="workflow-error">{error}</div>}

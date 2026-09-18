@@ -30,7 +30,14 @@ export default function SwimmingInstitutionHome(){
           .select("id,pessoa_id,projeto_id,status_onboarding,tecnico_responsavel_pessoa_id")
           .in("projeto_id",ids).eq("funcao_no_projeto","atleta").eq("ativo",true);
         if(a.error)throw a.error;
-        athletes=a.data||[];
+        const rows=a.data||[];
+        const personIds=[...new Set(rows.map(x=>x.pessoa_id).filter(Boolean))];
+        const profiles=personIds.length?await supabase.from("agp_perfis_esportivos")
+          .select("pessoa_id,status_federativo,federacao_nome,registro_federativo")
+          .in("pessoa_id",personIds).eq("status","ativo"):{data:[],error:null};
+        if(profiles.error)throw profiles.error;
+        const profileMap=Object.fromEntries((profiles.data||[]).map(x=>[x.pessoa_id,x]));
+        athletes=rows.map(x=>({...x,perfil_esportivo:profileMap[x.pessoa_id]||{}}));
       }
       setData({institution:i.data,projects,members:m.data||[],athletes});
     }catch{
@@ -43,6 +50,8 @@ export default function SwimmingInstitutionHome(){
 
   const pending=useMemo(()=>data.athletes.filter(a=>!a.tecnico_responsavel_pessoa_id||!["ativo","apto_para_coleta"].includes(String(a.status_onboarding||"").toLowerCase())),[data.athletes]);
   const activeProjects=data.projects.filter(p=>!["suspenso","concluido"].includes(String(p.status||"").toLowerCase()));
+  const federated=data.athletes.filter(a=>a.perfil_esportivo?.status_federativo==="federado").length;
+  const linked=data.athletes.filter(a=>a.perfil_esportivo?.status_federativo==="vinculado").length;
 
   const focus=loading?["Organizando a instituição","O AGP está reunindo somente o contexto institucional autorizado."]:
     pending.length?[String(pending.length)+" atleta(s) com pendência","A instituição deve tratar vínculos e condições operacionais; a decisão esportiva continua com os profissionais responsáveis."]:
@@ -56,6 +65,7 @@ export default function SwimmingInstitutionHome(){
       <article className="swim-card"><span>Atletas ativos</span><strong className="swim-kpi">{loading?"…":data.athletes.length}</strong><p>Pessoas acompanhadas no contexto institucional.</p></article>
       <article className="swim-card"><span>Equipe ativa</span><strong className="swim-kpi">{loading?"…":data.members.length}</strong><p>Vínculos institucionais ativos.</p></article>
       <article className="swim-card"><span>Projetos ativos</span><strong className="swim-kpi">{loading?"…":activeProjects.length}</strong><p>Contextos esportivos em andamento.</p></article>
+      <article className="swim-card"><span>Status esportivo</span><strong>{loading?"…":federated+" federado(s)"}</strong><p>{linked} vinculado(s) · classificação contextual para planejamento e inscrição, não elegibilidade automática.</p></article>
     </section>
     <section className="swim-panel">
       <span className="swim-panel-label">Exceções institucionais</span><h2>O que exige ação administrativa</h2>

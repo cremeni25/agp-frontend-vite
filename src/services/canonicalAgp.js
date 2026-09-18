@@ -100,6 +100,20 @@ export const createPilotAthlete = (projectId, payload) =>
     body: JSON.stringify(payload)
   });
 
+export const getTrainingDraft = (projectId) =>
+  request(`/api/v1/projetos/${projectId}/rascunho-treino`);
+
+export const saveTrainingDraft = (projectId, payload) =>
+  request(`/api/v1/projetos/${projectId}/rascunho-treino`, {
+    method: "PUT",
+    body: JSON.stringify({ payload })
+  });
+
+export const deleteTrainingDraft = (projectId) =>
+  request(`/api/v1/projetos/${projectId}/rascunho-treino`, {
+    method: "DELETE"
+  });
+
 export const getTrainingPlanning = (projectId) =>
   request(`/api/v1/projetos/${projectId}/planejamento-treinos`);
 

@@ -26,7 +26,17 @@ export const ACCESS_PROFILES = {
       "nutricionista",
       "analista",
       "assistente",
-      "observador"
+      "observador",
+      "head_coach",
+      "assistant_coach",
+      "strength_conditioning_coach",
+      "performance_analyst",
+      "observer",
+      "physician",
+      "physiotherapist",
+      "psychologist",
+      "nutritionist",
+      "physiologist"
     ],
     label: "Equipe Profissional",
     dashboardPath: "/dashboard-comissao"
@@ -44,7 +54,8 @@ export const ACCESS_PROFILES = {
       "gestora",
       "admin_institucional",
       "administrador_institucional",
-      "administradora_institucional"
+      "administradora_institucional",
+      "institution_manager"
     ],
     label: "Instituições",
     dashboardPath: "/dashboard-clube"

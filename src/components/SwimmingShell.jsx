@@ -15,16 +15,19 @@ const NAV = {
     ["Início","/dashboard-comissao"],
     ["Atletas","/dashboard-comissao"],
     ["Planejamento","/profissional/treinos"],
+    ["Relatórios","/profissional/relatorios"],
     ["Piloto N1","/profissional/atletas-piloto"]
   ],
   clube: [
-    ["Instituição","/dashboard-clube"]
+    ["Instituição","/dashboard-clube"],
+    ["Relatórios","/instituicao/relatorios"]
   ],
   master: [
     ["Governança","/dashboard-master"],
     ["Treinos","/master/treinos-observacao"],
     ["Atletas","/master/atletas"],
     ["Instituições","/master/instituicoes"],
+    ["Relatórios","/master/relatorios"],
     ["Jornadas","/master/jornada-homologacao"]
   ]
 };

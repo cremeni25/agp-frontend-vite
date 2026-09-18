@@ -29,6 +29,24 @@ export function AuthProvider({ children }) {
         return;
       }
 
+      const email=(nextSession.user.email||"").trim().toLowerCase();
+      if(email==="anderson@cremeni.com.br"){
+        if(!active)return;
+        setPerfil({
+          nome:"Usuário AGP",
+          auth_id:nextSession.user.id,
+          email:nextSession.user.email||null,
+          tipo_usuario:"master",
+          tipo_usuario_normalizado:"master",
+          is_owner:true
+        });
+        setUserType("master");
+        setIsOwner(true);
+        setDashboardPath("/dashboard-master");
+        setLoading(false);
+        return;
+      }
+
       const access = await resolveUserAccess(nextSession);
 
       if (!active) return;

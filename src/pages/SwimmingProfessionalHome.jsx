@@ -29,10 +29,14 @@ export default function SwimmingProfessionalHome(){
       if(p.error)throw p.error;
       const rows=p.data||[];
       const personIds=[...new Set(rows.map(x=>x.pessoa_id).filter(Boolean))];
-      const people=personIds.length?await supabase.from("agp_pessoas").select("id,nome").in("id",personIds):{data:[],error:null};
-      if(people.error)throw people.error;
+      const [people,profiles]=personIds.length?await Promise.all([
+        supabase.from("agp_pessoas").select("id,nome").in("id",personIds),
+        supabase.from("agp_perfis_esportivos").select("pessoa_id,modalidade,categoria,nivel,status_federativo,federacao_nome,registro_federativo").in("pessoa_id",personIds).eq("status","ativo")
+      ]):[{data:[],error:null},{data:[],error:null}];
+      if(people.error||profiles.error)throw people.error||profiles.error;
       const map=Object.fromEntries((people.data||[]).map(x=>[x.id,x]));
-      const result=rows.map(x=>({...x,nome:map[x.pessoa_id]?.nome||"Atleta"}));
+      const profileMap=Object.fromEntries((profiles.data||[]).map(x=>[x.pessoa_id,x]));
+      const result=rows.map(x=>({...x,nome:map[x.pessoa_id]?.nome||"Atleta",perfil_esportivo:profileMap[x.pessoa_id]||{}}));
       setAthletes(result);
       if(result.length&&!selected)await openAthlete(result[0]);
     }catch{
@@ -76,12 +80,13 @@ export default function SwimmingProfessionalHome(){
     <div className="swim-two">
       <section className="swim-panel">
         <span className="swim-panel-label">Meus atletas</span><h2>Vínculos ativos</h2>
-        {loading?<div className="swim-empty">Carregando...</div>:athletes.length?<div className="swim-list">{athletes.map(a=><button key={a.id} className={selected?.id===a.id?"swim-athlete-button active":"swim-athlete-button"} onClick={()=>openAthlete(a)}><strong>{a.nome}</strong><span>{a.status_onboarding||"acompanhamento ativo"}</span></button>)}</div>:<div className="swim-empty">Nenhum atleta está vinculado ao seu escopo atual.</div>}
+        {loading?<div className="swim-empty">Carregando...</div>:athletes.length?<div className="swim-list">{athletes.map(a=><button key={a.id} className={selected?.id===a.id?"swim-athlete-button active":"swim-athlete-button"} onClick={()=>openAthlete(a)}><strong>{a.nome}</strong><span>{a.perfil_esportivo?.status_federativo === "federado" ? "Federado" : a.perfil_esportivo?.status_federativo === "vinculado" ? "Vinculado" : "Status federativo não informado"} · {a.status_onboarding||"acompanhamento ativo"}</span></button>)}</div>:<div className="swim-empty">Nenhum atleta está vinculado ao seu escopo atual.</div>}
       </section>
 
       <section className="swim-panel">
         <span className="swim-panel-label">Contexto selecionado</span><h2>{selected?.nome||"Selecione um atleta"}</h2>
         {detailLoading?<div className="swim-empty">Carregando contexto...</div>:selected&&<div className="swim-list">
+          <div className="swim-row"><div><strong>Status esportivo</strong><span>{selected?.perfil_esportivo?.status_federativo === "federado" ? ["Federado",selected?.perfil_esportivo?.federacao_nome,selected?.perfil_esportivo?.registro_federativo].filter(Boolean).join(" · ") : selected?.perfil_esportivo?.status_federativo === "vinculado" ? "Vinculado" : "Não informado"}</span></div><span className="swim-pill">contexto</span></div>
           <div className="swim-row"><div><strong>Estado analítico</strong><span>{String(analysisState).replaceAll("_"," ")}</span></div><span className="swim-pill">evidência</span></div>
           <div className="swim-row"><div><strong>Treinos no recorte</strong><span>{sessions.length} sessão(ões)</span></div></div>
           <div className="swim-row"><div><strong>Competições</strong><span>{competitions.length} participação(ões)</span></div></div>

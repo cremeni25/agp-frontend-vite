@@ -29,6 +29,9 @@ async function request(path, options = {}) {
   return body;
 }
 
+export const getInstitutionalIntelligence = (institutionId) =>
+  request(`/api/v1/instituicoes/${institutionId}/inteligencia-canonica`);
+
 export const getSwimmingEvolution = (participantId) =>
   request(`/api/v1/participantes/${participantId}/evolucao-swimming`);
 

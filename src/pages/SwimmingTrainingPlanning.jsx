@@ -21,6 +21,7 @@ const EMPTY_PLAN={
   volume_planejado:"",
   intensidade_planejada:"",
   conteudo:"",
+  series:[],
   ajustes_individuais:{}
 };
 
@@ -110,6 +111,18 @@ export default function SwimmingTrainingPlanning(){
     finally{setWorking(false)}
   }
 
+  function addSeries(){
+    setPlan(p=>({...p,series:[...p.series,{nome:"",repeticoes:1,distancia_m:"",estilo:"livre",saida_segundos:"",ritmo_alvo:"",equipamento:"",objetivo:"",observacao:""}]}));
+  }
+
+  function updateSeries(index,field,value){
+    setPlan(p=>({...p,series:p.series.map((item,i)=>i===index?{...item,[field]:value}:item)}));
+  }
+
+  function removeSeries(index){
+    setPlan(p=>({...p,series:p.series.filter((_,i)=>i!==index)}));
+  }
+
   function setAdjustment(participantId,field,value){
     setPlan(p=>({...p,ajustes_individuais:{
       ...p.ajustes_individuais,
@@ -140,6 +153,17 @@ export default function SwimmingTrainingPlanning(){
         volume_planejado:plan.volume_planejado?Number(plan.volume_planejado):null,
         intensidade_planejada:plan.intensidade_planejada?Number(plan.intensidade_planejada):null,
         conteudo:plan.conteudo,
+        series:plan.series.filter(s=>s.distancia_m).map(s=>({
+          nome:s.nome||null,
+          repeticoes:Number(s.repeticoes||1),
+          distancia_m:Number(s.distancia_m),
+          estilo:s.estilo||null,
+          saida_segundos:s.saida_segundos?Number(s.saida_segundos):null,
+          ritmo_alvo:s.ritmo_alvo||null,
+          equipamento:String(s.equipamento||"").split(",").map(x=>x.trim()).filter(Boolean),
+          objetivo:s.objetivo||null,
+          observacao:s.observacao||null
+        })),
         ciclo_id:null,
         ajustes_individuais:adjustments
       });
@@ -216,7 +240,27 @@ export default function SwimmingTrainingPlanning(){
           <label className="workflow-field">Volume planejado<input type="number" min="0" step="1" value={plan.volume_planejado} onChange={e=>setPlan(p=>({...p,volume_planejado:e.target.value}))} placeholder="Ex.: 4500 m" /></label>
           <label className="workflow-field">Intensidade planejada (0–10)<input type="number" min="0" max="10" step="0.1" value={plan.intensidade_planejada} onChange={e=>setPlan(p=>({...p,intensidade_planejada:e.target.value}))} /></label>
           <label className="workflow-field full">Objetivo<textarea rows="2" value={plan.objetivo} onChange={e=>setPlan(p=>({...p,objetivo:e.target.value}))} placeholder="Ex.: tolerância ao ritmo de 200 m livre" /></label>
-          <label className="workflow-field full">Conteúdo do treino<textarea required minLength="2" rows="8" value={plan.conteudo} onChange={e=>setPlan(p=>({...p,conteudo:e.target.value}))} placeholder={"Ex.:\n800 aquecimento\n8x50 técnica\n6x200 ritmo alvo..."} /></label>
+          <label className="workflow-field full">Conteúdo geral<textarea required minLength="2" rows="5" value={plan.conteudo} onChange={e=>setPlan(p=>({...p,conteudo:e.target.value}))} placeholder={"Resumo do objetivo e organização geral da sessão."} /></label>
+          <div className="workflow-field full">
+            <div className="training-series-head"><span>Séries estruturadas</span><button type="button" className="swim-secondary" onClick={addSeries}>Adicionar série</button></div>
+            <small className="workflow-help">Estruture o treino com linguagem própria da Natação. Ex.: 8 × 50 m livre, saída a cada 45 s, ritmo de prova.</small>
+            <div className="training-series-list">
+              {plan.series.length===0?<div className="swim-empty">Você pode usar somente o conteúdo geral ou adicionar séries estruturadas.</div>:plan.series.map((s,index)=><div className="training-series-card" key={index}>
+                <div className="training-series-title"><strong>Série {index+1}</strong><button type="button" className="swim-ghost" onClick={()=>removeSeries(index)}>Remover</button></div>
+                <div className="workflow-grid">
+                  <label className="workflow-field">Nome<input value={s.nome} onChange={e=>updateSeries(index,"nome",e.target.value)} placeholder="Ex.: Principal" /></label>
+                  <label className="workflow-field">Repetições<input type="number" min="1" max="200" value={s.repeticoes} onChange={e=>updateSeries(index,"repeticoes",e.target.value)} /></label>
+                  <label className="workflow-field">Distância por repetição (m)<input type="number" min="1" step="1" value={s.distancia_m} onChange={e=>updateSeries(index,"distancia_m",e.target.value)} /></label>
+                  <label className="workflow-field">Estilo<select value={s.estilo} onChange={e=>updateSeries(index,"estilo",e.target.value)}><option value="livre">Livre</option><option value="costas">Costas</option><option value="peito">Peito</option><option value="borboleta">Borboleta</option><option value="medley">Medley</option><option value="pernada">Pernada</option><option value="bracada">Braçada</option><option value="misto">Misto</option></select></label>
+                  <label className="workflow-field">Saída / intervalo (s)<input type="number" min="1" step="0.1" value={s.saida_segundos} onChange={e=>updateSeries(index,"saida_segundos",e.target.value)} placeholder="Ex.: 45" /></label>
+                  <label className="workflow-field">Ritmo-alvo<input value={s.ritmo_alvo} onChange={e=>updateSeries(index,"ritmo_alvo",e.target.value)} placeholder="Ex.: ritmo 200 livre" /></label>
+                  <label className="workflow-field">Equipamentos<input value={s.equipamento} onChange={e=>updateSeries(index,"equipamento",e.target.value)} placeholder="Ex.: nadadeira, palmar" /></label>
+                  <label className="workflow-field">Objetivo da série<input value={s.objetivo} onChange={e=>updateSeries(index,"objetivo",e.target.value)} /></label>
+                  <label className="workflow-field full">Observação<input value={s.observacao} onChange={e=>updateSeries(index,"observacao",e.target.value)} /></label>
+                </div>
+              </div>)}
+            </div>
+          </div>
           <div className="workflow-field full"><span>Adicionar atletas específicos</span><div className="training-athletes">{athletes.map(a=><label key={a.participante_id}><input type="checkbox" checked={plan.participante_ids.includes(a.participante_id)} onChange={()=>togglePlanAthlete(a.participante_id)} /><span><strong>{a.nome}</strong><small>{athleteLabel(a)}</small></span></label>)}</div></div>
         </div>
 

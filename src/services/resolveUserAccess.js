@@ -115,7 +115,7 @@ async function resolveCanonicalProfile(user) {
   if (participante?.funcao_no_projeto === "atleta") {
     const { data, error } = await supabase
       .from("agp_perfis_esportivos")
-      .select("id,pessoa_id,legacy_perfil_atleta_id")
+      .select("id,pessoa_id,legacy_perfil_atleta_id,modalidade,categoria,nivel,status_federativo,federacao_nome,registro_federativo")
       .eq("pessoa_id", conta.pessoa_id)
       .maybeSingle();
 
@@ -136,6 +136,12 @@ async function resolveCanonicalProfile(user) {
     conta_acesso_id: conta.id,
     perfil_esportivo_id: perfilEsportivo?.id || null,
     legacy_perfil_atleta_id: perfilEsportivo?.legacy_perfil_atleta_id || null,
+    modalidade: perfilEsportivo?.modalidade || null,
+    categoria: perfilEsportivo?.categoria || null,
+    nivel: perfilEsportivo?.nivel || null,
+    status_federativo: perfilEsportivo?.status_federativo || "nao_informado",
+    federacao_nome: perfilEsportivo?.federacao_nome || null,
+    registro_federativo: perfilEsportivo?.registro_federativo || null,
     participante_id: participante?.id || null,
     projeto_id: participante?.projeto_id || null,
     nome: pessoa?.nome || user.email || "Participante AGP",

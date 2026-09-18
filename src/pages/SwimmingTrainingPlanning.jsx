@@ -477,7 +477,63 @@ export default function SwimmingTrainingPlanning(){
         <p className="swim-muted">Mesmo quando a prescrição nasce no grupo, cada atleta mantém sua própria execução, intercorrências e resposta longitudinal.</p>
         {plans.length?plans.map(p=>{
           const planRecipients=recipients.filter(r=>r.plano_id===p.id);
-          return <div className="training-plan-card" key={p.id}><div className="training-plan-head"><div><strong>{p.objetivo||"Treino planejado"}</strong><span>{new Date(p.inicio_planejado).toLocaleString("pt-BR")} · {planRecipients.length} atleta(s)</span></div><span className="swim-pill">{p.status}</span></div><div className="training-session-list">{planRecipients.map(r=>{const a=athleteMap[r.participante_id];const s=sessionMap[r.sessao_id]||{};const d=executionDrafts[r.sessao_id]||{};return <details key={r.participante_id}><summary><span><strong>{a?.nome||"Atleta"}</strong><small>{s.status||"planejada"} · {r.origem}</small></span></summary><div className="workflow-grid"><label className="workflow-field">Estado<select value={d.status||s.status||"concluida"} onChange={e=>setExecutionDrafts(x=>({...x,[r.sessao_id]:{...d,status:e.target.value}}))}><option value="em_execucao">Em execução</option><option value="concluida">Concluída</option><option value="cancelada">Cancelada</option></select></label><label className="workflow-field">Volume executado<input type="number" min="0" value={d.volume_executado||""} onChange={e=>setExecutionDrafts(x=>({...x,[r.sessao_id]:{...d,volume_executado:e.target.value}}))} /></label><label className="workflow-field">Intensidade percebida (0–10)<input type="number" min="0" max="10" step="0.1" value={d.intensidade_percebida||""} onChange={e=>setExecutionDrafts(x=>({...x,[r.sessao_id]:{...d,intensidade_percebida:e.target.value}}))} /></label><label className="workflow-field full">Conteúdo executado<textarea rows="3" value={d.conteudo_executado||""} onChange={e=>setExecutionDrafts(x=>({...x,[r.sessao_id]:{...d,conteudo_executado:e.target.value}}))} /></label><label className="workflow-field full">Intercorrências<textarea rows="2" value={d.intercorrencias||""} onChange={e=>setExecutionDrafts(x=>({...x,[r.sessao_id]:{...d,intercorrencias:e.target.value}}))} /></label></div><div className="workflow-actions"><button type="button" className="swim-secondary" disabled={working||!r.sessao_id} onClick={()=>saveExecution(r.sessao_id)}>Salvar execução</button></div></details>})}</div></div>
+          return <div className="training-plan-card" key={p.id}>
+            <div className="training-plan-head">
+              <div><strong>{p.objetivo||"Treino planejado"}</strong><span>{new Date(p.inicio_planejado).toLocaleString("pt-BR")} · {planRecipients.length} atleta(s)</span></div>
+              <span className="swim-pill">{p.status}</span>
+            </div>
+
+            <section className="training-prescription">
+              <div className="training-prescription-head">
+                <div><span className="swim-panel-label">Prescrição</span><h3>Treino planejado</h3></div>
+                <div className="training-prescription-metrics">
+                  <span><strong>{p.prescricao_base?.volume_planejado??"—"}</strong><small>m planejados</small></span>
+                  <span><strong>{p.prescricao_base?.intensidade_planejada??"—"}</strong><small>intensidade</small></span>
+                  <span><strong>{p.duracao_min??"—"}</strong><small>min</small></span>
+                </div>
+              </div>
+              <div className="training-prescription-content">{p.prescricao_base?.conteudo||"Conteúdo não informado."}</div>
+              {(p.prescricao_base?.series||[]).length>0&&<div className="training-prescription-series">
+                <strong>Séries estruturadas</strong>
+                {(p.prescricao_base.series||[]).map((serie,index)=><div className="training-prescription-series-row" key={index}>
+                  <span>{serie.nome||`Série ${index+1}`}</span>
+                  <b>{serie.repeticoes||1} × {serie.distancia_m} m</b>
+                  <small>{[serie.estilo,serie.saida_segundos?`saída ${serie.saida_segundos}s`:null,serie.ritmo_alvo].filter(Boolean).join(" · ")}</small>
+                </div>)}
+              </div>}
+            </section>
+
+            <div className="training-session-list">{planRecipients.map(r=>{
+              const a=athleteMap[r.participante_id];
+              const s=sessionMap[r.sessao_id]||{};
+              const d=executionDrafts[r.sessao_id]||{};
+              const ctx=s.contexto_esportivo||{};
+              const specificContent=ctx.conteudo||p.prescricao_base?.conteudo||"";
+              const specificVolume=ctx.volume_planejado??p.prescricao_base?.volume_planejado;
+              const specificIntensity=ctx.intensidade_planejada??p.prescricao_base?.intensidade_planejada;
+              return <details key={r.participante_id}>
+                <summary><span><strong>{a?.nome||"Atleta"}</strong><small>{s.status||"planejada"} · {r.origem}</small></span></summary>
+                <div className="training-athlete-prescription">
+                  <span className="swim-panel-label">Prescrição deste atleta</span>
+                  <div className="training-prescription-metrics">
+                    <span><strong>{specificVolume??"—"}</strong><small>m planejados</small></span>
+                    <span><strong>{specificIntensity??"—"}</strong><small>intensidade</small></span>
+                  </div>
+                  <div className="training-prescription-content">{specificContent}</div>
+                  {ctx.ajuste_individual?.observacao&&<p className="swim-muted"><strong>Ajuste individual:</strong> {ctx.ajuste_individual.observacao}</p>}
+                </div>
+                <div className="training-execution-divider"><span>Registrar execução</span></div>
+                <div className="workflow-grid">
+                  <label className="workflow-field">Estado<select value={d.status||s.status||"concluida"} onChange={e=>setExecutionDrafts(x=>({...x,[r.sessao_id]:{...d,status:e.target.value}}))}><option value="em_execucao">Em execução</option><option value="concluida">Concluída</option><option value="cancelada">Cancelada</option></select></label>
+                  <label className="workflow-field">Volume executado<input type="number" min="0" value={d.volume_executado||""} onChange={e=>setExecutionDrafts(x=>({...x,[r.sessao_id]:{...d,volume_executado:e.target.value}}))} /></label>
+                  <label className="workflow-field">Intensidade percebida (0–10)<input type="number" min="0" max="10" step="0.1" value={d.intensidade_percebida||""} onChange={e=>setExecutionDrafts(x=>({...x,[r.sessao_id]:{...d,intensidade_percebida:e.target.value}}))} /></label>
+                  <label className="workflow-field full">Conteúdo executado<textarea rows="3" value={d.conteudo_executado||""} onChange={e=>setExecutionDrafts(x=>({...x,[r.sessao_id]:{...d,conteudo_executado:e.target.value}}))} /></label>
+                  <label className="workflow-field full">Intercorrências<textarea rows="2" value={d.intercorrencias||""} onChange={e=>setExecutionDrafts(x=>({...x,[r.sessao_id]:{...d,intercorrencias:e.target.value}}))} /></label>
+                </div>
+                <div className="workflow-actions"><button type="button" className="swim-secondary" disabled={working||!r.sessao_id} onClick={()=>saveExecution(r.sessao_id)}>Salvar execução</button></div>
+              </details>
+            })}</div>
+          </div>
         }):<div className="swim-empty">Nenhum treino planejado ainda.</div>}
       </section>
     </>}

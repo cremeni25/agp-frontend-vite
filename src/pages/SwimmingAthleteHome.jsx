@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import SwimmingShell from "../components/SwimmingShell";
 import AthleteEvolutionDashboard from "../components/AthleteEvolutionDashboard";
@@ -17,12 +17,14 @@ function firstArray(value, keys = []) {
 
 export default function SwimmingAthleteHome() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { perfil } = useAuth();
   const participantId = perfil?.participante_id;
   const [bundle, setBundle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [tab, setTab] = useState("hoje");
+  const initialView = ["hoje","evolucao","treinos","historico"].includes(searchParams.get("view")) ? searchParams.get("view") : "hoje";
+  const [tab, setTab] = useState(initialView);
 
   async function load() {
     if (!participantId) {
@@ -42,6 +44,10 @@ export default function SwimmingAthleteHome() {
   }
 
   useEffect(() => { load(); }, [participantId]);
+  useEffect(() => {
+    const next = searchParams.get("view");
+    if (["hoje","evolucao","treinos","historico"].includes(next)) setTab(next);
+  }, [searchParams]);
 
   const sessions = useMemo(() => firstArray(bundle?.training, ["sessoes"]), [bundle]);
   const participations = useMemo(() => firstArray(bundle?.training, ["participacoes_prova"]), [bundle]);

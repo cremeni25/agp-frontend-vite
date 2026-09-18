@@ -8,7 +8,10 @@ import {
   getTrainingPlanning,
   createTrainingGroup,
   createTrainingPlan,
-  updateCanonicalSessionExecution
+  updateCanonicalSessionExecution,
+  getTrainingDraft,
+  saveTrainingDraft,
+  deleteTrainingDraft
 } from "../services/canonicalAgp";
 
 const EMPTY_GROUP={nome:"",descricao:"",participante_ids:[]};
@@ -160,6 +163,8 @@ export default function SwimmingTrainingPlanning(){
   const [excelText,setExcelText]=useState("");
   const [excelSource,setExcelSource]=useState("");
   const [draftProject,setDraftProject]=useState("");
+  const [remoteDraftReady,setRemoteDraftReady]=useState(false);
+  const [draftStatus,setDraftStatus]=useState("");
 
   async function loadProjects(){
     setLoading(true);setError("");
@@ -196,47 +201,105 @@ export default function SwimmingTrainingPlanning(){
 
   useEffect(()=>{
     if(!projectId)return;
+    let active=true;
+    setRemoteDraftReady(false);
+    setDraftStatus("Restaurando estado de trabalho...");
     const key=`agp:training-draft:${perfil?.pessoa_id||"unknown"}:${projectId}`;
-    try{
-      const raw=window.localStorage.getItem(key);
-      if(raw){
-        const saved=JSON.parse(raw);
-        if(saved?.plan)setPlan({...EMPTY_PLAN,...saved.plan});
-        setExcelText(saved?.excelText||"");
-        setExcelSource(saved?.excelSource||"");
-        if(saved?.savedAt)setMessage("Rascunho de treino restaurado automaticamente.");
+
+    async function restoreWorkspace(){
+      let local=null;
+      try{
+        const raw=window.localStorage.getItem(key);
+        if(raw)local=JSON.parse(raw);
+      }catch{}
+
+      let remote=null;
+      try{
+        const response=await getTrainingDraft(projectId);
+        remote=response?.rascunho?.payload||null;
+      }catch{}
+
+      if(!active)return;
+      const localTime=local?.savedAt?Date.parse(local.savedAt):0;
+      const remoteTime=remote?.savedAt?Date.parse(remote.savedAt):0;
+      const saved=remoteTime>=localTime?(remote||local):(local||remote);
+
+      if(saved){
+        if(saved.plan)setPlan({...EMPTY_PLAN,...saved.plan});
+        if(saved.group)setGroup({...EMPTY_GROUP,...saved.group});
+        setExcelText(saved.excelText||"");
+        setExcelSource(saved.excelSource||"");
+        setExecutionDrafts(saved.executionDrafts||{});
+        setMessage("Estado de trabalho restaurado automaticamente.");
+        setDraftStatus("Estado restaurado");
       }else{
         setPlan(EMPTY_PLAN);
+        setGroup(EMPTY_GROUP);
         setExcelText("");
         setExcelSource("");
+        setExecutionDrafts({});
+        setDraftStatus("Sem rascunho pendente");
       }
-    }catch{
-      setPlan(EMPTY_PLAN);
-      setExcelText("");
-      setExcelSource("");
-    }finally{
       setDraftProject(projectId);
+      setRemoteDraftReady(true);
     }
+
+    restoreWorkspace();
+    return()=>{active=false};
   },[projectId,perfil?.pessoa_id]);
 
   useEffect(()=>{
-    if(!projectId||draftProject!==projectId)return;
+    if(!projectId||draftProject!==projectId||!remoteDraftReady)return;
     const key=`agp:training-draft:${perfil?.pessoa_id||"unknown"}:${projectId}`;
-    const hasDraft=
-      Boolean(plan.grupo_id||plan.participante_ids.length||plan.inicio_planejado||plan.duracao_min||plan.objetivo||plan.volume_planejado||plan.intensidade_planejada||plan.conteudo||plan.series.length||Object.keys(plan.ajustes_individuais||{}).length||excelText.trim());
+    const hasDraft=Boolean(
+      group.nome||group.descricao||group.participante_ids.length||
+      plan.grupo_id||plan.participante_ids.length||plan.inicio_planejado||plan.duracao_min||plan.objetivo||
+      plan.volume_planejado||plan.intensidade_planejada||plan.conteudo||plan.series.length||
+      Object.keys(plan.ajustes_individuais||{}).length||excelText.trim()||
+      Object.values(executionDrafts||{}).some(v=>v&&Object.values(v).some(x=>String(x??"").trim()!==""))
+    );
+
+    const payload={
+      plan,
+      group,
+      excelText,
+      excelSource,
+      executionDrafts,
+      savedAt:new Date().toISOString()
+    };
+
     try{
-      if(!hasDraft){
-        window.localStorage.removeItem(key);
-        return;
-      }
-      window.localStorage.setItem(key,JSON.stringify({
-        plan,
-        excelText,
-        excelSource,
-        savedAt:new Date().toISOString()
-      }));
+      if(hasDraft)window.localStorage.setItem(key,JSON.stringify(payload));
+      else window.localStorage.removeItem(key);
     }catch{}
-  },[plan,excelText,excelSource,projectId,draftProject,perfil?.pessoa_id]);
+
+    setDraftStatus(hasDraft?"Salvando automaticamente...":"Sem rascunho pendente");
+    const timer=window.setTimeout(async()=>{
+      try{
+        if(hasDraft){
+          await saveTrainingDraft(projectId,payload);
+          setDraftStatus("Tudo salvo automaticamente");
+        }else{
+          await deleteTrainingDraft(projectId);
+          setDraftStatus("Sem rascunho pendente");
+        }
+      }catch{
+        setDraftStatus("Salvo neste dispositivo; sincronização com servidor pendente");
+      }
+    },700);
+    return()=>window.clearTimeout(timer);
+  },[plan,group,excelText,excelSource,executionDrafts,projectId,draftProject,remoteDraftReady,perfil?.pessoa_id]);
+
+  useEffect(()=>{
+    function preserveBeforeHide(){
+      if(document.visibilityState!=="hidden"||!projectId||draftProject!==projectId)return;
+      const key=`agp:training-draft:${perfil?.pessoa_id||"unknown"}:${projectId}`;
+      const payload={plan,group,excelText,excelSource,executionDrafts,savedAt:new Date().toISOString()};
+      try{window.localStorage.setItem(key,JSON.stringify(payload))}catch{}
+    }
+    document.addEventListener("visibilitychange",preserveBeforeHide);
+    return()=>document.removeEventListener("visibilitychange",preserveBeforeHide);
+  },[plan,group,excelText,excelSource,executionDrafts,projectId,draftProject,perfil?.pessoa_id]);
 
   const athletes=data?.atletas||[];
   const groups=data?.grupos||[];
@@ -361,7 +424,6 @@ export default function SwimmingTrainingPlanning(){
         ajustes_individuais:adjustments
       });
       setMessage(`Treino criado para ${result.atletas_total} atleta(s). Cada atleta recebeu uma sessão canônica individual.`);
-      try{window.localStorage.removeItem(`agp:training-draft:${perfil?.pessoa_id||"unknown"}:${projectId}`)}catch{}
       setPlan(EMPTY_PLAN);
       setExcelText("");
       setExcelSource("");
@@ -401,6 +463,7 @@ export default function SwimmingTrainingPlanning(){
   >
     {error&&<div className="workflow-error">{error}</div>}
     {message&&<div className="workflow-success">{message}</div>}
+    {projectId&&<div className="workflow-success" style={{opacity:.9}}><strong>Persistência:</strong> {draftStatus||"Preparando..."}</div>}
 
     <section className="swim-panel">
       <span className="swim-panel-label">Projeto</span><h2>Contexto do treino</h2>

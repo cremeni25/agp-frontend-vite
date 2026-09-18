@@ -469,7 +469,7 @@ export default function SwimmingTrainingPlanning(){
     eyebrow="Técnico · Planejamento"
     title="Treino da equipe com individualização por atleta"
     subtitle="Prescreva uma sessão para um grupo, para atletas específicos ou combine ambos. O rascunho é preservado automaticamente mesmo ao trocar de aba ou abrir o Excel."
-    actions={[{label:"Voltar aos atletas",onClick:()=>navigate("/dashboard-comissao")},{label:"Atualizar",onClick:()=>loadPlanning(projectId)}]}
+    actions={[{label:"+ Novo treino",onClick:()=>document.getElementById("agp-new-training")?.scrollIntoView({behavior:"smooth",block:"start"}),primary:true},{label:"Voltar aos atletas",onClick:()=>navigate("/dashboard-comissao")},{label:"Atualizar",onClick:()=>loadPlanning(projectId)}]}
   >
     {error&&<div className="workflow-error">{error}</div>}
     {message&&<div className="workflow-success">{message}</div>}
@@ -499,7 +499,7 @@ export default function SwimmingTrainingPlanning(){
         </section>
       </section>
 
-      <form className="swim-panel" onSubmit={savePlan}>
+      <form id="agp-new-training" className="swim-panel" onSubmit={savePlan}>
         <span className="swim-panel-label">Prescrição</span><h2>Criar treino</h2>
         <div className="workflow-grid">
           <label className="workflow-field">Aplicar a um grupo<select value={plan.grupo_id} onChange={e=>setPlan(p=>({...p,grupo_id:e.target.value}))}><option value="">Sem grupo</option>{groups.map(g=><option key={g.id} value={g.id}>{g.nome}</option>)}</select></label>

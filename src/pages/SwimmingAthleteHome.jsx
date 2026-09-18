@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import SwimmingShell from "../components/SwimmingShell";
+import AthleteEvolutionDashboard from "../components/AthleteEvolutionDashboard";
 import { getParticipantCanonicalBundle } from "../services/canonicalAgp";
 
 function formatDate(value) {
@@ -99,10 +100,7 @@ export default function SwimmingAthleteHome() {
         </section>
       </>}
 
-      {tab === "evolucao" && <section className="swim-panel">
-        <div className="swim-panel-head"><div><span className="swim-panel-label">Minha evolução</span><h2>O que mudou ao longo do tempo</h2></div></div>
-        {series.length ? <div className="swim-list">{series.slice(0,20).map((item,index)=><div className="swim-row" key={item.metrica_id || item.id || index}><div><strong>{item.nome_canonico || item.metrica_codigo || "Métrica"}</strong><span>{item.amostras ? `${item.amostras} observações` : "Histórico longitudinal"}</span></div><div><span className="swim-pill">{item.estado_comparabilidade || "contexto preservado"}</span></div></div>)}</div> : <div className="swim-empty">Sua linha longitudinal está sendo formada. O AGP não inventa tendência quando ainda não há evidência suficiente.</div>}
-      </section>}
+      {tab === "evolucao" && <AthleteEvolutionDashboard participantId={participantId} role="athlete" />}
 
       {tab === "treinos" && <section className="swim-two">
         <div className="swim-panel"><span className="swim-panel-label">Treinos</span><h2>Sessões</h2>{sessions.length ? <div className="swim-list">{sessions.slice(0,15).map((item)=><div className="swim-row" key={item.id}><div><strong>{item.tipo_sessao || "Sessão"}</strong><span>{formatDate(item.inicio_real || item.inicio_planejado || item.created_at)}</span></div><span className="swim-pill">{item.status || "registrada"}</span></div>)}</div> : <div className="swim-empty">Nenhuma sessão registrada.</div>}</div>

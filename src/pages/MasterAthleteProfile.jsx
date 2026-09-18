@@ -88,14 +88,14 @@ export default function MasterAthleteProfile(){
 
      <section className="swim-grid">
        <article className="swim-card">
-         <span>Inteligência disponível</span>
-         <strong className="swim-kpi">{coverage.confianca_geral??0}%</strong>
-         <p>{practical.estado?String(practical.estado).replaceAll("_"," "):"Aguardando evidência"}</p>
+         <span>Cobertura de dados</span>
+         <strong className="swim-kpi">{coverage.cobertura_percentual??0}%</strong>
+         <p>{coverage.estado_cobertura?String(coverage.estado_cobertura).replaceAll("_"," "):"Aguardando evidência"}</p>
        </article>
        <article className="swim-card">
          <span>Ação prioritária</span>
          <strong>{practical.acao_prioritaria||"Coletar evidência"}</strong>
-         <p>{signals.length?`${signals.length} sinal(is) exigem contexto profissional.`:"Nenhum sinal operacional calculável agora."}</p>
+         <p>{coverage.nota||"Cobertura operacional não representa score de performance, risco ou prontidão."}</p>
        </article>
        <article className="swim-card">
          <span>Instituição</span>

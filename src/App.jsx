@@ -15,6 +15,7 @@ import SwimmingProfessionalHome from "./pages/SwimmingProfessionalHome";
 import SwimmingProfessionalWorkflow from "./pages/SwimmingProfessionalWorkflow";
 import SwimmingInstitutionHome from "./pages/SwimmingInstitutionHome";
 import SwimmingGovernanceHome from "./pages/SwimmingGovernanceHome";
+import SwimmingHomologationJourney from "./pages/SwimmingHomologationJourney";
 import MasterAdministration from "./pages/MasterAdministration";
 import MasterInstitutions from "./pages/MasterInstitutions";
 import MasterProjects from "./pages/MasterProjects";
@@ -70,6 +71,7 @@ function App() {
           <Route path="/comissao/validacao" element={<ProtectedRoute tipoPermitido="comissao"><CommissionProfessionalValidation /></ProtectedRoute>} />
           <Route path="/dashboard-clube" element={<ProtectedRoute tipoPermitido="clube"><SwimmingInstitutionHome /></ProtectedRoute>} />
           <Route path="/dashboard-master" element={<ProtectedRoute tipoPermitido="master"><SwimmingGovernanceHome /></ProtectedRoute>} />
+          <Route path="/master/jornada-homologacao" element={<ProtectedRoute tipoPermitido="master"><SwimmingHomologationJourney /></ProtectedRoute>} />
 
           <Route path="/dashboard-master/administracao" element={<ProtectedRoute tipoPermitido="master"><MasterAdministration /></ProtectedRoute>} />
           <Route path="/dashboard-master/administracao/instituicoes" element={<ProtectedRoute tipoPermitido="master"><MasterInstitutions /></ProtectedRoute>} />

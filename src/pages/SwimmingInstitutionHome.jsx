@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
 import SwimmingShell from "../components/SwimmingShell";
+import { getInstitutionalIntelligence } from "../services/canonicalAgp";
 
 export default function SwimmingInstitutionHome(){
   const { perfil } = useAuth();
-  const [data,setData]=useState({institution:null,projects:[],members:[],athletes:[]});
+  const [data,setData]=useState({institution:null,projects:[],members:[],athletes:[],intelligence:null});
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
 
@@ -39,10 +40,12 @@ export default function SwimmingInstitutionHome(){
         const profileMap=Object.fromEntries((profiles.data||[]).map(x=>[x.pessoa_id,x]));
         athletes=rows.map(x=>({...x,perfil_esportivo:profileMap[x.pessoa_id]||{}}));
       }
-      setData({institution:i.data,projects,members:m.data||[],athletes});
+      let intelligence=null;
+      try{intelligence=await getInstitutionalIntelligence(institutionId)}catch{}
+      setData({institution:i.data,projects,members:m.data||[],athletes,intelligence});
     }catch{
       setError("A visão institucional não está disponível para este acesso.");
-      setData({institution:null,projects:[],members:[],athletes:[]});
+      setData({institution:null,projects:[],members:[],athletes:[],intelligence:null});
     }finally{setLoading(false)}
   }
 
@@ -52,6 +55,11 @@ export default function SwimmingInstitutionHome(){
   const activeProjects=data.projects.filter(p=>!["suspenso","concluido"].includes(String(p.status||"").toLowerCase()));
   const federated=data.athletes.filter(a=>a.perfil_esportivo?.status_federativo==="federado").length;
   const linked=data.athletes.filter(a=>a.perfil_esportivo?.status_federativo==="vinculado").length;
+  const canonicalProjects=data.intelligence?.projetos||[];
+  const sessionsTotal=canonicalProjects.reduce((s,p)=>s+Number(p.sessoes_total||0),0);
+  const sessionsCompleted=canonicalProjects.reduce((s,p)=>s+Number(p.sessoes_concluidas||0),0);
+  const sessionsOpen=canonicalProjects.reduce((s,p)=>s+Number(p.sessoes_abertas||0),0);
+  const longitudinalAthletes=canonicalProjects.reduce((s,p)=>s+Number(p.atletas_com_evidencia_longitudinal||0),0);
 
   const focus=loading?["Organizando a instituição","O AGP está reunindo somente o contexto institucional autorizado."]:
     pending.length?[String(pending.length)+" atleta(s) com pendência","A instituição deve tratar vínculos e condições operacionais; a decisão esportiva continua com os profissionais responsáveis."]:
@@ -66,7 +74,17 @@ export default function SwimmingInstitutionHome(){
       <article className="swim-card"><span>Equipe ativa</span><strong className="swim-kpi">{loading?"…":data.members.length}</strong><p>Vínculos institucionais ativos.</p></article>
       <article className="swim-card"><span>Projetos ativos</span><strong className="swim-kpi">{loading?"…":activeProjects.length}</strong><p>Contextos esportivos em andamento.</p></article>
       <article className="swim-card"><span>Status esportivo</span><strong>{loading?"…":federated+" federado(s)"}</strong><p>{linked} vinculado(s) · classificação contextual para planejamento e inscrição, não elegibilidade automática.</p></article>
+      <article className="swim-card"><span>Sessões registradas</span><strong className="swim-kpi">{loading?"…":sessionsTotal}</strong><p>{sessionsCompleted} concluída(s) · {sessionsOpen} aberta(s).</p></article>
+      <article className="swim-card"><span>Longitudinalidade</span><strong className="swim-kpi">{loading?"…":longitudinalAthletes}</strong><p>Atleta(s) com evidência longitudinal observável.</p></article>
     </section>
+    <section className="swim-panel">
+      <span className="swim-panel-label">Leitura institucional</span><h2>Do dado à decisão com contexto</h2>
+      <p className="swim-muted">{data.intelligence?.devolucao_operacional?.significado||"A inteligência institucional cresce com a continuidade de dados reais, sem ranking global de atletas."}</p>
+      <div className="swim-list">
+        {(data.intelligence?.atencoes_operacionais||[]).length?(data.intelligence.atencoes_operacionais||[]).map((item,index)=><div className="swim-row" key={index}><div><strong>{String(item.tipo||"atenção").replaceAll("_"," ")}</strong><span>{item.mensagem}</span></div><span className="swim-pill">{item.quantidade}</span></div>):<div className="swim-empty">Nenhuma atenção operacional agregada imediata.</div>}
+      </div>
+    </section>
+    
     <section className="swim-panel">
       <span className="swim-panel-label">Exceções institucionais</span><h2>O que exige ação administrativa</h2>
       {pending.length?<div className="swim-list">{pending.map(item=><div className="swim-row" key={item.id}><div><strong>Atleta com preparação incompleta</strong><span>{!item.tecnico_responsavel_pessoa_id?"Sem profissional responsável":"Onboarding ainda não concluído"}</span></div><span className="swim-pill">institucional</span></div>)}</div>:<div className="swim-empty">Nenhuma exceção institucional imediata.</div>}

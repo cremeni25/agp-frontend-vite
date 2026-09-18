@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import SwimmingShell from "../components/SwimmingShell";
 
 export default function SwimmingGovernanceHome(){
+  const navigate=useNavigate();
   const [data,setData]=useState({institutions:[],projects:[],participants:[],profiles:[],athleteProfiles:[]});
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
@@ -32,7 +34,7 @@ export default function SwimmingGovernanceHome(){
   const federated=data.athleteProfiles.filter(x=>swimmerIds.has(x.pessoa_id)&&x.status_federativo==="federado").length;
   const linked=data.athleteProfiles.filter(x=>swimmerIds.has(x.pessoa_id)&&x.status_federativo==="vinculado").length;
 
-  return <SwimmingShell eyebrow="Governança · AGP Swimming" title="Preparar a homologação sem operar o atleta" subtitle="O Master governa estrutura, segurança, versões e implantação. A operação esportiva pertence aos usuários legítimos." actions={[{label:"Atualizar",onClick:load}]}>
+  return <SwimmingShell eyebrow="Governança · AGP Swimming" title="Governar o sistema sem interferir no acompanhamento esportivo" subtitle="O Master administra estrutura, segurança, versões e implantação. O acompanhamento do atleta pertence aos profissionais autorizados." actions={[{label:"Entender as jornadas",onClick:()=>navigate("/master/jornada-homologacao"),primary:true},{label:"Atualizar",onClick:load}]}>
     {error&&<div className="swim-notice">{error}</div>}
     <section className="swim-focus"><div><span className="swim-eyebrow">Marco atual</span><h2>Interface de homologação N1</h2><p>A base técnica está fechada. Esta camada existe para permitir que a N1 utilize o AGP com atletas e profissionais reais.</p></div></section>
     <section className="swim-grid">
@@ -42,8 +44,8 @@ export default function SwimmingGovernanceHome(){
       <article className="swim-card"><span>Status esportivo</span><strong>{loading?"…":federated+" federado(s)"}</strong><p>{linked} vinculado(s) · contexto visível em toda a homologação.</p></article>
     </section>
     <section className="swim-panel">
-      <span className="swim-panel-label">Regra de governança</span><h2>O Master não é operador esportivo</h2>
-      <p className="swim-muted">Não há atalho de governança para registrar treino, validar evidência ou tomar decisão profissional. O Marco 0 será homologado por pessoas legítimas em seus próprios papéis.</p>
+      <span className="swim-panel-label">Regra de governança</span><h2>O Master administra a plataforma, não substitui os profissionais</h2>
+      <p className="swim-muted">O Master pode compreender e apresentar todas as jornadas do produto, mas não registra treino, valida evidência ou toma decisão profissional em nome de atletas, técnicos ou especialistas.</p>
     </section>
   </SwimmingShell>
 }

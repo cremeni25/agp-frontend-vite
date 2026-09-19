@@ -16,7 +16,7 @@ const NAV = {
     ["♙","Atletas","/dashboard-comissao"],
     ["≋","Treinos","/profissional/treinos"],
     ["▤","Planejamento","/profissional/planejamento"],
-    ["↗","Acompanhamento","/profissional/relatorios"],
+    ["↗","Acompanhamento","/profissional/acompanhamento"],
     ["☷","Relatórios","/profissional/relatorios"],
     ["▣","Instituição","/profissional/instituicao"],
     ["＋","Atletas do piloto","/profissional/atletas-piloto"]

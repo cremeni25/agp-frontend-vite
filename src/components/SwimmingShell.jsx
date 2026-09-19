@@ -31,6 +31,7 @@ const NAV = {
     ["♙","Atletas","/master/atletas"],
     ["▣","Instituições","/master/instituicoes"],
     ["↗","Relatórios","/master/relatorios"],
+    ["$","Financeiro","/master/financeiro"],
     ["◎","Jornadas","/master/jornada-homologacao"]
   ]
 };

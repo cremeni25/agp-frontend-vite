@@ -16,6 +16,7 @@ import SwimmingProfessionalWorkflow from "./pages/SwimmingProfessionalWorkflow";
 import SwimmingTrainingPlanning from "./pages/SwimmingTrainingPlanning";
 import SwimmingPilotAthletes from "./pages/SwimmingPilotAthletes";
 import SwimmingInstitutionHome from "./pages/SwimmingInstitutionHome";
+import SwimmingProfessionalInstitution from "./pages/SwimmingProfessionalInstitution";
 import SwimmingReports from "./pages/SwimmingReports";
 import SwimmingGovernanceHome from "./pages/SwimmingGovernanceHome";
 import SwimmingHomologationJourney from "./pages/SwimmingHomologationJourney";
@@ -74,6 +75,8 @@ function App() {
           <Route path="/dashboard-comissao" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingProfessionalHome /></ProtectedRoute>} />
           <Route path="/profissional/atletas/:participantId" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingProfessionalWorkflow /></ProtectedRoute>} />
           <Route path="/profissional/treinos" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingTrainingPlanning /></ProtectedRoute>} />
+          <Route path="/profissional/planejamento" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingTrainingPlanning /></ProtectedRoute>} />
+          <Route path="/profissional/instituicao" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingProfessionalInstitution /></ProtectedRoute>} />
           <Route path="/profissional/atletas-piloto" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingPilotAthletes /></ProtectedRoute>} />
           <Route path="/comissao/validacao" element={<ProtectedRoute tipoPermitido="comissao"><CommissionProfessionalValidation /></ProtectedRoute>} />
           <Route path="/profissional/relatorios" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingReports /></ProtectedRoute>} />

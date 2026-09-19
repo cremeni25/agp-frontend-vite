@@ -73,6 +73,7 @@ function App() {
           <Route path="/dashboard-atleta" element={<ProtectedRoute tipoPermitido="atleta"><SwimmingAthleteHome /></ProtectedRoute>} />
           <Route path="/atleta/prontidao-diaria" element={<ProtectedRoute tipoPermitido="atleta"><AthleteDailyReadiness /></ProtectedRoute>} />
           <Route path="/dashboard-comissao" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingProfessionalHome /></ProtectedRoute>} />
+          <Route path="/profissional/acompanhamento" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingProfessionalHome /></ProtectedRoute>} />
           <Route path="/profissional/atletas/:participantId" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingProfessionalWorkflow /></ProtectedRoute>} />
           <Route path="/profissional/treinos" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingTrainingPlanning /></ProtectedRoute>} />
           <Route path="/profissional/planejamento" element={<ProtectedRoute tipoPermitido="comissao"><SwimmingTrainingPlanning /></ProtectedRoute>} />

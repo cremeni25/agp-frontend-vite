@@ -7,7 +7,8 @@ const ITEMS = [
   { title: "Clubes", description: "Administrar clubes e associações esportivas.", active: false },
   { title: "Equipe Técnica", description: "Administrar profissionais e vínculos técnicos.", path: "/dashboard-master/administracao/equipe-tecnica", active: true },
   { title: "Usuários", description: "Consultar registros, vínculos e status de acesso.", path: "/master/usuarios", active: true },
-  { title: "Perfis", description: "Auditar e corrigir papéis globais da plataforma.", path: "/master/perfis", active: true },\n  { title: "Financeiro / Expansão", description: "Acompanhar capacidade institucional e preparar a futura operação comercial sem valores durante a homologação.", path: "/master/financeiro", active: true },
+  { title: "Perfis", description: "Auditar e corrigir papéis globais da plataforma.", path: "/master/perfis", active: true },
+  { title: "Financeiro / Expansão", description: "Acompanhar capacidade institucional e preparar a futura operação comercial sem valores durante a homologação.", path: "/master/financeiro", active: true },
   { title: "Configurações", description: "Configurações administrativas gerais do AGP.", active: false }
 ];
 
